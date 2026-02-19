@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Portal | Reconnect</title>
+    <style>
+        :root {
+            /* Identical design tokens for brand consistency */
+            --bg-light: #f4f7f9; 
+            --primary-blue: #1e3a8a;  
+            --accent-gold: #ffcc00;   
+            --dark-text: #2c3e50;
+            --white: #ffffff;
+            --grey-text: #555555;
+            --transition: all 0.5s cubic-bezier(0.77, 0, 0.175, 1);
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-light); color: var(--dark-text); min-height: 100vh; overflow-x: hidden; }
+
+        /* --- HEADER & NAVIGATION --- */
+        header {
+            background: var(--white);
+            padding: 0 5%;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: var(--shadow);
+        }
+
+        .logo { 
+            font-size: 1.8rem; 
+            font-weight: 800; 
+            color: var(--primary-blue); 
+            cursor: pointer; 
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            z-index: 1100;
+            transition: var(--transition);
+            user-select: none;
+        }
+        .logo span { color: var(--accent-gold); background: var(--primary-blue); padding: 2px 8px; border-radius: 5px; }
+
+        nav {
+            position: fixed;
+            top: 0;
+            left: -100%; 
+            width: 100%;
+            height: 80px;
+            background: var(--primary-blue);
+            z-index: 1050;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        nav.open { left: 0; }
+
+        .nav-links { display: flex; list-style: none; gap: 30px; }
+        .nav-item {
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .nav-item:hover { color: var(--accent-gold); }
+        .nav-item.active { border-bottom: 3px solid var(--accent-gold); color: var(--accent-gold); }
+
+        .close-nav {
+            margin-left: 50px;
+            color: var(--white);
+            font-size: 1.8rem;
+            cursor: pointer;
+            width: 40px; height: 40px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+        .close-nav:hover { background: var(--accent-gold); color: var(--primary-blue); }
+
+        /* --- MAIN LAYOUT --- */
+        main {
+            margin-top: 80px;
+            padding: 40px 10%;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .section-header { margin-bottom: 40px; text-align: center; }
+        .section-title { font-size: 2.2rem; color: var(--primary-blue); font-weight: 800; }
+
+        /* --- EVENT CAROUSEL --- */
+        .slider-wrapper {
+            position: relative;
+            margin-bottom: 60px;
+            padding: 0 40px;
+        }
+
+        .slider-container { overflow: hidden; border-radius: 20px; }
+        .slider-track { display: flex; transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); gap: 25px; }
+
+        .event-card {
+            min-width: calc(33.333% - 17px);
+            background: var(--white);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            flex-shrink: 0;
+            transition: var(--transition);
+        }
+        .event-card:hover { transform: translateY(-10px); }
+
+        .event-poster { height: 200px; background-size: cover; background-position: center; position: relative; }
+        .event-date-tag { position: absolute; top: 15px; right: 15px; background: var(--accent-gold); color: var(--primary-blue); padding: 5px 12px; font-weight: 800; border-radius: 8px; font-size: 0.85rem; }
+        .event-body { padding: 25px; }
+
+        .slider-btn {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            width: 45px; height: 45px; background: var(--primary-blue);
+            color: var(--white); border: none; border-radius: 50%; cursor: pointer;
+            z-index: 10; display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: 0.3s;
+        }
+        .slider-btn.prev { left: 0; }
+        .slider-btn.next { right: 0; }
+        .slider-btn:hover { background: var(--accent-gold); color: var(--primary-blue); }
+
+        .btn-gold {
+            background: var(--accent-gold); color: var(--primary-blue); border: none;
+            padding: 12px 28px; border-radius: 30px; font-weight: 700; cursor: pointer;
+            margin-top: 15px; transition: 0.3s; display: inline-block; text-decoration: none;
+        }
+        .btn-gold:hover { background: var(--primary-blue); color: var(--white); }
+
+        /* --- POST TRIGGER --- */
+        .create-post-trigger {
+            background: var(--white); padding: 20px 30px; border-radius: 20px;
+            box-shadow: var(--shadow); margin-bottom: 30px; display: flex;
+            align-items: center; gap: 15px; cursor: pointer; transition: 0.3s;
+        }
+        .create-post-trigger:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+        .avatar-small { width: 40px; height: 40px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center; font-weight: 800; color: var(--primary-blue); border: 2px solid var(--accent-gold); }
+        .trigger-input { flex: 1; background: #f0f2f5; padding: 12px 20px; border-radius: 30px; color: var(--grey-text); }
+
+        /* --- COMMUNITY FEED --- */
+        .feed-controls {
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--white); padding: 15px 35px; border-radius: 60px;
+            margin-bottom: 40px; box-shadow: var(--shadow); flex-wrap: wrap; gap: 15px;
+        }
+        .filter-btn { background: transparent; border: none; padding: 10px 20px; border-radius: 40px; cursor: pointer; font-weight: 600; color: var(--grey-text); transition: 0.3s; }
+        .filter-btn.active { background: var(--primary-blue); color: var(--white); }
+
+        .post-card {
+            background: var(--white); padding: 30px; border-radius: 20px;
+            box-shadow: var(--shadow); margin-bottom: 30px; border-left: 8px solid #3498db; /* Student Blue */
+            animation: slideUp 0.6s ease-out forwards; opacity: 0;
+        }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+        .post-card.alumni-post { border-left-color: var(--accent-gold); }
+        .post-meta { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+        .post-content { margin-bottom: 20px; color: var(--dark-text); font-size: 1.05rem; }
+        .post-image { width: 100%; max-height: 500px; object-fit: cover; border-radius: 15px; margin-bottom: 20px; }
+        
+        .post-stats { display: flex; justify-content: space-between; padding: 12px 0; border-top: 1px solid #f2f2f2; font-size: 0.9rem; color: var(--grey-text); }
+        .post-actions { display: flex; gap: 10px; padding-top: 15px; border-top: 1px solid #f2f2f2; }
+        .action-btn { flex: 1; padding: 10px; border: none; background: transparent; border-radius: 12px; cursor: pointer; font-weight: 700; color: var(--primary-blue); display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
+        .action-btn.liked { color: #e74c3c; }
+
+        /* --- COMMENTS --- */
+        .comments-section { margin-top: 15px; padding-top: 15px; border-top: 1px solid #f2f2f2; display: none; }
+        .comments-section.active { display: block; }
+        .comment-item { display: flex; gap: 12px; margin-bottom: 15px; }
+        .comment-bubble { background: #f0f2f5; padding: 10px 15px; border-radius: 18px; font-size: 0.95rem; flex: 1; }
+        .comment-input-area { display: flex; gap: 12px; margin-top: 15px; }
+        .comment-input { flex: 1; padding: 10px 18px; border: 1px solid #e0e0e0; border-radius: 25px; outline: none; }
+
+        /* --- MODAL --- */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,40,0.8); z-index: 2000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+        .modal-overlay.active { display: flex; }
+        .modal-card { background: white; width: 100%; max-width: 600px; border-radius: 25px; padding: 30px; animation: pop 0.4s ease; }
+        @keyframes pop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        @media (max-width: 768px) {
+            .event-card { min-width: 100%; }
+            main { padding: 20px 5%; }
+            nav { height: 100vh; flex-direction: column; top: 0; }
+            .nav-links { flex-direction: column; align-items: center; gap: 25px; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Post Creation Modal -->
+    <div class="modal-overlay" id="postModal">
+        <div class="modal-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="color: var(--primary-blue)">Create Post</h3>
+                <span style="cursor: pointer; font-size: 1.5rem;" onclick="closeModal()">×</span>
+            </div>
+            <textarea id="postContent" style="width:100%; height:150px; border:none; outline:none; resize:none; font-size:1.1rem;" placeholder="What's happening in campus?"></textarea>
+            <div id="imagePreviewContainer" style="display:none; margin-bottom:15px;">
+                <img id="imagePreview" src="" style="width:100%; border-radius:15px;">
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#f0f2f5; padding:10px 15px; border-radius:15px; margin-bottom:20px;">
+                <label style="cursor:pointer; font-weight:700; color:var(--primary-blue);">📷 Add Photo <input type="file" style="display:none" onchange="previewImg(this)"></label>
+                <select id="audience" style="border:none; background:none; font-weight:600; color:var(--primary-blue); outline:none;">
+                    <option>Everyone</option>
+                    <option>Only Alumni</option>
+                    <option>Only Students</option>
+                </select>
+            </div>
+            <button class="btn-gold" style="width:100%; padding:15px;" onclick="addPost()">Post Activity</button>
+        </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav id="topNav">
+        <ul class="nav-links">
+            <li><a href="{% url 'student_dashboard' %}" class="nav-item active">Dashboard</a></li>
+            <li><a href="{% url 'announcements' %}" class="nav-item">Announcements</a></li>
+            <li><a href="{% url 'connect' %}" class="nav-item">Connect</a></li>
+            <li><a href="{% url 'events' %}" class="nav-item">Events</a></li>
+            <li><a href="{% url 'settings' %}" class="nav-item">Settings</a></li>
+        </ul>
+        <div class="close-nav" onclick="toggleNav()">×</div>
+    </nav>
+
+    <header>
+        <div class="logo" onclick="toggleNav()"><span>Re</span>connect</div>
+        <div style="display:flex; align-items:center; gap:15px; font-weight:700; color:var(--primary-blue)">
+            <span>Rahul Kumar</span>
+            <div class="avatar-small">RK</div>
+        </div>
+    </header>
+
+    <main>
+        <div class="section-header">
+            <h2 class="section-title">Campus Buzz</h2>
+            <p style="color:var(--grey-text)">Latest events and student life updates.</p>
+        </div>
+
+        <!-- Event Carousel -->
+        <div class="slider-wrapper">
+            <button class="slider-btn prev" onclick="moveSlide(-1)">❮</button>
+            <div class="slider-container">
+                <div class="slider-track" id="slider-track">
+                    <!-- Events Injected by JS -->
+                </div>
+            </div>
+            <button class="slider-btn next" onclick="moveSlide(1)">❯</button>
+        </div>
+
+        <!-- Post Trigger -->
+        <div class="create-post-trigger" onclick="openModal()">
+            <div class="avatar-small">RK</div>
+            <div class="trigger-input">Start a conversation with alumni or peers...</div>
+            <span style="color:var(--accent-gold); font-size:1.2rem;">📷</span>
+        </div>
+
+        <div class="feed-controls">
+            <h3 style="color:var(--primary-blue)">Community Feed</h3>
+            <div>
+                <button class="filter-btn active" onclick="filterFeed('all', this)">All</button>
+                <button class="filter-btn" onclick="filterFeed('alumni', this)">Alumni</button>
+                <button class="filter-btn" onclick="filterFeed('student', this)">Students</button>
+            </div>
+        </div>
+
+        <div id="posts-feed">
+            <!-- Posts Injected by JS -->
+        </div>
+    </main>
+
+    <script>
+        const sliderTrack = document.getElementById('slider-track');
+        const postsFeed = document.getElementById('posts-feed');
+        const topNav = document.getElementById('topNav');
+        let slideIdx = 0;
+
+        const events = [
+            { id: 1, title: "Tech Meetup 2024", date: "NOV 12", img: "https://images.unsplash.com/photo-1540575861501-7ce0e220add1?w=600" },
+            { id: 2, title: "Startup Pitch Day", date: "DEC 05", img: "https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=600" },
+            { id: 3, title: "Annual Cricket Cup", date: "JAN 15", img: "https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=600" }
+        ];
+
+        let posts = [
+            { id: 1, type: 'alumni', user: 'James Miller', class: '2015', content: 'Just hired 3 interns from the junior batch! Great potential.', likes: 84, comments: [] },
+            { id: 2, type: 'student', user: 'Sarah Jenkins', class: 'Senior', content: 'Who is up for a hackathon team building session tonight?', likes: 12, comments: [] }
+        ];
+
+        window.onload = () => {
+            renderEvents();
+            renderPosts('all');
+        };
+
+        function toggleNav() { topNav.classList.toggle('open'); }
+
+        function renderEvents() {
+            sliderTrack.innerHTML = events.map(ev => `
+                <div class="event-card">
+                    <div class="event-poster" style="background-image:url('${ev.img}')"><div class="event-date-tag">${ev.date}</div></div>
+                    <div class="event-body">
+                        <h3>${ev.title}</h3>
+                        <a href="eventdetails.html?id=${ev.id}" class="btn-gold">Read Details</a>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function moveSlide(dir) {
+            const cardW = sliderTrack.children[0].offsetWidth + 25;
+            slideIdx = Math.max(0, Math.min(slideIdx + dir, events.length - 1));
+            sliderTrack.style.transform = `translateX(-${slideIdx * cardW}px)`;
+        }
+
+        function renderPosts(filter) {
+            const filtered = filter === 'all' ? posts : posts.filter(p => p.type === filter);
+            postsFeed.innerHTML = filtered.map(p => `
+                <div class="post-card ${p.type}-post">
+                    <div class="post-meta">
+                        <div class="avatar-small">${p.user[0]}</div>
+                        <div>
+                            <h4 style="color:var(--primary-blue)">${p.user} <small style="color:#888">• ${p.type.toUpperCase()}</small></h4>
+                            <small style="color:#aaa">${p.class}</small>
+                        </div>
+                    </div>
+                    <div class="post-content">${p.content}</div>
+                    <div class="post-stats"><span>❤️ <span id="l-${p.id}">${p.likes}</span> likes</span><span>💬 ${p.comments.length} comments</span></div>
+                    <div class="post-actions">
+                        <button class="action-btn" onclick="likePost(${p.id}, this)">👍 Like</button>
+                        <button class="action-btn" onclick="toggleComments(${p.id})">💬 Comment</button>
+                    </div>
+                    <div class="comments-section" id="c-${p.id}">
+                        <div class="comment-input-area">
+                            <input type="text" class="comment-input" placeholder="Write a comment...">
+                            <button class="btn-gold" style="margin:0; padding:10px 20px">Post</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openModal() { document.getElementById('postModal').classList.add('active'); }
+        function closeModal() { document.getElementById('postModal').classList.remove('active'); }
+
+        function previewImg(input) {
+            if(input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    document.getElementById('imagePreview').src = e.target.result;
+                    document.getElementById('imagePreviewContainer').style.display = 'block';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function addPost() {
+            const content = document.getElementById('postContent').value.trim();
+            if(!content) return;
+            posts.unshift({ id: Date.now(), type: 'student', user: 'Rahul Kumar', class: 'Senior', content: content, likes: 0, comments: [] });
+            renderPosts('all');
+            closeModal();
+            document.getElementById('postContent').value = '';
+        }
+
+        function likePost(id, btn) {
+            const count = document.getElementById(`l-${id}`);
+            btn.classList.toggle('liked');
+            count.innerText = parseInt(count.innerText) + (btn.classList.contains('liked') ? 1 : -1);
+            btn.innerText = btn.classList.contains('liked') ? '❤️ Liked' : '👍 Like';
+        }
+
+        function toggleComments(id) { document.getElementById(`c-${id}`).classList.toggle('active'); }
+
+        function filterFeed(type, btn) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderPosts(type);
+        }
+    </script>
+</body>
+</html>

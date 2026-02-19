@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Details | Reconnect</title>
+    <style>
+        :root {
+            --bg-light-blue: #eef7ff;
+            --primary-blue: #1e3a8a;
+            --accent-gold: #ffcc00;
+            --dark-text: #2c3e50;
+            --white: #ffffff;
+            --grey-text: #555555;
+            --transition: all 0.5s ease;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+
+        body { background-color: var(--bg-light-blue); color: var(--dark-text); padding-top: 80px; }
+
+        header {
+            background: var(--white);
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 5%;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: var(--shadow);
+        }
+
+        .logo { font-size: 1.5rem; font-weight: 800; color: var(--primary-blue); cursor: pointer; text-decoration: none; }
+        .logo span { color: var(--accent-gold); background: var(--primary-blue); padding: 2px 8px; border-radius: 5px; margin-right: 5px; }
+
+        main { max-width: 1200px; margin: 40px auto; padding: 0 5%; }
+
+        .btn-back {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+        }
+
+        .detail-card {
+            background: var(--white);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .hero-banner {
+            height: 400px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .event-content { padding: 40px; display: grid; grid-template-columns: 2fr 1fr; gap: 40px; }
+
+        @media (max-width: 900px) { .event-content { grid-template-columns: 1fr; } }
+
+        .timeline-box { background: var(--bg-light-blue); padding: 30px; border-radius: 15px; }
+        .timeline { position: relative; padding-left: 30px; border-left: 2px dashed var(--accent-gold); margin-left: 10px; margin-top: 20px; }
+        .timeline-item { position: relative; margin-bottom: 30px; }
+        .timeline-item::before {
+            content: ''; position: absolute; left: -37px; top: 5px; width: 12px; height: 12px;
+            background: var(--primary-blue); border: 3px solid var(--accent-gold); border-radius: 50%;
+        }
+        .timeline-time { font-weight: 800; color: var(--primary-blue); display: block; }
+
+        .btn-gold {
+            background: var(--accent-gold);
+            color: var(--primary-blue);
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: 0.3s;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="{% url 'alumni_dashboard' %}" class="logo"><span>Re</span>connect</a>
+    </header>
+
+    <main>
+        <a href="{% url 'alumni_dashboard' %}" class="btn-back">❮ Back to Dashboard</a>
+        
+        <div id="content-container">
+            <!-- Dynamically populated -->
+        </div>
+    </main>
+
+    <script>
+        const events = [
+            { id: 1, title: "Alumni Grand Gala", date: "OCT 24", img: "https://images.unsplash.com/photo-1511578314322-379afb476865?w=1000", desc: "Join us for an evening of nostalgia and celebration of our collective success since 1999." },
+            { id: 2, title: "Startup Pitch Day", date: "NOV 12", img: "https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=1000", desc: "Witness the brightest student minds pitch to an alumni investor panel." },
+            { id: 3, title: "AI Ethics Seminar", date: "DEC 05", img: "https://images.unsplash.com/photo-1591115765373-520b7a21769b?w=1000", desc: "A deep dive into the societal impacts of modern AI." },
+            { id: 4, title: "Class of 2010 Meetup", date: "JAN 15", img: "https://images.unsplash.com/photo-1540575861501-7ce0e220add1?w=1000", desc: "A casual weekend retreat for the batch of 2010." },
+            { id: 5, title: "Graduation 2024", date: "JUN 30", img: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1000", desc: "Welcome the class of 2024 into the alumni family." }
+        ];
+
+        const timelineData = [
+            { time: "09:00 AM", task: "Registration & Welcome Drinks" },
+            { time: "10:30 AM", task: "Opening Ceremony" },
+            { time: "12:30 PM", task: "Networking Lunch" },
+            { time: "02:30 PM", task: "Alumni Panel Discussion" },
+            { time: "05:00 PM", task: "Closing & High Tea" }
+        ];
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventId = parseInt(urlParams.get('id'));
+        const event = events.find(e => e.id === eventId) || events[0];
+
+        document.getElementById('content-container').innerHTML = `
+            <div class="detail-card">
+                <div class="hero-banner" style="background-image: url('${event.img}')"></div>
+                <div class="event-content">
+                    <div>
+                        <h1 style="color: var(--primary-blue); font-size: 2.5rem; margin-bottom: 10px;">${event.title}</h1>
+                        <p style="color: var(--accent-gold); font-weight: 800; font-size: 1.2rem; margin-bottom: 30px;">Date: ${event.date}</p>
+                        <h2 style="margin-bottom: 20px;">About the Event</h2>
+                        <p style="font-size: 1.1rem; line-height: 1.8;">${event.desc} We welcome you to return to the halls where it all began. This event will feature special guests, interactive sessions, and opportunities to connect with the next generation of engineers.</p>
+                        <button class="btn-gold">Register Now</button>
+                    </div>
+                    <div class="timeline-box">
+                        <h3>Event Timeline</h3>
+                        <div class="timeline">
+                            ${timelineData.map(item => `
+                                <div class="timeline-item">
+                                    <span class="timeline-time">${item.time}</span>
+                                    <p>${item.task}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    </script>
+</body>
+</html>

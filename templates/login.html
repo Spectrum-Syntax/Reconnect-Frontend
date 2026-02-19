@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Reconnect Portal</title>
+    <style>
+        :root {
+            /* Identical design tokens for brand consistency */
+            --bg-light: #f4f7f9; 
+            --primary-blue: #1e3a8a;  
+            --accent-gold: #ffcc00;   
+            --dark-text: #2c3e50;
+            --white: #ffffff;
+            --grey-text: #555555;
+            --transition: all 0.5s cubic-bezier(0.77, 0, 0.175, 1);
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        }
+
+        body { 
+            background-color: var(--bg-light); 
+            color: var(--dark-text); 
+            height: 100vh; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* --- BACKGROUND ELEMENTS --- */
+        .bg-circle {
+            position: fixed;
+            border-radius: 50%;
+            background: var(--primary-blue);
+            opacity: 0.03;
+            z-index: -1;
+        }
+        .circle-1 { width: 400px; height: 400px; top: -100px; left: -100px; }
+        .circle-2 { width: 300px; height: 300px; bottom: -50px; right: -50px; background: var(--accent-gold); }
+
+        /* --- LOGIN CARD --- */
+        .login-card {
+            background: var(--white);
+            width: 100%;
+            max-width: 450px;
+            padding: 50px 40px;
+            border-radius: 25px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            animation: slideUp 0.8s ease-out forwards;
+        }
+
+        @keyframes slideUp { 
+            from { opacity: 0; transform: translateY(40px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        .logo { 
+            font-size: 2.2rem; 
+            font-weight: 800; 
+            color: var(--primary-blue); 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            margin-bottom: 10px;
+            user-select: none;
+        }
+        .logo span { 
+            color: var(--accent-gold); 
+            background: var(--primary-blue); 
+            padding: 2px 10px; 
+            border-radius: 8px; 
+        }
+
+        .login-subtitle {
+            color: var(--grey-text);
+            font-size: 0.95rem;
+            margin-bottom: 35px;
+            font-weight: 500;
+        }
+
+        /* --- FORM STYLES --- */
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--primary-blue);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 20px;
+            border-radius: 12px;
+            border: 2px solid #e0e6ed;
+            outline: none;
+            font-size: 1rem;
+            transition: var(--transition);
+            background: #fcfdfe;
+        }
+
+        input:focus {
+            border-color: var(--primary-blue);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.05);
+        }
+
+        .login-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            font-size: 0.85rem;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: var(--grey-text);
+        }
+
+        .checkbox-group input {
+            width: auto;
+            cursor: pointer;
+        }
+
+        .forgot-link {
+            color: var(--primary-blue);
+            text-decoration: none;
+            font-weight: 700;
+            transition: 0.3s;
+        }
+        .forgot-link:hover { color: var(--accent-gold); }
+
+        .btn-login {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            background: var(--primary-blue);
+            color: var(--white);
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 10px 20px rgba(30, 58, 138, 0.2);
+        }
+
+        .btn-login:hover {
+            background: var(--accent-gold);
+            color: var(--primary-blue);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255, 204, 0, 0.3);
+        }
+
+        .footer-text {
+            margin-top: 30px;
+            font-size: 0.9rem;
+            color: var(--grey-text);
+        }
+
+        .footer-text a {
+            color: var(--primary-blue);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 40px 25px;
+                border-radius: 0;
+                height: 100vh;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-circle circle-1"></div>
+    <div class="bg-circle circle-2"></div>
+
+    <div class="login-card">
+        <div class="logo">
+            <span>Re</span>connect
+        </div>
+        <p class="login-subtitle">Welcome back to your Alumni & Student Hub</p>
+
+        {% if messages %}
+            {% for message in messages %}
+                <p style="color:red; margin-bottom:15px;">{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST" action="{% url 'login' %}">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="enrollment">Enrollment Number</label>
+                <div class="input-wrapper">
+                    <input type="text" id="enrollment" name="enrollment_number" placeholder="e.g. ENR-2024-001" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-wrapper">
+                    <input type="password" id="password" name="password" placeholder="••••••••" required>
+                </div>
+            </div>
+
+            <div class="login-options">
+                <label class="checkbox-group">
+                    <input type="checkbox"> Remember me
+                </label>
+                <a href="#" class="forgot-link">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="btn-login">Login to Portal</button>
+        </form>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Settings | Reconnect</title>
+    <style>
+        :root {
+            --bg-light: #f4f7f9; 
+            --primary-blue: #1e3a8a;  
+            --accent-gold: #D4AF37;   
+            --dark-text: #333333;
+            --white: #ffffff;
+            --grey-text: #666666;
+            --locked-bg: #f0f2f5;
+            --transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--dark-text);
+            padding-top: 80px;
+        }
+
+        /* --- HEADER & NAVIGATION (Synced) --- */
+        header {
+            background: var(--white);
+            padding: 0 5%;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: var(--shadow);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--primary-blue);
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--accent-gold);
+            background: var(--primary-blue);
+            padding: 2px 10px;
+            border-radius: 6px;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            left: -100%; 
+            width: 100%;
+            height: 80px;
+            background: var(--primary-blue);
+            z-index: 1050;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        nav.open { left: 0; }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 40px;
+        }
+
+        .nav-item {
+            color: var(--white);
+            font-weight: 600;
+            text-decoration: none;
+            padding: 10px 15px;
+            transition: 0.3s;
+        }
+
+        .nav-item:hover { color: var(--accent-gold); }
+        .nav-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 80%;
+            height: 3px;
+            background: var(--accent-gold);
+            transform: translateX(-50%);
+            border-radius: 10px;
+        }
+
+        .close-nav {
+            position: absolute;
+            right: 5%;
+            color: var(--white);
+            font-size: 2rem;
+            cursor: pointer;
+        }
+
+        /* --- MAIN CONTENT --- */
+        main {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 5% 100px 5%;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 40px;
+            animation: fadeIn 0.8s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 768px) {
+            .settings-grid { grid-template-columns: 1fr; }
+            nav { height: 100vh; flex-direction: column; }
+            .nav-links { flex-direction: column; align-items: center; }
+        }
+
+        /* --- PROFILE CARD --- */
+        .profile-card {
+            background: var(--white);
+            border-radius: 24px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            height: fit-content;
+        }
+
+        .profile-pic-container {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 20px auto;
+        }
+
+        .profile-pic {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--accent-gold);
+            padding: 5px;
+            background: var(--white);
+        }
+
+        .change-pic-btn {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background: var(--primary-blue);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 3px solid var(--white);
+            transition: 0.3s;
+        }
+
+        .change-pic-btn:hover { background: var(--accent-gold); transform: scale(1.1); }
+
+        /* --- FORM STYLING --- */
+        .card {
+            background: var(--white);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            color: var(--primary-blue);
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent-gold);
+            display: inline-block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--grey-text);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px 18px;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+            outline: none;
+            font-size: 1rem;
+            transition: 0.3s;
+        }
+
+        .input-field:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.05);
+        }
+
+        /* Read-only / Locked fields */
+        .input-field.locked {
+            background-color: var(--locked-bg);
+            color: var(--grey-text);
+            cursor: not-allowed;
+            border-style: dashed;
+        }
+
+        .lock-icon {
+            float: right;
+            color: #999;
+            font-size: 0.8rem;
+        }
+
+        .btn-save {
+            background: var(--primary-blue);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 100%;
+        }
+
+        .btn-save:hover {
+            background: var(--accent-gold);
+            color: var(--primary-blue);
+            transform: translateY(-2px);
+        }
+
+        .password-feedback {
+            font-size: 0.8rem;
+            margin-top: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo" onclick="toggleNav()">
+            <span>Re</span>connect
+        </div>
+        <div style="font-weight: 700; color: var(--primary-blue)">Settings</div>
+    </header>
+
+    <nav id="topNav">
+        <ul class="nav-links">
+            <li><a href="{% url 'alumni_dashboard' %}" class="nav-item">Dashboard</a></li>
+            <li><a href="{% url 'announcements' %}" class="nav-item">Announcements</a></li>
+            <li><a href="{% url 'connect' %}" class="nav-item">Connect</a></li>
+            <li><a href="{% url 'events' %}" class="nav-item">Events</a></li>
+            <li><a href="{% url 'settings' %}" class="nav-item active">Settings</a></li>
+        </ul>
+        <div class="close-nav" onclick="toggleNav()">×</div>
+    </nav>
+
+    <main>
+        <div class="settings-grid">
+            <!-- Sidebar: Profile Pic Summary -->
+            <div class="profile-card">
+                <div class="profile-pic-container">
+                    <img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400" class="profile-pic" id="display-pic">
+                    <label for="pic-upload" class="change-pic-btn">
+                        📷
+                        <input type="file" id="pic-upload" style="display:none" onchange="previewImage(this)">
+                    </label>
+                </div>
+                <h2 id="summary-name">Alex Smith</h2>
+                <p style="color: var(--accent-gold); font-weight: 700;">B.Tech CSE</p>
+                <p style="color: var(--grey-text); font-size: 0.9rem;">Batch of 2012</p>
+            </div>
+
+            <!-- Content Area -->
+            <div class="settings-content">
+                
+                <!-- Editable Details -->
+                <div class="card">
+                    <h3 class="section-title">Personal Settings</h3>
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="tel" class="input-field" value="+91 98765 43210" placeholder="Update your phone number">
+                    </div>
+
+                    <div style="margin-top: 30px;">
+                        <h4 style="margin-bottom: 15px; color: var(--grey-text);">Change Password</h4>
+                        <div class="form-group">
+                            <label>Current Password</label>
+                            <input type="password" class="input-field" placeholder="••••••••">
+                        </div>
+                        <div class="form-group">
+                            <label>New Password</label>
+                            <input type="password" id="new-pw" class="input-field" placeholder="Enter new password">
+                        </div>
+                        <div class="form-group">
+                            <label>Confirm New Password</label>
+                            <input type="password" id="confirm-pw" class="input-field" placeholder="Repeat new password" onkeyup="checkPasswordMatch()">
+                            <p id="pw-match-text" class="password-feedback">Passwords match!</p>
+                        </div>
+                    </div>
+                    
+                    <button class="btn-save" onclick="handleSave()">Save Profile Updates</button>
+                </div>
+
+                <!-- Non-Editable / Locked Details -->
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                        <h3 class="section-title">Institutional Records</h3>
+                        <span style="font-size: 0.75rem; color: #999;">🔒 Verified - Contact Admin to edit</span>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" class="input-field locked" value="Alex Smith" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Department</label>
+                            <input type="text" class="input-field locked" value="Computer Science Engineering" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Date of Birth</label>
+                            <input type="text" class="input-field locked" value="15-May-1990" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Passed Out Year</label>
+                            <input type="text" class="input-field locked" value="2012" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>CGPA</label>
+                            <input type="text" class="input-field locked" value="8.75" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Enrollment Number</label>
+                            <input type="text" class="input-field locked" value="ENR-2008-012" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Register Number</label>
+                            <input type="text" class="input-field locked" value="REG987654" readonly>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const topNav = document.getElementById('topNav');
+        
+        function toggleNav() {
+            topNav.classList.toggle('open');
+        }
+
+        function checkPasswordMatch() {
+            const p1 = document.getElementById('new-pw').value;
+            const p2 = document.getElementById('confirm-pw').value;
+            const feedback = document.getElementById('pw-match-text');
+            
+            if (p1 === "" && p2 === "") {
+                feedback.style.display = 'none';
+                return;
+            }
+
+            feedback.style.display = 'block';
+            if (p1 === p2) {
+                feedback.innerText = "✓ Passwords match";
+                feedback.style.color = "#22c55e";
+            } else {
+                feedback.innerText = "✗ Passwords do not match";
+                feedback.style.color = "#ef4444";
+            }
+        }
+
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('display-pic').src = e.target.result;
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function handleSave() {
+            // Simplified feedback for mockup
+            alert("Profile settings saved successfully!");
+        }
+    </script>
+</body>
+</html>

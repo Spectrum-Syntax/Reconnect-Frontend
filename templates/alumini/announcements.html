@@ -308,50 +308,18 @@
 
     <script>
         const announcements = [
+            {% for ann in announcements %}
             {
-                id: 1,
-                importance: 'urgent',
-                title: 'Portal Security Upgrade',
-                body: 'We are upgrading our security protocols. All alumni are requested to enable Two-Factor Authentication (2FA) by Feb 25th to maintain account access.',
-                date: { day: '22', month: 'Feb' },
-                posted: 'Posted: 2 hours ago'
-            },
-            {
-                id: 2,
-                importance: 'event',
-                title: 'Annual Grand Gala 2024: Registration Open',
-                body: 'The registration window for our flagship reunion event is now open. Exclusive early-bird slots are available for the 1999-2005 batches.',
-                date: { day: '20', month: 'Feb' },
-                posted: 'Posted: Yesterday',
-                actionLink: 'eventdetails.html?id=1',
-                actionLabel: 'View Event Schedule'
-            },
-            {
-                id: 3,
-                importance: 'opportunity',
-                title: 'Summer Internship Mentors Needed',
-                body: 'Help our final year students navigate the corporate world. We are looking for 50 alumni mentors from the Tech and Finance sectors.',
-                date: { day: '18', month: 'Feb' },
-                posted: 'Posted: 3 days ago'
-            },
-            {
-                id: 4,
-                importance: 'info',
-                title: 'Digital Library Access Extended',
-                body: 'In response to popular demand, alumni access to the digital research journals and the central library database has been extended for another year.',
-                date: { day: '15', month: 'Feb' },
-                posted: 'Posted: 1 week ago'
-            },
-            {
-                id: 5,
-                importance: 'event',
-                title: 'Tech Meetup 2024: Speaker Reveal',
-                body: 'We are thrilled to announce our keynote speaker for the upcoming Tech Meetup. Join us as we host the VP of Engineering from GlobalTech.',
-                date: { day: '12', month: 'Feb' },
-                posted: 'Posted: Feb 12, 2024',
-                actionLink: 'eventdetails.html?id=2',
-                actionLabel: 'See Speakers'
-            }
+                id: {{ ann.id }},
+                importance: '{{ ann.importance|escapejs }}',
+                title: '{{ ann.title|escapejs }}',
+                body: '{{ ann.body|escapejs }}',
+                date: { day: '{{ ann.display_day|escapejs }}', month: '{{ ann.display_month|escapejs }}' },
+                posted: '{{ ann.created_at|timesince }} ago'{% if ann.action_link %},
+                actionLink: '{{ ann.action_link|escapejs }}',
+                actionLabel: '{{ ann.action_label|escapejs }}'{% endif %}
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
         ];
 
         function renderAnnouncements() {

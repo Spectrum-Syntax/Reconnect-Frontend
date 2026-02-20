@@ -65,49 +65,35 @@
     <main>
         <div class="profile-hero">
             <div class="cover-photo"></div>
-            <div class="profile-avatar-large" id="prof-avatar">SJ</div>
-            <h1 id="prof-name">Sarah Jenkins</h1>
-            <p style="color: var(--accent-gold); font-weight: 700;">Software Architect @ TechCorp</p>
+            {% if profile_user.profile_picture %}
+            <div class="profile-avatar-large" style="background-image: url('{{ profile_user.profile_picture.url }}'); background-size: cover; background-position: center;"></div>
+            {% else %}
+            <div class="profile-avatar-large">{{ profile_user.get_initials }}</div>
+            {% endif %}
+            <h1>{{ profile_user.get_full_name|default:profile_user.username }}</h1>
+            <p style="color: var(--accent-gold); font-weight: 700;">{{ profile_user.working_status|default:"—" }}</p>
             <div class="stats-grid">
-                <div class="stat-item"><h4>152</h4><p>Connections</p></div>
-                <div class="stat-item"><h4>24</h4><p>Posts</p></div>
-                <div class="stat-item"><h4>12</h4><p>Mentees</p></div>
+                <div class="stat-item"><h4>{{ profile_user.conversations.count }}</h4><p>Connections</p></div>
+                <div class="stat-item"><h4>0</h4><p>Posts</p></div>
+                <div class="stat-item"><h4>0</h4><p>Mentees</p></div>
             </div>
+            {% if profile_user.id != user.id %}
             <button class="btn-connect" onclick="alert('Connection Request Sent!')">Request Connection</button>
+            {% endif %}
         </div>
 
         <div class="info-card">
             <h3 style="color: var(--primary-blue); border-bottom: 2px solid var(--accent-gold); display: inline-block; padding-bottom: 5px;">Institutional Record</h3>
             <div class="info-grid">
-                <div class="info-item"><label>Enrollment ID</label><span id="prof-enr">ENR-2012-008</span></div>
-                <div class="info-item"><label>Register No</label><span>REG1244558</span></div>
-                <div class="info-item"><label>Department</label><span>B.Tech Information Technology</span></div>
-                <div class="info-item"><label>Passed Out</label><span>2012</span></div>
-                <div class="info-item"><label>CGPA</label><span>9.12</span></div>
-                <div class="info-item"><label>Date of Birth</label><span>12-Oct-1990</span></div>
-            </div>
-        </div>
-
-        <h3 style="margin-bottom: 25px; color: var(--primary-blue);">Post History</h3>
-        <div id="user-posts">
-            <div class="post-card">
-                <p>Throwback to the day we finally finished our final year project! Miss these labs.</p>
-                <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800" class="post-image">
-                <div style="font-size: 0.8rem; color: var(--grey-text);">Posted 3 months ago</div>
+                <div class="info-item"><label>Enrollment ID</label><span>{{ profile_user.enrollment_number }}</span></div>
+                <div class="info-item"><label>Register No</label><span>{{ profile_user.register_number|default:"—" }}</span></div>
+                <div class="info-item"><label>Department</label><span>{{ profile_user.department|default:"—" }}</span></div>
+                <div class="info-item"><label>Passed Out</label><span>{{ profile_user.passed_out_year|default:"—" }}</span></div>
+                <div class="info-item"><label>CGPA</label><span>{{ profile_user.cgpa|default:"—" }}</span></div>
+                <div class="info-item"><label>Date of Birth</label><span>{% if profile_user.date_of_birth %}{{ profile_user.date_of_birth|date:"d-M-Y" }}{% else %}—{% endif %}</span></div>
             </div>
         </div>
     </main>
 
-    <script>
-        const params = new URLSearchParams(window.location.search);
-        const enr = params.get('enr');
-        
-        // Mock data logic
-        if (enr === 'ENR-2012-114') {
-            document.getElementById('prof-name').innerText = "David Wright";
-            document.getElementById('prof-avatar').innerText = "DW";
-            document.getElementById('prof-enr').innerText = enr;
-        }
-    </script>
 </body>
 </html>

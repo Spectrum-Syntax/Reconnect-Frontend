@@ -244,8 +244,8 @@
     <header>
         <div class="logo" onclick="toggleNav()"><span>Re</span>connect</div>
         <div style="display:flex; align-items:center; gap:15px; font-weight:700; color:var(--primary-blue)">
-            <span>Rahul Kumar</span>
-            <div class="avatar-small">RK</div>
+            <span>{{ user.get_full_name|default:user.username }}</span>
+            <div class="avatar-small">{{ user.get_initials }}</div>
         </div>
     </header>
 
@@ -268,7 +268,7 @@
 
         <!-- Post Trigger -->
         <div class="create-post-trigger" onclick="openModal()">
-            <div class="avatar-small">RK</div>
+            <div class="avatar-small">{{ user.get_initials }}</div>
             <div class="trigger-input">Start a conversation with alumni or peers...</div>
             <span style="color:var(--accent-gold); font-size:1.2rem;">📷</span>
         </div>
@@ -293,10 +293,13 @@
         const topNav = document.getElementById('topNav');
         let slideIdx = 0;
 
+        const CURRENT_USER_NAME = '{{ user.get_full_name|default:user.username }}';
+        const CURRENT_USER_INITIALS = '{{ user.get_initials }}';
+
         const events = [
-            { id: 1, title: "Tech Meetup 2024", date: "NOV 12", img: "https://images.unsplash.com/photo-1540575861501-7ce0e220add1?w=600" },
-            { id: 2, title: "Startup Pitch Day", date: "DEC 05", img: "https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=600" },
-            { id: 3, title: "Annual Cricket Cup", date: "JAN 15", img: "https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=600" }
+            {% for ev in events %}
+            { id: {{ ev.id }}, title: "{{ ev.title|escapejs }}", date: "{{ ev.date_display|escapejs }}", img: "{{ ev.image_url|escapejs }}" }{% if not forloop.last %},{% endif %}
+            {% endfor %}
         ];
 
         let posts = [
@@ -317,7 +320,7 @@
                     <div class="event-poster" style="background-image:url('${ev.img}')"><div class="event-date-tag">${ev.date}</div></div>
                     <div class="event-body">
                         <h3>${ev.title}</h3>
-                        <a href="eventdetails.html?id=${ev.id}" class="btn-gold">Read Details</a>
+                        <a href="/event-details/?id=${ev.id}" class="btn-gold">Read Details</a>
                     </div>
                 </div>
             `).join('');
@@ -373,7 +376,7 @@
         function addPost() {
             const content = document.getElementById('postContent').value.trim();
             if(!content) return;
-            posts.unshift({ id: Date.now(), type: 'student', user: 'Rahul Kumar', class: 'Senior', content: content, likes: 0, comments: [] });
+            posts.unshift({ id: Date.now(), type: 'student', user: CURRENT_USER_NAME, class: 'Senior', content: content, likes: 0, comments: [] });
             renderPosts('all');
             closeModal();
             document.getElementById('postContent').value = '';

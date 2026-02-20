@@ -343,44 +343,49 @@
                             🔑 New accounts are assigned default password: <strong>connect@123</strong>
                         </div>
                         
-                        <form class="form-grid">
+                        <form class="form-grid" id="singleUserForm">
+                            {% csrf_token %}
                             <div class="field">
                                 <label>User Role</label>
-                                <select>
+                                <select id="su-role" name="role">
                                     <option value="alumni">Alumni</option>
                                     <option value="student">Student</option>
                                 </select>
                             </div>
                             <div class="field">
                                 <label>Enrollment Number (System ID)</label>
-                                <input type="text" placeholder="e.g. ENR-2024-001">
+                                <input type="text" id="su-enrollment" name="enrollment_number" placeholder="e.g. ENR-2024-001">
                             </div>
                             <div class="field">
                                 <label>Full Name</label>
-                                <input type="text" placeholder="Enter name">
+                                <input type="text" id="su-name" name="full_name" placeholder="Enter name">
                             </div>
                             <div class="field">
                                 <label>Department</label>
-                                <input type="text" placeholder="e.g. CSE, IT, Mechanical">
+                                <input type="text" id="su-dept" name="department" placeholder="e.g. CSE, IT, Mechanical">
                             </div>
                             <div class="field">
                                 <label>Passed Out Year</label>
-                                <input type="number" placeholder="2024">
+                                <input type="number" id="su-year" name="passed_out_year" placeholder="2024">
                             </div>
                             <div class="field">
                                 <label>CGPA</label>
-                                <input type="text" placeholder="0.00">
+                                <input type="text" id="su-cgpa" name="cgpa" placeholder="0.00">
                             </div>
                             <div class="field">
                                 <label>Working Status / Current Role</label>
-                                <input type="text" placeholder="e.g. SDE at Google">
+                                <input type="text" id="su-status" name="working_status" placeholder="e.g. SDE at Google">
                             </div>
                             <div class="field">
                                 <label>Phone Number</label>
-                                <input type="tel" placeholder="+91 ...">
+                                <input type="tel" id="su-phone" name="phone" placeholder="+91 ...">
+                            </div>
+                            <div class="field">
+                                <label>Password</label>
+                                <input type="text" id="su-password" name="password" value="connect@123" placeholder="Default password">
                             </div>
                             <div class="field full">
-                                <button type="button" class="btn-action" onclick="showToast('User Account Created!')">✨ Create Account</button>
+                                <button type="button" class="btn-action" onclick="createSingleUser()">✨ Create Account</button>
                             </div>
                         </form>
                     </div>
@@ -432,8 +437,15 @@
                             <span style="font-size: 0.85rem; color: #64748b;">Supported: .csv, .xlsx, .xls</span>
                             <input type="file" id="csvInput" style="display:none" accept=".csv, .xlsx">
                         </div>
+                        <div class="field" style="margin-top: 20px;">
+                            <label>User Role for Bulk Import</label>
+                            <select id="bulk-role">
+                                <option value="alumni">Alumni</option>
+                                <option value="student">Student</option>
+                            </select>
+                        </div>
                         <div style="margin-top: 25px; text-align: right;">
-                            <button class="btn-action" style="background: var(--accent-gold); color: var(--primary-blue)" onclick="showToast('Processing file...')">Process Bulk File</button>
+                            <button class="btn-action" style="background: var(--accent-gold); color: var(--primary-blue)" onclick="processBulkFile()">Process Bulk File</button>
                         </div>
                     </div>
                 </div>
@@ -446,17 +458,37 @@
                     <p style="color: var(--grey-text)">Publish prioritized updates to the global alumni news feed.</p>
                 </div>
                 
+                <!-- Existing Announcements List -->
+                {% if announcements %}
+                <div class="card" style="margin-bottom: 30px;">
+                    <h3 class="card-title">Published Announcements</h3>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        {% for ann in announcements %}
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f8fafc; border-radius: 12px; border-left: 4px solid {% if ann.importance == 'urgent' %}#ef4444{% elif ann.importance == 'opportunity' %}#22c55e{% elif ann.importance == 'event' %}#D4AF37{% else %}#3b82f6{% endif %};" id="ann-row-{{ ann.id }}">
+                            <div>
+                                <strong style="color: var(--primary-blue);">{{ ann.title }}</strong>
+                                <span style="font-size: 0.8rem; color: var(--grey-text); margin-left: 10px;">[{{ ann.importance|upper }}]</span>
+                                <p style="font-size: 0.85rem; color: var(--grey-text); margin-top: 4px;">{{ ann.body|truncatechars:80 }}</p>
+                            </div>
+                            <button class="btn-del" style="min-width: 48px; height: 36px;" onclick="deleteAnnouncement({{ ann.id }})">×</button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
                 <div class="card">
                     <h3 class="card-title">New Broadcast</h3>
-                    <form>
+                    <form id="announcementForm">
+                        {% csrf_token %}
                         <div class="form-grid">
                             <div class="field full">
                                 <label>Announcement Title</label>
-                                <input type="text" placeholder="Headline for the portal">
+                                <input type="text" name="title" id="ann-title" placeholder="Headline for the portal" required>
                             </div>
                             <div class="field">
                                 <label>Urgency Level</label>
-                                <select id="urgency-select">
+                                <select name="importance" id="ann-importance">
                                     <option value="info">Info (Blue)</option>
                                     <option value="urgent">Urgent (Red)</option>
                                     <option value="opportunity">Opportunity (Green)</option>
@@ -464,15 +496,27 @@
                                 </select>
                             </div>
                             <div class="field">
-                                <label>Execution Date/Time (Optional)</label>
-                                <input type="datetime-local">
+                                <label>Display Day (e.g. 22)</label>
+                                <input type="text" name="display_day" id="ann-day" placeholder="22">
+                            </div>
+                            <div class="field">
+                                <label>Display Month (e.g. Feb)</label>
+                                <input type="text" name="display_month" id="ann-month" placeholder="Feb">
+                            </div>
+                            <div class="field">
+                                <label>Action Link (Optional)</label>
+                                <input type="text" name="action_link" id="ann-link" placeholder="/event-details/?id=1">
+                            </div>
+                            <div class="field">
+                                <label>Action Label (Optional)</label>
+                                <input type="text" name="action_label" id="ann-label" placeholder="View Event Schedule">
                             </div>
                         </div>
                         <div class="field">
                             <label>Full Content Message</label>
-                            <textarea rows="5" placeholder="Detailed update message..."></textarea>
+                            <textarea rows="5" name="body" id="ann-body" placeholder="Detailed update message..." required></textarea>
                         </div>
-                        <button type="button" class="btn-action" onclick="showToast('Announcement Published')">📢 Broadcast Update</button>
+                        <button type="button" class="btn-action" onclick="createAnnouncement()">📢 Broadcast Update</button>
                     </form>
                 </div>
             </div>
@@ -482,47 +526,75 @@
                 <div class="section-header">
                     <h2 class="section-title">Event Lifecycle</h2>
                 </div>
+
+                <!-- Existing Events List -->
+                {% if events %}
+                <div class="card" style="margin-bottom: 30px;">
+                    <h3 class="card-title">Active Events</h3>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        {% for ev in events %}
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f8fafc; border-radius: 12px; border-left: 4px solid var(--accent-gold);" id="event-row-{{ ev.id }}">
+                            <div>
+                                <strong style="color: var(--primary-blue);">{{ ev.title }}</strong>
+                                <span style="font-size: 0.8rem; color: var(--grey-text); margin-left: 10px;">{{ ev.date_display }} • {{ ev.category }}</span>
+                            </div>
+                            <button class="btn-del" style="min-width: 48px; height: 36px;" onclick="deleteEvent({{ ev.id }})">×</button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
                 
                 <div class="card">
                     <h3 class="card-title">Draft New Event</h3>
-                    <form>
+                    <form id="eventForm">
+                        {% csrf_token %}
                         <div class="form-grid">
                             <div class="field">
                                 <label>Event Name</label>
-                                <input type="text" placeholder="Silver Jubilee Gala">
+                                <input type="text" name="title" id="ev-title" placeholder="Silver Jubilee Gala" required>
                             </div>
                             <div class="field">
                                 <label>Display Date</label>
-                                <input type="text" placeholder="OCT 20, 2024">
+                                <input type="text" name="date_display" id="ev-date" placeholder="OCT 20, 2024" required>
                             </div>
                             <div class="field">
                                 <label>Category</label>
-                                <input type="text" placeholder="e.g. Reunion">
+                                <select name="category" id="ev-category">
+                                    <option value="Reunion">Reunion</option>
+                                    <option value="Networking">Networking</option>
+                                    <option value="Mentorship">Mentorship</option>
+                                    <option value="Placement">Placement</option>
+                                    <option value="Sports">Sports</option>
+                                    <option value="Seminar">Seminar</option>
+                                    <option value="Cultural">Cultural</option>
+                                    <option value="Other">Other</option>
+                                </select>
                             </div>
                             <div class="field">
                                 <label>Poster Banner URL</label>
-                                <input type="text" placeholder="Link to event image">
+                                <input type="text" name="image_url" id="ev-img" placeholder="Link to event image">
                             </div>
                         </div>
                         <div class="field">
                             <label>Long Description</label>
-                            <textarea rows="6" placeholder="Full description..."></textarea>
+                            <textarea rows="6" name="description" id="ev-desc" placeholder="Full description..."></textarea>
                         </div>
 
                         <div style="margin-top: 25px; padding: 20px; background: #f1f5f9; border-radius: 15px;">
                             <label style="color: var(--primary-blue);">Manage Timeline</label>
                             <div id="timeline-list" style="margin-top:15px;">
                                 <div class="timeline-row">
-                                    <input type="text" placeholder="09:00 AM">
-                                    <input type="text" placeholder="Activity">
-                                    <button type="button" class="btn-del">×</button>
+                                    <input type="text" name="timeline_time" placeholder="09:00 AM">
+                                    <input type="text" name="timeline_activity" placeholder="Activity">
+                                    <button type="button" class="btn-del" onclick="this.parentElement.remove()">×</button>
                                 </div>
                             </div>
                             <button type="button" class="btn-action" style="background: #e2e8f0; color: var(--primary-blue); padding: 10px 20px; font-size: 0.9rem;" onclick="addTimelineRow()">+ Add Slot</button>
                         </div>
 
                         <div style="margin-top: 35px; border-top: 1px solid #eee; padding-top: 25px;">
-                            <button type="button" class="btn-action" onclick="showToast('Event Created')">🚀 List Live Event</button>
+                            <button type="button" class="btn-action" onclick="submitNewEvent()">🚀 List Live Event</button>
                         </div>
                     </form>
                 </div>
@@ -534,6 +606,11 @@
 
     <script>
         const topNav = document.getElementById('topNav');
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{{ csrf_token }}';
+
+        window.onerror = function(msg, url, line) {
+            alert('JavaScript Error: ' + msg + ' (line ' + line + ')');
+        };
 
         function toggleNav() { topNav.classList.toggle('open'); }
 
@@ -569,8 +646,8 @@
             const row = document.createElement('div');
             row.className = 'timeline-row';
             row.innerHTML = `
-                <input type="text" placeholder="Time">
-                <input type="text" placeholder="Activity">
+                <input type="text" name="timeline_time" placeholder="09:00 AM">
+                <input type="text" name="timeline_activity" placeholder="Activity">
                 <button type="button" class="btn-del" onclick="this.parentElement.remove()">×</button>
             `;
             container.appendChild(row);
@@ -581,6 +658,203 @@
             toast.innerText = msg;
             toast.style.display = 'block';
             setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        }
+
+        // ── Single User Creation ──────────────────────────────────────────
+        async function createSingleUser() {
+            const form = document.getElementById('singleUserForm');
+            const formData = new FormData(form);
+
+            try {
+                const res = await fetch('{% url "create_user" %}', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrfToken },
+                    body: formData,
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast('✅ ' + data.message);
+                    form.reset();
+                    document.getElementById('su-password').value = 'connect@123';
+                } else {
+                    showToast('❌ ' + (data.error || 'Failed to create user'));
+                }
+            } catch (err) {
+                showToast('❌ Network error: ' + err.message);
+            }
+        }
+
+        // ── Bulk CSV Upload ───────────────────────────────────────────────
+        async function processBulkFile() {
+            const fileInput = document.getElementById('csvInput');
+            if (!fileInput.files.length) {
+                showToast('❌ Please select a file first');
+                return;
+            }
+
+            const defaultPassword = prompt('Enter the default password for all users in this batch:', 'connect@123');
+            if (!defaultPassword) return;
+
+            const role = document.getElementById('bulk-role').value;
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('default_password', defaultPassword);
+            formData.append('role', role);
+
+            showToast('⏳ Processing file...');
+
+            try {
+                const res = await fetch('{% url "bulk_upload" %}', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrfToken },
+                    body: formData,
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    let msg = `✅ Created: ${data.created} | Skipped: ${data.skipped}`;
+                    if (data.errors.length) msg += `\nErrors: ${data.errors.join(', ')}`;
+                    showToast(msg);
+                    fileInput.value = '';
+                } else {
+                    showToast('❌ ' + (data.error || 'Upload failed'));
+                }
+            } catch (err) {
+                showToast('❌ Network error: ' + err.message);
+            }
+        }
+
+        // ── Create Event ──────────────────────────────────────────────────
+        async function submitNewEvent() {
+            try {
+                var title = document.getElementById('ev-title').value.trim();
+                var dateDisplay = document.getElementById('ev-date').value.trim();
+                var category = document.getElementById('ev-category').value;
+                var imageUrl = document.getElementById('ev-img').value.trim();
+                var description = document.getElementById('ev-desc').value.trim();
+
+                if (!title) {
+                    alert('Please enter an event name.');
+                    return;
+                }
+
+                var body = new URLSearchParams();
+                body.append('title', title);
+                body.append('date_display', dateDisplay);
+                body.append('category', category);
+                body.append('image_url', imageUrl);
+                body.append('description', description);
+
+                // Collect timeline rows
+                var rows = document.querySelectorAll('#timeline-list .timeline-row');
+                for (var i = 0; i < rows.length; i++) {
+                    var inputs = rows[i].querySelectorAll('input');
+                    if (inputs.length >= 2) {
+                        body.append('timeline_time', inputs[0].value);
+                        body.append('timeline_activity', inputs[1].value);
+                    }
+                }
+
+                var res = await fetch('/api/events/create/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: body.toString(),
+                });
+
+                var text = await res.text();
+
+                if (res.ok) {
+                    alert('Event created successfully!');
+                    document.getElementById('eventForm').reset();
+                    location.reload();
+                } else {
+                    alert('Server error (' + res.status + '): ' + text.substring(0, 200));
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+
+        // ── Delete Event ──────────────────────────────────────────────────
+        async function deleteEvent(id) {
+            if (!confirm('Delete this event?')) return;
+            try {
+                const res = await fetch(`/api/events/${id}/delete/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrfToken },
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast('✅ Event deleted');
+                    const row = document.getElementById('event-row-' + id);
+                    if (row) row.remove();
+                } else {
+                    showToast('❌ ' + (data.error || 'Failed'));
+                }
+            } catch (err) {
+                showToast('❌ Network error: ' + err.message);
+            }
+        }
+
+        // ── Create Announcement ───────────────────────────────────────────
+        async function createAnnouncement() {
+            const form = document.getElementById('announcementForm');
+            const title = form.querySelector('[name=title]').value.trim();
+            if (!title) { showToast('❌ Announcement title is required'); return; }
+
+            const formData = new FormData(form);
+
+            try {
+                const res = await fetch('{% url "create_announcement" %}', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrfToken },
+                    body: formData,
+                });
+                if (res.redirected || res.url.includes('/login')) {
+                    showToast('❌ Session expired. Please refresh and login again.');
+                    return;
+                }
+                const text = await res.text();
+                let data;
+                try { data = JSON.parse(text); } catch(e) {
+                    console.error('Non-JSON response:', text.substring(0, 200));
+                    showToast('❌ Unexpected server response. Please refresh the page.');
+                    return;
+                }
+                if (res.ok) {
+                    showToast('✅ ' + data.message);
+                    form.reset();
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast('❌ ' + (data.error || 'Failed to publish'));
+                }
+            } catch (err) {
+                console.error('Announcement creation error:', err);
+                showToast('❌ Network error: ' + err.message);
+            }
+        }
+
+        // ── Delete Announcement ───────────────────────────────────────────
+        async function deleteAnnouncement(id) {
+            if (!confirm('Delete this announcement?')) return;
+            try {
+                const res = await fetch(`/api/announcements/${id}/delete/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrfToken },
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast('✅ Announcement deleted');
+                    const row = document.getElementById('ann-row-' + id);
+                    if (row) row.remove();
+                } else {
+                    showToast('❌ ' + (data.error || 'Failed'));
+                }
+            } catch (err) {
+                showToast('❌ Network error: ' + err.message);
+            }
         }
     </script>
 </body>

@@ -337,14 +337,11 @@
     </main>
 
     <script>
-        // Centralized data for consistency across pages
+        // Data from database
         const allEvents = [
-            { id: 1, title: "Alumni Grand Gala", date: "OCT 24, 2024", category: "Reunion", img: "https://images.unsplash.com/photo-1511578314322-379afb476865?w=800", desc: "Celebrate 25 years of excellence and legacy. Our flagship annual reunion dinner for all batches." },
-            { id: 2, title: "Tech Meetup 2024", date: "NOV 12, 2024", category: "Networking", img: "https://images.unsplash.com/photo-1540575861501-7ce0e220add1?w=800", desc: "A dedicated space for tech professionals to network, share insights, and discuss emerging trends." },
-            { id: 3, title: "Startup Pitch Day", date: "DEC 05, 2024", category: "Mentorship", img: "https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=800", desc: "Alumni investors meet the brightest student minds for seed funding and professional mentorship." },
-            { id: 4, title: "Class of 2010 Retreat", date: "JAN 15, 2025", category: "Reunion", img: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800", desc: "A special 15-year anniversary retreat for the batch of 2010. Refresh old memories with old friends." },
-            { id: 5, title: "Global Career Fair", date: "FEB 10, 2025", category: "Placement", img: "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800", desc: "Connecting alumni and senior students with top-tier global firms for leadership and specialist roles." },
-            { id: 6, title: "Cricket Cup 2025", date: "MAR 02, 2025", category: "Sports", img: "https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=800", desc: "The legendary match returns! Alumni take on current students on the main college ground." }
+            {% for ev in events %}
+            { id: {{ ev.id }}, title: "{{ ev.title|escapejs }}", date: "{{ ev.date_display|escapejs }}", category: "{{ ev.category|escapejs }}", img: "{{ ev.image_url|escapejs }}", desc: "{{ ev.description|escapejs }}" }{% if not forloop.last %},{% endif %}
+            {% endfor %}
         ];
 
         function renderEvents(list) {
@@ -369,7 +366,7 @@
                         <span class="event-date">${ev.date}</span>
                         <h3 class="event-title">${ev.title}</h3>
                         <p class="event-desc">${ev.desc}</p>
-                        <a href="eventdetails.html?id=${ev.id}" class="btn-details">
+                        <a href="/event-details/?id=${ev.id}" class="btn-details">
                             View Schedule ➜
                         </a>
                     </div>

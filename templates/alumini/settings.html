@@ -288,15 +288,19 @@
             <!-- Sidebar: Profile Pic Summary -->
             <div class="profile-card">
                 <div class="profile-pic-container">
-                    <img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400" class="profile-pic" id="display-pic">
+                    {% if user.profile_picture %}
+                    <img src="{{ user.profile_picture.url }}" class="profile-pic" id="display-pic">
+                    {% else %}
+                    <div class="profile-pic" id="display-pic" style="display:flex;align-items:center;justify-content:center;font-size:3rem;font-weight:800;color:var(--primary-blue);background:#e2e8f0;">{{ user.get_initials }}</div>
+                    {% endif %}
                     <label for="pic-upload" class="change-pic-btn">
                         📷
-                        <input type="file" id="pic-upload" style="display:none" onchange="previewImage(this)">
+                        <input type="file" id="pic-upload" style="display:none" accept="image/*" onchange="previewImage(this)">
                     </label>
                 </div>
-                <h2 id="summary-name">Alex Smith</h2>
-                <p style="color: var(--accent-gold); font-weight: 700;">B.Tech CSE</p>
-                <p style="color: var(--grey-text); font-size: 0.9rem;">Batch of 2012</p>
+                <h2 id="summary-name">{{ user.get_full_name|default:user.username }}</h2>
+                <p style="color: var(--accent-gold); font-weight: 700;">{{ user.department|default:"Department not set" }}</p>
+                <p style="color: var(--grey-text); font-size: 0.9rem;">{% if user.passed_out_year %}Batch of {{ user.passed_out_year }}{% else %}Batch not set{% endif %}</p>
             </div>
 
             <!-- Content Area -->
@@ -307,14 +311,14 @@
                     <h3 class="section-title">Personal Settings</h3>
                     <div class="form-group">
                         <label>Phone Number</label>
-                        <input type="tel" class="input-field" value="+91 98765 43210" placeholder="Update your phone number">
+                        <input type="tel" class="input-field" id="settings-phone" value="{{ user.phone }}" placeholder="Update your phone number">
                     </div>
 
                     <div style="margin-top: 30px;">
                         <h4 style="margin-bottom: 15px; color: var(--grey-text);">Change Password</h4>
                         <div class="form-group">
                             <label>Current Password</label>
-                            <input type="password" class="input-field" placeholder="••••••••">
+                            <input type="password" class="input-field" id="current-pw" placeholder="••••••••">
                         </div>
                         <div class="form-group">
                             <label>New Password</label>
@@ -327,6 +331,7 @@
                         </div>
                     </div>
                     
+                    <div id="save-status" style="margin-bottom:15px;text-align:center;font-weight:700;display:none;"></div>
                     <button class="btn-save" onclick="handleSave()">Save Profile Updates</button>
                 </div>
 
@@ -340,31 +345,31 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                         <div class="form-group">
                             <label>Full Name</label>
-                            <input type="text" class="input-field locked" value="Alex Smith" readonly>
+                            <input type="text" class="input-field locked" value="{{ user.get_full_name|default:user.username }}" readonly>
                         </div>
                         <div class="form-group">
                             <label>Department</label>
-                            <input type="text" class="input-field locked" value="Computer Science Engineering" readonly>
+                            <input type="text" class="input-field locked" value="{{ user.department|default:'—' }}" readonly>
                         </div>
                         <div class="form-group">
                             <label>Date of Birth</label>
-                            <input type="text" class="input-field locked" value="15-May-1990" readonly>
+                            <input type="text" class="input-field locked" value="{% if user.date_of_birth %}{{ user.date_of_birth|date:'d-M-Y' }}{% else %}—{% endif %}" readonly>
                         </div>
                         <div class="form-group">
                             <label>Passed Out Year</label>
-                            <input type="text" class="input-field locked" value="2012" readonly>
+                            <input type="text" class="input-field locked" value="{{ user.passed_out_year|default:'—' }}" readonly>
                         </div>
                         <div class="form-group">
                             <label>CGPA</label>
-                            <input type="text" class="input-field locked" value="8.75" readonly>
+                            <input type="text" class="input-field locked" value="{{ user.cgpa|default:'—' }}" readonly>
                         </div>
                         <div class="form-group">
                             <label>Enrollment Number</label>
-                            <input type="text" class="input-field locked" value="ENR-2008-012" readonly>
+                            <input type="text" class="input-field locked" value="{{ user.enrollment_number }}" readonly>
                         </div>
                         <div class="form-group">
                             <label>Register Number</label>
-                            <input type="text" class="input-field locked" value="REG987654" readonly>
+                            <input type="text" class="input-field locked" value="{{ user.register_number|default:'—' }}" readonly>
                         </div>
                     </div>
                 </div>
@@ -404,15 +409,71 @@
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    document.getElementById('display-pic').src = e.target.result;
+                    const pic = document.getElementById('display-pic');
+                    if (pic.tagName === 'IMG') {
+                        pic.src = e.target.result;
+                    } else {
+                        // Replace initials div with an img
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'profile-pic';
+                        img.id = 'display-pic';
+                        pic.parentNode.replaceChild(img, pic);
+                    }
                 }
                 reader.readAsDataURL(input.files[0]);
             }
         }
 
-        function handleSave() {
-            // Simplified feedback for mockup
-            alert("Profile settings saved successfully!");
+        async function handleSave() {
+            const statusEl = document.getElementById('save-status');
+            const formData = new FormData();
+
+            // Phone
+            formData.append('phone', document.getElementById('settings-phone').value);
+
+            // Password fields
+            const currentPw = document.getElementById('current-pw').value;
+            const newPw = document.getElementById('new-pw').value;
+            const confirmPw = document.getElementById('confirm-pw').value;
+            if (newPw) {
+                formData.append('current_password', currentPw);
+                formData.append('new_password', newPw);
+                formData.append('confirm_password', confirmPw);
+            }
+
+            // Profile picture
+            const picInput = document.getElementById('pic-upload');
+            if (picInput.files.length) {
+                formData.append('profile_picture', picInput.files[0]);
+            }
+
+            try {
+                const res = await fetch('{% url "update_profile" %}', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                    body: formData,
+                });
+                const data = await res.json();
+                statusEl.style.display = 'block';
+                if (res.ok) {
+                    statusEl.style.color = '#22c55e';
+                    statusEl.innerText = '✓ ' + data.message;
+                    // Clear password fields
+                    document.getElementById('current-pw').value = '';
+                    document.getElementById('new-pw').value = '';
+                    document.getElementById('confirm-pw').value = '';
+                    document.getElementById('pw-match-text').style.display = 'none';
+                } else {
+                    statusEl.style.color = '#ef4444';
+                    statusEl.innerText = '✗ ' + (data.error || 'Save failed');
+                }
+                setTimeout(() => { statusEl.style.display = 'none'; }, 5000);
+            } catch (err) {
+                statusEl.style.display = 'block';
+                statusEl.style.color = '#ef4444';
+                statusEl.innerText = '✗ Network error';
+            }
         }
     </script>
 </body>

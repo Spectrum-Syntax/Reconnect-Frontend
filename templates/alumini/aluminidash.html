@@ -603,7 +603,7 @@
                 <span class="close-modal" onclick="closePostModal()">×</span>
             </div>
             <div class="modal-body">
-                <textarea id="postContent" placeholder="What's happening, Alex?"></textarea>
+                <textarea id="postContent" placeholder="What's happening, {{ user.first_name|default:user.username }}?"></textarea>
                 <div class="image-preview-container" id="previewContainer">
                     <span class="remove-preview" onclick="clearImagePreview()">×</span>
                     <img id="imagePreview" src="">
@@ -643,8 +643,8 @@
             <span>Re</span>connect
         </div>
         <div style="font-weight: 700; display: flex; align-items: center; gap: 15px; color: var(--primary-blue)">
-            <span class="user-name-display">Alex Smith</span>
-            <div class="avatar" style="background: var(--accent-gold); color: var(--primary-blue)">AS</div>
+            <span class="user-name-display">{{ user.get_full_name|default:user.username }}</span>
+            <div class="avatar" style="background: var(--accent-gold); color: var(--primary-blue)">{{ user.get_initials }}</div>
         </div>
     </header>
 
@@ -678,8 +678,8 @@
 
         <!-- Create Post Trigger -->
         <div class="create-post-trigger" onclick="openPostModal()">
-            <div class="trigger-avatar">AS</div>
-            <div class="trigger-input">What's on your mind, Alex?</div>
+            <div class="trigger-avatar">{{ user.get_initials }}</div>
+            <div class="trigger-input">What's on your mind, {{ user.first_name|default:user.username }}?</div>
             <span style="color: var(--accent-gold); font-size: 1.2rem;">📷</span>
         </div>
 
@@ -707,12 +707,13 @@
         let currentFilter = 'all';
         let currentUploadedImage = null;
 
+        const CURRENT_USER_NAME = '{{ user.get_full_name|default:user.username }}';
+        const CURRENT_USER_INITIALS = '{{ user.get_initials }}';
+
         const events = [
-            { id: 1, title: "Alumni Grand Gala", date: "OCT 24", img: "https://images.unsplash.com/photo-1511578314322-379afb476865?w=800", desc: "Celebrate 25 years of excellence in our annual grand reunion gala." },
-            { id: 2, title: "Startup Pitch Day", date: "NOV 12", img: "https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=800", desc: "Witness the brightest student minds pitch to an alumni investor panel." },
-            { id: 3, title: "AI Ethics Seminar", date: "DEC 05", img: "https://images.unsplash.com/photo-1591115765373-520b7a21769b?w=800", desc: "A deep dive into the societal impacts of modern artificial intelligence." },
-            { id: 4, title: "Class of 2010 Meetup", date: "JAN 15", img: "https://images.unsplash.com/photo-1540575861501-7ce0e220add1?w=800", desc: "A casual weekend retreat to refresh old memories with classmates." },
-            { id: 5, title: "Graduation 2024", date: "JUN 30", img: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800", desc: "Welcome the class of 2024 into the global alumni family." }
+            {% for ev in events %}
+            { id: {{ ev.id }}, title: "{{ ev.title|escapejs }}", date: "{{ ev.date_display|escapejs }}", img: "{{ ev.image_url|escapejs }}", desc: "{{ ev.description|escapejs }}" }{% if not forloop.last %},{% endif %}
+            {% endfor %}
         ];
 
         let posts = [
@@ -781,7 +782,7 @@
             const newPost = {
                 id: Date.now(),
                 type: 'alumni', // Defaulting to user type
-                user: 'Alex Smith',
+                user: CURRENT_USER_NAME,
                 class: '2012',
                 content: content,
                 image: currentUploadedImage,
@@ -818,7 +819,7 @@
                     <div class="event-body">
                         <h3 style="color: var(--primary-blue)">${ev.title}</h3>
                         <p style="color: var(--grey-text); font-size: 0.9rem; margin: 12px 0;">${ev.desc}</p>
-                        <button class="btn-gold" onclick="window.location.href='eventdetails.html?id=${ev.id}'">View Schedule</button>
+                        <button class="btn-gold" onclick="window.location.href='/event-details/?id=${ev.id}'">View Schedule</button>
                     </div>
                 </div>
             `).join('');
@@ -908,11 +909,11 @@
             if (!text) return;
             const post = posts.find(p => p.id === id);
             if (post) {
-                post.comments.push({ author: 'Alex Smith', text: text });
+                post.comments.push({ author: CURRENT_USER_NAME, text: text });
                 const list = document.getElementById(`comments-list-${id}`);
                 const div = document.createElement('div');
                 div.className = 'comment-item';
-                div.innerHTML = `<div class="avatar" style="width: 30px; height: 30px; font-size: 0.75rem;">A</div><div class="comment-bubble"><div class="comment-author">Alex Smith</div><div>${text}</div></div>`;
+                div.innerHTML = `<div class="avatar" style="width: 30px; height: 30px; font-size: 0.75rem;">${CURRENT_USER_INITIALS}</div><div class="comment-bubble"><div class="comment-author">${CURRENT_USER_NAME}</div><div>${text}</div></div>`;
                 list.appendChild(div);
                 document.getElementById(`comment-count-${id}`).innerText = post.comments.length;
                 input.value = '';

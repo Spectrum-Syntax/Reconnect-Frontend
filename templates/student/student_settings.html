@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>reConnect - Student Settings</title>
+    <!-- Lucide Icons Library -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --uni-blue: #3b489a;
+            --uni-gold: #e1a92a;
+            --bg: #f3f4f9;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --white: #ffffff;
+            --border-color: #e2e8f0;
+            --danger-color: #ef4444;
+            --success-color: #22c55e;
+            --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --header-height: 72px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, sans-serif; }
+        body { background-color: var(--bg); color: var(--text-main); min-height: 100vh; }
+
+        .rc-app { min-height: 100vh; position: relative; padding-top: var(--header-height); }
+
+        /* Fixed Header */
+        .rc-header {
+            position: fixed; top: 0; left: 0; right: 0; height: var(--header-height);
+            z-index: 2000; background: var(--uni-blue); color: white;
+            padding: 0 2rem; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .rc-logo-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; color: white; text-decoration: none; }
+        .rc-logo-text { font-size: 1.8rem; font-weight: 900; letter-spacing: -1.5px; }
+        .rc-logo-text span { color: var(--uni-gold); }
+
+        /* Navigation Bar Overlay */
+        .rc-nav-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 90px;
+            background: white; z-index: 3000; border-bottom: 4px solid var(--uni-gold);
+            display: flex; align-items: center; padding: 0 2rem;
+            transform: translateX(-100%); transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: var(--card-shadow);
+        }
+        .rc-nav-overlay.open { transform: translateX(0); }
+        .rc-nav-list { display: flex; gap: 0.5rem; overflow-x: auto; padding: 0.5rem; scrollbar-width: none; flex: 1; align-items: center; }
+        .rc-nav-link { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.1rem; border-radius: 100px; font-weight: 600; color: var(--text-muted); transition: 0.2s; text-decoration: none; font-size: 0.9rem; white-space: nowrap; }
+        .rc-nav-link:hover { background: #f1f5f9; color: var(--uni-blue); }
+        .rc-nav-link.active { background: var(--uni-blue); color: white; }
+
+        /* Settings Grid */
+        .rc-settings-container { max-width: 1100px; margin: 2rem auto; padding: 0 1.5rem; display: grid; grid-template-columns: 280px 1fr; gap: 2.5rem; }
+
+        @media (max-width: 850px) { .rc-settings-container { grid-template-columns: 1fr; } .rc-settings-nav { display: flex; overflow-x: auto; gap: 10px; margin-bottom: 1rem; } }
+
+        /* Settings Navigation */
+        .rc-settings-nav { background: white; border-radius: 20px; padding: 1rem; border: 1px solid var(--border-color); height: fit-content; position: sticky; top: 100px; }
+        .nav-item { width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; border: none; background: transparent; color: var(--text-muted); font-weight: 700; cursor: pointer; transition: 0.2s; text-align: left; }
+        .nav-item:hover { background: #f8fafc; color: var(--uni-blue); }
+        .nav-item.active { background: #eff6ff; color: var(--uni-blue); }
+
+        /* Settings Cards */
+        .rc-card { background: white; border-radius: 24px; border: 1px solid var(--border-color); padding: 2rem; margin-bottom: 2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 1rem; }
+        .card-header h3 { font-weight: 900; color: var(--uni-blue); font-size: 1.2rem; }
+        
+        .admin-lock-badge { margin-left: auto; background: #f1f5f9; color: var(--text-muted); font-size: 0.65rem; font-weight: 800; padding: 4px 8px; border-radius: 6px; display: flex; align-items: center; gap: 4px; text-transform: uppercase; }
+
+        /* Form Controls */
+        .form-group { margin-bottom: 1.5rem; }
+        .form-label { display: block; font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; }
+        .form-control { width: 100%; padding: 12px 16px; border-radius: 12px; border: 1.5px solid var(--border-color); background: #fcfdfe; font-weight: 600; font-size: 1rem; outline: none; transition: 0.2s; }
+        .form-control:focus { border-color: var(--uni-gold); box-shadow: 0 0 0 4px rgba(225, 169, 42, 0.1); }
+        .form-control:disabled { background: #f1f5f9; color: var(--text-muted); cursor: not-allowed; border-style: dashed; }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+
+        /* Custom Toggle */
+        .toggle-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
+        .toggle-item:last-child { border-bottom: none; }
+        .toggle-info h4 { font-size: 0.95rem; font-weight: 800; color: var(--text-main); }
+        .toggle-info p { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
+        
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; inset: 0; background-color: #cbd5e1; transition: .3s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--uni-blue); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        /* Buttons */
+        .rc-btn { padding: 12px 24px; border-radius: 12px; font-weight: 800; border: none; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem; }
+        .btn-primary { background: var(--uni-blue); color: white; }
+        .btn-primary:hover { background: #2d367a; transform: translateY(-1px); }
+        .btn-gold { background: var(--uni-gold); color: var(--uni-blue); }
+        .btn-gold:hover { opacity: 0.9; }
+
+        .hidden { display: none !important; }
+
+        /* Notification Panel Extra */
+        .rc-notification-panel {
+            position: absolute; top: 60px; right: 20px; width: 320px;
+            background: white; border-radius: 16px; box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color); color: var(--text-main);
+            display: none; flex-direction: column; z-index: 1000; overflow: hidden;
+            animation: slideDown 0.2s ease-out;
+        }
+    </style>
+</head>
+<body>
+
+<div class="rc-app">
+    <!-- Student Navigation -->
+    <nav id="navOverlay" class="rc-nav-overlay">
+        <button onclick="toggleNav()" style="background: none; border: none; cursor: pointer; padding: 10px;">
+            <i data-lucide="x" color="#3b489a" size="28"></i>
+        </button>
+        <div class="rc-nav-list" id="navLinks"></div>
+        <a href="{% url 'logout' %}" style="color:var(--danger-color); text-decoration:none; font-weight:700; border-left:2px solid var(--border-color); padding-left:1.5rem; margin-left:0.5rem; display:flex; align-items:center; gap:0.5rem;">
+            <i data-lucide="log-out" size="18"></i> Logout
+        </a>
+    </nav>
+
+    <header class="rc-header">
+        <button class="rc-logo-btn" onclick="toggleNav()">
+            <span class="rc-logo-text">re<span>Connect</span></span>
+        </button>
+        <div style="display: flex; gap: 1.25rem; align-items: center; position: relative;">
+            <div id="bellBtn" style="position: relative; cursor: pointer;">
+                <i data-lucide="bell" size="22" color="white"></i>
+                <span id="unreadBadge" style="position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: var(--uni-gold); border-radius: 50%; border: 2px solid var(--uni-blue);"></span>
+            </div>
+            
+            <div id="notifPanel" class="rc-notification-panel">
+                <div class="rc-notification-header">
+                    <h4>NOTIFICATIONS</h4>
+                    <button id="clearNotifs" style="background: none; border: none; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); cursor: pointer; text-transform: uppercase;">Clear All</button>
+                </div>
+                <div class="rc-notification-list" id="notifList"></div>
+            </div>
+
+            <a href="{% url 'student_profile' %}">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Arjun" style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--uni-gold); background: white; object-fit: cover;">
+            </a>
+        </div>
+    </header>
+
+    <main class="rc-settings-container">
+        <!-- Settings Sidebar -->
+        <aside class="rc-settings-nav">
+            <button class="nav-item active" onclick="switchSection('account', this)">
+                <i data-lucide="user" size="18"></i> Account & Academic
+            </button>
+            <button class="nav-item" onclick="switchSection('security', this)">
+                <i data-lucide="shield-check" size="18"></i> Password & Security
+            </button>
+            <button class="nav-item" onclick="switchSection('preferences', this)">
+                <i data-lucide="settings-2" size="18"></i> App Preferences
+            </button>
+        </aside>
+
+        <!-- Main Content -->
+        <section id="settingsContent">
+            
+            <!-- Account & Academic Section -->
+            <div id="section-account">
+                <div class="rc-card">
+                    <div class="card-header">
+                        <i data-lucide="award" size="20"></i>
+                        <h3>Academic Record</h3>
+                        <span class="admin-lock-badge"><i data-lucide="lock" size="10"></i> Admin Locked</span>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-control" value="{{ user.get_full_name }}" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Enrollment Number</label>
+                            <input type="text" class="form-control" value="{{ user.enrollment_number }}" disabled>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Department</label>
+                            <input type="text" class="form-control" value="{{ user.department }}" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">CGPA</label>
+                            <input type="text" class="form-control" value="{{ user.cgpa|default_if_none:'' }}" disabled>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Batch</label>
+                            <input type="text" class="form-control" value="{{ user.passed_out_year|default_if_none:'' }}" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Date of Birth</label>
+                            <input type="text" class="form-control" value="{{ user.date_of_birth|default_if_none:'' }}" disabled>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rc-card">
+                    <div class="card-header">
+                        <i data-lucide="user-plus" size="20"></i>
+                        <h3>Current Status</h3>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Working Status / Intent</label>
+                        <select class="form-control" id="workingStatus">
+                            <option value="Student (Looking for Internships)" {% if user.working_status == 'Student (Looking for Internships)' %}selected{% endif %}>Student (Looking for Internships)</option>
+                            <option value="Student (Looking for Full-time)" {% if user.working_status == 'Student (Looking for Full-time)' %}selected{% endif %}>Student (Looking for Full-time)</option>
+                            <option value="Student (Higher Studies Focus)" {% if user.working_status == 'Student (Higher Studies Focus)' %}selected{% endif %}>Student (Higher Studies Focus)</option>
+                            <option value="Student (Entrepreneurial Focus)" {% if user.working_status == 'Student (Entrepreneurial Focus)' %}selected{% endif %}>Student (Entrepreneurial Focus)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Personal Phone Number</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" class="form-control" id="phoneNum" value="{{ user.phone }}" style="flex:1">
+                            <button class="rc-btn btn-gold" onclick="sendOtp()" id="otpBtn">Update via OTP</button>
+                        </div>
+                        <p id="otpTimer" class="hidden" style="font-size: 0.75rem; color: var(--success-color); font-weight: 700; margin-top: 8px;">OTP sent! Enter within 2:00</p>
+                    </div>
+                    <div id="otpInputArea" class="form-group hidden">
+                        <label class="form-label">6-Digit OTP</label>
+                        <input type="text" class="form-control" placeholder="X X X X X X" maxlength="6">
+                    </div>
+                    <button class="rc-btn btn-primary" onclick="saveAccount()">Save Personal Info</button>
+                </div>
+            </div>
+
+            <!-- Security Section -->
+            <div id="section-security" class="hidden">
+                <div class="rc-card">
+                    <div class="card-header">
+                        <i data-lucide="key-round" size="20"></i>
+                        <h3>Change Password</h3>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Old Password</label>
+                        <input type="password" class="form-control" id="currentPassword" placeholder="Enter current password">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">New Password</label>
+                        <input type="password" class="form-control" id="newPassword" placeholder="Enter new password">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Confirm New Password</label>
+                        <input type="password" class="form-control" id="confirmPassword" placeholder="Repeat new password">
+                    </div>
+                    <button class="rc-btn btn-primary" onclick="updatePassword()">Update Password</button>
+                </div>
+
+                <div class="rc-card">
+                    <div class="card-header">
+                        <i data-lucide="smartphone" size="20"></i>
+                        <h3>Two-Factor Authentication</h3>
+                    </div>
+                    <div class="toggle-item">
+                        <div class="toggle-info">
+                            <h4>Enable 2FA</h4>
+                            <p>Verify your identity via phone when logging in from new devices.</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- App Preferences Section -->
+            <div id="section-preferences" class="hidden">
+                <div class="rc-card">
+                    <div class="card-header">
+                        <i data-lucide="bell" size="20"></i>
+                        <h3>Notification Preferences</h3>
+                    </div>
+                    <div class="toggle-item">
+                        <div class="toggle-info">
+                            <h4>New Opportunity Alerts</h4>
+                            <p>Notify me when alumni post new internships or job referrals.</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-item">
+                        <div class="toggle-info">
+                            <h4>Direct Message Notifications</h4>
+                            <p>Receive push alerts when someone messages you in Connect.</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-item">
+                        <div class="toggle-info">
+                            <h4>Campus News Digesis</h4>
+                            <p>Weekly summary of announcements and campus highlights.</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="rc-card">
+                    <div class="card-header">
+                        <i data-lucide="eye" size="20"></i>
+                        <h3>Privacy & Visibility</h3>
+                    </div>
+                    <div class="toggle-item">
+                        <div class="toggle-info">
+                            <h4>Discoverable Profile</h4>
+                            <p>Allow alumni and recruiters to find your profile in the directory.</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-item">
+                        <div class="toggle-info">
+                            <h4>Show Resume to Connections</h4>
+                            <p>Only people in your circle can view your uploaded resume.</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </main>
+</div>
+
+<script>
+    const NAV_LINKS = [
+        { label: 'Dashboard', icon: 'trending-up', href: '{% url "student_dashboard" %}' },
+        { label: 'Connect', icon: 'users', href: '{% url "student_connect" %}' },
+        { label: 'Explore', icon: 'compass', href: '{% url "student_explore" %}' },
+        { label: 'Find Opportunities', icon: 'briefcase', href: '{% url "student_opportunities" %}' },
+        { label: 'Get Projects', icon: 'folder-git', href: '{% url "student_projects" %}' },
+        { label: 'Settings', icon: 'settings', href: '{% url "student_settings" %}', active: true }
+    ];
+
+    const MOCK_NOTIFICATIONS = [
+        { id: 1, text: "Your connection request to Sarah Chen was accepted.", time: "2h ago", unread: true },
+        { id: 2, text: "New project posted in CSE: Autonomous Drone.", time: "5h ago", unread: false }
+    ];
+
+    let notifications = [...MOCK_NOTIFICATIONS];
+
+    function toggleNav() { document.getElementById('navOverlay').classList.toggle('open'); }
+
+    function renderNav() {
+        const container = document.getElementById('navLinks');
+        container.innerHTML = NAV_LINKS.map(link => `
+            <a href="${link.href}" class="rc-nav-link ${link.active ? 'active' : ''}">
+                <i data-lucide="${link.icon}" size="18"></i> ${link.label}
+            </a>
+        `).join('');
+    }
+
+    function switchSection(section, btn) {
+        // Toggle nav buttons
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        btn.classList.add('active');
+
+        // Toggle sections
+        ['account', 'security', 'preferences'].forEach(s => {
+            document.getElementById(`section-${s}`).classList.add('hidden');
+        });
+        document.getElementById(`section-${section}`).classList.remove('hidden');
+        lucide.createIcons();
+    }
+
+    function sendOtp() {
+        document.getElementById('otpBtn').innerText = "Resend OTP";
+        document.getElementById('otpTimer').classList.remove('hidden');
+        document.getElementById('otpInputArea').classList.remove('hidden');
+    }
+
+    function getCsrfToken() {
+        const name = 'csrftoken';
+        const cookies = document.cookie.split(';');
+        for (let c of cookies) {
+            c = c.trim();
+            if (c.startsWith(name + '=')) return c.substring(name.length + 1);
+        }
+        return '';
+    }
+
+    function saveAccount() {
+        const formData = new FormData();
+        formData.append('phone', document.getElementById('phoneNum').value);
+        formData.append('working_status', document.getElementById('workingStatus').value);
+        fetch('{% url "update_profile" %}', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCsrfToken() },
+            body: formData
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) alert('Personal information updated!');
+            else alert(data.error || 'Update failed');
+        })
+        .catch(() => alert('Network error'));
+    }
+
+    function updatePassword() {
+        const formData = new FormData();
+        formData.append('current_password', document.getElementById('currentPassword').value);
+        formData.append('new_password', document.getElementById('newPassword').value);
+        formData.append('confirm_password', document.getElementById('confirmPassword').value);
+        fetch('{% url "update_profile" %}', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCsrfToken() },
+            body: formData
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                alert('Password changed successfully!');
+                document.getElementById('currentPassword').value = '';
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmPassword').value = '';
+            } else {
+                alert(data.error || 'Password update failed');
+            }
+        })
+        .catch(() => alert('Network error'));
+    }
+
+    function renderNotifications() {
+        const notifList = document.getElementById('notifList');
+        const unreadBadge = document.getElementById('unreadBadge');
+        const unreadCount = notifications.filter(n => n.unread).length;
+        unreadBadge.style.display = unreadCount > 0 ? 'block' : 'none';
+
+        if (notifications.length === 0) {
+            notifList.innerHTML = `<div style="padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.8rem; font-weight: 600;">No new notifications</div>`;
+            return;
+        }
+
+        notifList.innerHTML = notifications.map(notif => `
+            <div class="rc-notification-item ${notif.unread ? 'unread' : ''}" onclick="markAsRead(${notif.id})">
+                ${notif.unread ? '<div class="rc-notif-dot"></div>' : '<div style="width:8px; flex-shrink:0;"></div>'}
+                <div class="rc-notif-content">
+                    <p>${notif.text}</p>
+                    <span>${notif.time}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    window.markAsRead = (id) => {
+        notifications = notifications.map(n => n.id === id ? { ...n, unread: false } : n);
+        renderNotifications();
+    };
+
+    window.onclick = function(e) { 
+        if (!e.target.closest('#bellBtn') && !e.target.closest('#notifPanel')) {
+            document.getElementById('notifPanel').style.display = 'none';
+        }
+    }
+
+    window.onload = () => {
+        renderNav();
+        renderNotifications();
+        lucide.createIcons();
+
+        document.getElementById('bellBtn').onclick = (e) => {
+            e.stopPropagation();
+            const panel = document.getElementById('notifPanel');
+            panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
+        };
+
+        document.getElementById('clearNotifs').onclick = () => {
+            notifications = [];
+            renderNotifications();
+        };
+    };
+</script>
+
+</body>
+</html> 9

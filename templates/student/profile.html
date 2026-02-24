@@ -18,15 +18,19 @@
             --danger-color: #ef4444;
             --success-color: #22c55e;
             --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --header-height: 72px;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, sans-serif; }
         body { background-color: var(--bg); color: var(--text-main); overflow-x: hidden; }
 
-        /* Navigation Header */
+        .rc-app { min-height: 100vh; position: relative; padding-top: var(--header-height); }
+
+        /* Fixed Header */
         .rc-header {
-            position: sticky; top: 0; z-index: 1000; background: var(--uni-blue); color: white;
-            padding: 0.85rem 2rem; display: flex; align-items: center; justify-content: space-between;
+            position: fixed; top: 0; left: 0; right: 0; height: var(--header-height);
+            z-index: 2000; background: var(--uni-blue); color: white;
+            padding: 0 2rem; display: flex; align-items: center; justify-content: space-between;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
         
@@ -43,6 +47,37 @@
         .rc-logo-text { font-size: 1.8rem; font-weight: 900; letter-spacing: -1.5px; }
         .rc-logo-text span { color: var(--uni-gold); }
 
+        /* Notification Panel */
+        .rc-notification-panel {
+            position: absolute; top: 60px; right: 20px; width: 320px;
+            background: white; border-radius: 16px; box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color); color: var(--text-main);
+            display: none; flex-direction: column; z-index: 1000; overflow: hidden;
+            animation: slideDown 0.2s ease-out;
+        }
+        
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .rc-notification-header { padding: 1rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .rc-notification-header h4 { font-weight: 800; font-size: 0.9rem; color: var(--uni-blue); }
+        .rc-notification-list { max-height: 400px; overflow-y: auto; }
+        .rc-notification-item { padding: 1rem; border-bottom: 1px solid #f1f5f9; display: flex; gap: 12px; cursor: pointer; transition: 0.2s; }
+        .rc-notification-item:hover { background: #f8fafc; }
+        .rc-notification-item.unread { background: #f0f7ff; }
+
+        /* Navigation Bar Overlay (Student Tabs) */
+        .rc-nav-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 90px;
+            background: white; z-index: 3000; border-bottom: 4px solid var(--uni-gold);
+            display: flex; align-items: center; padding: 0 2rem;
+            transform: translateX(-100%); transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: var(--card-shadow);
+        }
+        .rc-nav-overlay.open { transform: translateX(0); }
+        .rc-nav-list { display: flex; gap: 0.5rem; overflow-x: auto; padding: 0.5rem; scrollbar-width: none; flex: 1; align-items: center; }
+        .rc-nav-link { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.1rem; border-radius: 100px; font-weight: 600; color: var(--text-muted); transition: 0.2s; text-decoration: none; font-size: 0.9rem; white-space: nowrap; }
+        .rc-nav-link:hover { background: #f1f5f9; color: var(--uni-blue); }
+        .rc-nav-link.active { background: var(--uni-blue); color: white; }
+
         /* Container */
         .rc-view-container { max-width: 1100px; margin: 2rem auto; padding: 0 1.5rem; display: grid; grid-template-columns: 1fr 320px; gap: 2rem; }
 
@@ -53,16 +88,12 @@
 
         /* Profile Main Card */
         .rc-main-card { background: white; border-radius: 24px; overflow: hidden; border: 1px solid var(--border-color); box-shadow: var(--card-shadow); margin-bottom: 2rem; }
-        
         .rc-banner { height: 160px; background: linear-gradient(135deg, var(--uni-blue), #1e293b); position: relative; }
-        
         .rc-profile-overlap { padding: 0 2.5rem 2.5rem; position: relative; margin-top: -60px; }
         .rc-avatar { width: 140px; height: 140px; border-radius: 32px; background: white; border: 6px solid white; box-shadow: 0 10px 20px rgba(0,0,0,0.1); object-fit: cover; }
-        
         .rc-profile-id { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem; margin-top: 1rem; }
         .rc-user-title h1 { font-size: 2.2rem; font-weight: 900; color: var(--uni-blue); }
         .rc-user-title p { color: var(--text-muted); font-weight: 700; font-size: 1.1rem; }
-        
         .rc-badge-type { padding: 4px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
         .alumni-badge { background: #fef9c3; color: #854d0e; border: 1px solid var(--uni-gold); }
         .student-badge { background: #dbeafe; color: #1e40af; border: 1px solid #3b82f6; }
@@ -96,7 +127,6 @@
         .rc-conn-actions { display: flex; gap: 8px; }
         .btn-small { padding: 6px 12px; border-radius: 8px; font-weight: 800; font-size: 0.75rem; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--border-color); }
         .btn-small-blue { background: var(--uni-blue); color: white; border: none; }
-        .btn-small-outline { border: 1px solid var(--uni-gold); color: var(--uni-gold); background: transparent; }
 
         /* Sidebar Widgets */
         .rc-sticky-sidebar { position: sticky; top: 100px; }
@@ -104,7 +134,7 @@
         
         .btn-primary { width: 100%; padding: 1rem; border-radius: 14px; border: none; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.2s; margin-bottom: 10px; text-decoration: none; }
         .btn-connect { background: var(--uni-blue); color: white; }
-        .btn-connect.requested { background: var(--success-color); }
+        .btn-connect.requested { background: var(--success-color); color: white; }
         .btn-message { background: var(--white); border: 2px solid var(--uni-blue); color: var(--uni-blue); }
         .btn-resume { background: #f1f5f9; color: var(--uni-blue); }
         .btn-primary:hover { opacity: 0.9; transform: translateY(-2px); }
@@ -122,7 +152,7 @@
         /* Modal Styling */
         .rc-modal-overlay { 
             position: fixed; inset: 0; background: rgba(30, 41, 59, 0.7); 
-            backdrop-filter: blur(4px); z-index: 2000; display: none; 
+            backdrop-filter: blur(4px); z-index: 4000; display: none; 
             align-items: center; justify-content: center; padding: 1rem; 
         }
         .rc-modal { 
@@ -132,23 +162,51 @@
         }
         .rc-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; }
 
-        .hidden { display: none; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
+
+<div class="rc-app">
+    <!-- Student Navigation -->
+    <nav id="navOverlay" class="rc-nav-overlay">
+        <button onclick="toggleNav()" style="background: none; border: none; cursor: pointer; padding: 10px;">
+            <i data-lucide="x" color="#3b489a" size="28"></i>
+        </button>
+        <div class="rc-nav-list" id="navLinks"></div>
+        <a href="{% url 'logout' %}" style="color:var(--danger-color); text-decoration:none; font-weight:700; border-left:2px solid var(--border-color); padding-left:1.5rem; margin-left:0.5rem; display:flex; align-items:center; gap:0.5rem;">
+            <i data-lucide="log-out" size="18"></i> Logout
+        </a>
+    </nav>
 
     <header class="rc-header">
         <div class="rc-header-left">
             <button class="rc-back-btn" onclick="handleNavigationBack()" title="Go Back">
                 <i data-lucide="chevron-left" size="24"></i>
             </button>
-            <a href="{% url 'alumni_dashboard' %}" class="rc-logo-btn">
+            <button class="rc-logo-btn" onclick="toggleNav()">
                 <span class="rc-logo-text">re<span>Connect</span></span>
-            </a>
+            </button>
         </div>
-        <div style="display: flex; gap: 1.5rem; align-items: center;">
-            <i data-lucide="bell" size="22" style="cursor:pointer"></i>
-            <img src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.first_name|default:'User' }}{% endif %}" style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--uni-gold); background: white;">
+        <div style="display: flex; gap: 1.25rem; align-items: center; position: relative;">
+            <!-- Bell Trigger -->
+            <div id="bellBtn" style="position: relative; cursor: pointer;">
+                <i data-lucide="bell" size="22" color="white"></i>
+                <span id="unreadBadge" style="position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: var(--uni-gold); border-radius: 50%; border: 2px solid var(--uni-blue);"></span>
+            </div>
+            
+            <!-- Notification Panel -->
+            <div id="notifPanel" class="rc-notification-panel">
+                <div class="rc-notification-header">
+                    <h4>NOTIFICATIONS</h4>
+                    <button id="clearNotifs" style="background: none; border: none; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); cursor: pointer; text-transform: uppercase;">Clear All</button>
+                </div>
+                <div class="rc-notification-list" id="notifList"></div>
+            </div>
+
+            <a href="{% url 'student_profile' %}">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Arjun" style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--uni-gold); background: white; object-fit: cover;">
+            </a>
         </div>
     </header>
 
@@ -203,7 +261,7 @@
                     </div>
 
                     <div id="tab-professional" class="rc-content-section hidden">
-                        <!-- Dynamic: Hirings for Alumni, Projects for Student -->
+                        <!-- Dynamic Content -->
                         <div id="professionalContent"></div>
                     </div>
 
@@ -225,10 +283,9 @@
                 <button class="btn-primary btn-connect" id="connectBtn" onclick="handleConnect()">
                     <i data-lucide="user-plus" size="20"></i> <span>Connect</span>
                 </button>
-                <a href="{% url 'connect' %}" class="btn-primary btn-message">
+                <a href="{% url 'student_connect' %}" class="btn-primary btn-message">
                     <i data-lucide="message-circle" size="20"></i> Message
                 </a>
-                <!-- Resume Button Added -->
                 <a href="#" id="sidebarResumeBtn" target="_blank" class="btn-primary btn-resume">
                     <i data-lucide="file-text" size="20"></i> View Resume
                 </a>
@@ -240,7 +297,6 @@
                     </div>
                 </div>
 
-                <!-- Mutual Connections (Trigger) -->
                 <div class="rc-mutual-trigger" onclick="openMutualModal()">
                     <h4 style="font-size: 0.8rem; font-weight: 800; color: var(--uni-blue); text-transform: uppercase; margin-bottom: 1rem;">Mutual Connections</h4>
                     <div style="display: flex; gap: -10px;">
@@ -266,199 +322,188 @@
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        // --- PROFILE DATA FROM DJANGO ---
-        const USER_DATA = {
-            id: "{{ profile_user.id }}",
-            type: "{{ profile_user.role }}",
-            name: "{{ profile_user.get_full_name|default:profile_user.username }}",
-            headline: "{{ profile_user.working_status|default:'' }}",
-            classYear: "{{ profile_user.passed_out_year|default_if_none:'' }}",
-            avatar: "{% if profile_user.profile_picture %}{{ profile_user.profile_picture.url }}{% else %}https://api.dicebear.com/7.x/avataaars/svg?seed={{ profile_user.first_name|default:'User' }}{% endif %}",
-            bio: "{{ profile_user.department|default:'' }}",
-            skills: [],
-            openFor: [],
-            resume: "#",
-            links: { linkedin: "", github: "", portfolio: "", leetcode: "" },
-            professional: {
-                alumni: { hirings: [], fundings: [] },
-                student: { projects: [] }
-            },
-            connections: [],
-            mutualConnections: []
-        };
+<script>
+    const NAV_LINKS = [
+        { label: 'Dashboard', icon: 'trending-up', href: '{% url "student_dashboard" %}' },
+        { label: 'Connect', icon: 'users', href: '{% url "student_connect" %}' },
+        { label: 'Explore', icon: 'compass', href: '{% url "student_explore" %}' },
+        { label: 'Find Opportunities', icon: 'briefcase', href: '{% url "student_opportunities" %}' },
+        { label: 'Get Projects', icon: 'folder-git', href: '{% url "student_projects" %}' },
+        { label: 'Settings', icon: 'settings', href: '{% url "student_settings" %}' }
+    ];
 
-        // --- NAVIGATION HELPERS ---
-        function handleNavigationBack() {
-            // Check if there is history to go back to within the same application
-            if (window.history.length > 1) {
-                history.back();
-            } else {
-                // Fallback to dashboard if accessed directly or history is lost
-                window.location.href = '{% url "alumni_dashboard" %}';
-            }
+    // Profile data from Django context
+    const PROFILE_USER = {
+        id: "{{ profile_user.id }}",
+        type: "{{ profile_user.role }}",
+        name: "{{ profile_user.get_full_name|default:profile_user.username }}",
+        headline: "{{ profile_user.working_status|default:'' }}",
+        classYear: "{{ profile_user.passed_out_year|default_if_none:'' }}",
+        avatar: {% if profile_user.profile_picture %}"{{ profile_user.profile_picture.url }}"{% else %}"https://api.dicebear.com/7.x/avataaars/svg?seed={{ profile_user.first_name|default:'User' }}"{% endif %},
+        bio: "{{ profile_user.department|default:'' }}",
+        skills: [],
+        openFor: [],
+        resume: "#",
+        links: {},
+        professional: {},
+        connections: []
+    };
+
+    const MOCK_NOTIFICATIONS = [];
+
+    let notifications = [...MOCK_NOTIFICATIONS];
+
+    function toggleNav() { document.getElementById('navOverlay').classList.toggle('open'); }
+
+    function handleNavigationBack() {
+        if (window.history.length > 1) history.back();
+        else window.location.href = '{% url "student_explore" %}';
+    }
+
+    function renderNav() {
+        const container = document.getElementById('navLinks');
+        container.innerHTML = NAV_LINKS.map(link => `
+            <a href="${link.href}" class="rc-nav-link">
+                <i data-lucide="${link.icon}" size="18"></i> ${link.label}
+            </a>
+        `).join('');
+    }
+
+    function renderNotifications() {
+        const notifList = document.getElementById('notifList');
+        const unreadBadge = document.getElementById('unreadBadge');
+        const unreadCount = notifications.filter(n => n.unread).length;
+        unreadBadge.style.display = unreadCount > 0 ? 'block' : 'none';
+        if (notifications.length === 0) {
+            notifList.innerHTML = `<div style="padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.8rem; font-weight: 600;">No new notifications</div>`;
+            return;
         }
+        notifList.innerHTML = notifications.map(notif => `
+            <div class="rc-notification-item ${notif.unread ? 'unread' : ''}" onclick="markAsRead(${notif.id})">
+                ${notif.unread ? '<div class="rc-notif-dot"></div>' : '<div style="width:8px; flex-shrink:0;"></div>'}
+                <div class="rc-notif-content"><p>${notif.text}</p><span>${notif.time}</span></div>
+            </div>
+        `).join('');
+    }
 
-        // --- INITIALIZATION ---
-        function init() {
-            renderProfile();
-            renderConnections();
-            setupTabs();
-            lucide.createIcons();
-        }
+    window.markAsRead = (id) => {
+        notifications = notifications.map(n => n.id === id ? { ...n, unread: false } : n);
+        renderNotifications();
+    };
 
-        function renderProfile() {
-            document.getElementById('name').innerText = USER_DATA.name;
-            document.getElementById('headline').innerText = USER_DATA.headline;
-            document.getElementById('classYear').innerText = `Class of ${USER_DATA.classYear}`;
-            document.getElementById('avatar').src = USER_DATA.avatar;
-            document.getElementById('bioText').innerText = USER_DATA.bio;
-            document.getElementById('sidebarResumeBtn').href = USER_DATA.resume;
+    function setupTabs() {
+        document.querySelectorAll('.rc-tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.rc-tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.rc-content-section').forEach(s => s.classList.add('hidden'));
+                btn.classList.add('active');
+                document.getElementById(`tab-${btn.dataset.tab}`).classList.remove('hidden');
+            });
+        });
+    }
 
-            // User Type Badge
-            const badge = document.getElementById('userTypeBadge');
-            badge.innerText = USER_DATA.type;
-            badge.className = `rc-badge-type ${USER_DATA.type === 'alumni' ? 'alumni-badge' : 'student-badge'}`;
+    function getCsrfToken() {
+        const name = 'csrftoken';
+        const cookies = document.cookie.split(';');
+        for (let c of cookies) { c = c.trim(); if (c.startsWith(name + '=')) return c.substring(name.length + 1); }
+        return '';
+    }
 
-            // Social Links (Include Portfolio)
-            const linkKeys = ['linkedin', 'github', 'portfolio', 'leetcode'];
-            const iconMap = { linkedin: 'linkedin', github: 'github', portfolio: 'globe', leetcode: 'code' };
-            document.getElementById('socialLinks').innerHTML = linkKeys.map(key => `
-                <a href="${USER_DATA.links[key]}" class="rc-social-item" title="${key}" target="_blank">
+    function init() {
+        renderNav();
+        renderNotifications();
+        setupTabs();
+
+        const user = PROFILE_USER;
+
+        document.getElementById('name').innerText = user.name;
+        document.getElementById('headline').innerText = user.headline;
+        document.getElementById('classYear').innerText = user.classYear ? `Class of ${user.classYear}` : '';
+        document.getElementById('avatar').src = user.avatar;
+        document.getElementById('bioText').innerText = user.bio;
+        document.getElementById('sidebarResumeBtn').href = user.resume;
+
+        const badge = document.getElementById('userTypeBadge');
+        badge.innerText = user.type;
+        badge.className = `rc-badge-type ${user.type === 'alumni' ? 'alumni-badge' : 'student-badge'}`;
+
+        const iconMap = { linkedin: 'linkedin', github: 'github', portfolio: 'globe', leetcode: 'code' };
+        if (Object.keys(user.links).length > 0) {
+            document.getElementById('socialLinks').innerHTML = Object.keys(user.links).map(key => `
+                <a href="${user.links[key]}" class="rc-social-item" title="${key}" target="_blank">
                     <i data-lucide="${iconMap[key]}" size="20"></i>
                 </a>
             `).join('');
-
-            // Skills
-            document.getElementById('skillsContainer').innerHTML = USER_DATA.skills.map(s => `<span class="rc-tag">${s}</span>`).join('');
-
-            // Sidebar: Open For
-            document.getElementById('openForContainer').innerHTML = USER_DATA.openFor.map(o => `<span class="rc-tag gold">${o}</span>`).join('');
-
-            // Tab: Professional (Dynamic with Rupee Symbols)
-            const proContainer = document.getElementById('professionalContent');
-            const proTabBtn = document.getElementById('proTab');
-            
-            if(USER_DATA.type === 'alumni') {
-                proTabBtn.innerText = 'Professional';
-                const h = USER_DATA.professional.alumni.hirings[0];
-                const f = USER_DATA.professional.alumni.fundings[0];
-                proContainer.innerHTML = `
-                    <div class="rc-card">
-                        <h3><i data-lucide="briefcase" size="18"></i> Active Hiring</h3>
-                        <p style="font-weight:800; color:var(--uni-blue);">${h.role}</p>
-                        <p style="font-size:0.85rem; color:var(--text-muted);">${h.organization} • ${h.location}</p>
-                        <p style="font-size:0.85rem; font-weight:700; color:var(--uni-gold); margin-top:5px;">Stipend: ${h.stipend}</p>
-                    </div>
-                    <div class="rc-card">
-                        <h3><i data-lucide="piggy-bank" size="18"></i> Provided Grants</h3>
-                        <p style="font-weight:800; color:var(--uni-blue);">${f.project}</p>
-                        <div style="width:100%; height:8px; background:#f1f5f9; border-radius:4px; margin: 10px 0; overflow:hidden;">
-                            <div style="width:45%; height:100%; background:var(--uni-gold);"></div>
-                        </div>
-                        <p style="font-size:0.75rem; font-weight:800; color:var(--uni-gold);">${f.raised} of ${f.goal} disbursed</p>
-                    </div>
-                `;
-            } else {
-                proTabBtn.innerText = 'Projects';
-                const p = USER_DATA.professional.student.projects[0];
-                proContainer.innerHTML = `
-                    <div class="rc-card">
-                        <h3><i data-lucide="folder-git" size="18"></i> Research Project</h3>
-                        <p style="font-weight:800; color:var(--uni-blue);">${p.title}</p>
-                        <p style="font-size:0.9rem; color:var(--text-muted); margin-top:5px;">${p.description}</p>
-                    </div>
-                `;
-            }
-
-            // Tab: Posts (Mock)
-            document.getElementById('postsFeed').innerHTML = `
-                <div class="rc-card">
-                    <p style="color:var(--text-muted); font-size:0.75rem; font-weight:800; margin-bottom:10px;">POSTED 3 DAYS AGO</p>
-                    <p style="font-weight:600; line-height:1.5;">I have shared some new resources for the upcoming semester's AI ethics module. Check the resources section!</p>
-                </div>
-            `;
         }
 
-        function renderConnections() {
-            const container = document.getElementById('connectionsContainer');
-            container.innerHTML = USER_DATA.connections.map(c => `
-                <div class="rc-connection-card">
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${c.seed}" class="rc-conn-avatar" alt="${c.name}">
-                    <div class="rc-conn-info">
-                        <h4>${c.name}</h4>
-                        <p>${c.role}</p>
-                    </div>
-                    <div class="rc-conn-actions">
-                        <a href="{% url 'profile' %}?id=${c.id}" class="btn-small btn-small-outline"><i data-lucide="user" size="14"></i> Profile</a>
-                        <a href="{% url 'connect' %}?chat=${c.id}" class="btn-small btn-small-blue"><i data-lucide="message-circle" size="14"></i> Message</a>
-                    </div>
-                </div>
-            `).join('');
-        }
+        document.getElementById('skillsContainer').innerHTML = user.skills.length > 0
+            ? user.skills.map(s => `<span class="rc-tag">${s}</span>`).join('')
+            : '<span style="color:var(--text-muted); font-size:0.85rem;">No skills listed yet</span>';
+        document.getElementById('openForContainer').innerHTML = user.openFor.length > 0
+            ? user.openFor.map(o => `<span class="rc-tag gold">${o}</span>`).join('')
+            : '<span style="color:var(--text-muted); font-size:0.85rem;">Not specified</span>';
 
-        function setupTabs() {
-            document.querySelectorAll('.rc-tab-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    document.querySelectorAll('.rc-tab-btn').forEach(b => b.classList.remove('active'));
-                    document.querySelectorAll('.rc-content-section').forEach(s => s.classList.add('hidden'));
-                    
-                    btn.classList.add('active');
-                    document.getElementById(`tab-${btn.dataset.tab}`).classList.remove('hidden');
-                });
+        const proContainer = document.getElementById('professionalContent');
+        proContainer.innerHTML = `<div class="rc-card"><p style="color:var(--text-muted); font-size:0.85rem;">No professional activity yet.</p></div>`;
+
+        // Load posts by this user
+        fetch('{% url "api_posts_list" %}?user_id=' + user.id)
+            .then(r => r.json())
+            .then(data => {
+                const posts = data.posts || [];
+                if (posts.length > 0) {
+                    document.getElementById('postsFeed').innerHTML = posts.map(p => `
+                        <div class="rc-card"><p style="font-weight:600;">${p.content}</p>
+                        <span style="font-size:0.75rem; color:var(--text-muted);">${p.created_at}</span></div>
+                    `).join('');
+                } else {
+                    document.getElementById('postsFeed').innerHTML = `<div class="rc-card"><p style="color:var(--text-muted);">No posts yet.</p></div>`;
+                }
+            })
+            .catch(() => {
+                document.getElementById('postsFeed').innerHTML = `<div class="rc-card"><p style="color:var(--text-muted);">No posts yet.</p></div>`;
             });
-        }
+        
+        lucide.createIcons();
+    }
 
-        function openMutualModal() {
-            const modal = document.getElementById('mutualModal');
-            const container = document.getElementById('mutualListContainer');
-            
-            container.innerHTML = USER_DATA.mutualConnections.map(c => `
-                <div class="rc-connection-card">
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${c.seed}" class="rc-conn-avatar" alt="${c.name}">
-                    <div class="rc-conn-info">
-                        <h4>${c.name}</h4>
-                        <p>${c.role}</p>
-                    </div>
-                    <div class="rc-conn-actions">
-                        <a href="{% url 'profile' %}?id=${c.id}" class="btn-small btn-small-blue"><i data-lucide="user" size="14"></i> View</a>
-                    </div>
-                </div>
-            `).join('');
-            
-            modal.style.display = 'flex';
+    function openMutualModal() { document.getElementById('mutualModal').style.display = 'flex'; }
+    function closeMutualModal() { document.getElementById('mutualModal').style.display = 'none'; }
+    
+    let isRequested = false;
+    function handleConnect() {
+        const btn = document.getElementById('connectBtn');
+        if(!isRequested) {
+            fetch('{% url "send_connection_request" %}', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json','X-CSRFToken': getCsrfToken()},
+                body: JSON.stringify({to_user_id: PROFILE_USER.id})
+            }).then(r => r.json()).then(data => {
+                if (data.status === 'ok' || data.status === 'already_sent') {
+                    btn.classList.add('requested');
+                    btn.innerHTML = `<i data-lucide="check" size="20"></i> <span>Request Sent</span>`;
+                    isRequested = true;
+                    lucide.createIcons();
+                }
+            });
+        } else {
+            btn.classList.remove('requested');
+            btn.innerHTML = `<i data-lucide="user-plus" size="20"></i> <span>Connect</span>`;
+            isRequested = false;
             lucide.createIcons();
         }
+    }
 
-        function closeMutualModal() {
-            document.getElementById('mutualModal').style.display = 'none';
+    window.onclick = (e) => {
+        if (e.target == document.getElementById('mutualModal')) closeMutualModal();
+        if (!e.target.closest('#bellBtn') && !e.target.closest('#notifPanel')) {
+            document.getElementById('notifPanel').style.display = 'none';
         }
+    };
 
-        let isRequested = false;
-        function handleConnect() {
-            const btn = document.getElementById('connectBtn');
-            const span = btn.querySelector('span');
-            
-            if(!isRequested) {
-                btn.classList.add('requested');
-                btn.innerHTML = `<i data-lucide="check" size="20"></i> <span>Request Sent</span>`;
-                isRequested = true;
-            } else {
-                btn.classList.remove('requested');
-                btn.innerHTML = `<i data-lucide="user-plus" size="20"></i> <span>Connect</span>`;
-                isRequested = false;
-            }
-            lucide.createIcons();
-        }
-
-        // Close modal on background click
-        window.onclick = function(event) {
-            const modal = document.getElementById('mutualModal');
-            if (event.target == modal) closeMutualModal();
-        }
-
-        window.onload = init;
-    </script>
+    window.onload = init;
+</script>
 </body>
 </html>

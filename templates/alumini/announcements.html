@@ -3,360 +3,540 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Announcements | Reconnect</title>
+    <title>reConnect - Announcements</title>
+    <!-- Lucide Icons Library -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
+        /* THEME VARIABLES DEFINITION */
         :root {
-            --bg-light: #f4f7f9; 
-            --primary-blue: #1e3a8a;  
-            --accent-gold: #D4AF37;   
-            --dark-text: #333333;
-            --white: #ffffff;
-            --grey-text: #666666;
-            
-            /* Importance Colors */
-            --urgent: #ef4444;
-            --opportunity: #22c55e;
-            --info: #3b82f6;
-            --event: var(--accent-gold);
-
-            --transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-            --shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+            --rc-primary-blue: #3b489a;
+            --rc-accent-gold: #e1a92a;
+            --rc-page-background: #f3f4f9;
+            --rc-content-white: #ffffff;
+            --rc-text-main-color: #1e293b;
+            --rc-text-dimmed-color: #64748b;
+            --rc-ui-border-soft: #e2e8f0;
+            --rc-ui-alert-danger: #ef4444;
+            --rc-card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-light);
-            color: var(--dark-text);
+        /* RESET STYLES */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            background-color: var(--rc-page-background); 
+            color: var(--rc-text-main-color); 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
             overflow-x: hidden;
-            line-height: 1.6;
         }
 
-        /* --- HEADER & NAVIGATION --- */
-        header {
-            background: var(--white);
-            padding: 0 5%;
-            height: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: fixed;
-            top: 0;
-            width: 100%;
+        /* TOP NAVIGATION HEADER STYLING */
+        .reconnect-primary-header-bar {
+            position: sticky; top: 0; z-index: 1000;
+            background-color: var(--rc-primary-blue);
+            color: var(--rc-content-white);
+            padding: 14px 28px;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+        }
+
+        .reconnect-brand-identity-button {
+            background: transparent; border: none; cursor: pointer;
+            font-size: 1.85rem; font-weight: 900; letter-spacing: -1.2px;
+            color: var(--rc-content-white); outline: none;
+            display: flex; align-items: center;
+        }
+        .reconnect-brand-identity-button span { color: var(--rc-accent-gold); }
+
+        .reconnect-header-right-utilities { display: flex; align-items: center; gap: 24px; position: relative; }
+
+        .rc-profile-link {
+            display: flex; align-items: center; gap: 16px; 
+            border-left: 1px solid rgba(255,255,255,0.25); 
+            padding-left: 20px;
+            text-decoration: none;
+            color: white;
+            transition: opacity 0.2s;
+        }
+        .rc-profile-link:hover { opacity: 0.8; }
+
+        /* Notification Panel */
+        .rc-notification-panel {
+            position: absolute;
+            top: 50px;
+            right: 180px;
+            width: 320px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--rc-card-shadow);
+            border: 1px solid var(--rc-ui-border-soft);
+            color: var(--rc-text-main-color);
+            display: none;
+            flex-direction: column;
             z-index: 1000;
-            box-shadow: var(--shadow);
+            overflow: hidden;
+            animation: slideDown 0.2s ease-out;
         }
-
-        .logo {
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: var(--primary-blue);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            z-index: 1100;
-            transition: transform 0.3s ease;
-            text-decoration: none;
-        }
-
-        .logo span {
-            color: var(--accent-gold);
-            background: var(--primary-blue);
-            padding: 2px 10px;
-            border-radius: 6px;
-        }
-
-        nav {
-            position: fixed;
-            top: 0;
-            left: -100%; 
-            width: 100%;
-            height: 80px;
-            background: var(--primary-blue);
-            z-index: 1050;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: var(--transition);
-        }
-
-        nav.open { left: 0; }
-
-        .nav-links {
-            display: flex;
-            list-style: none;
-            gap: 40px;
-        }
-
-        .nav-item {
-            color: var(--white);
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.3s;
-            padding: 10px 15px;
-            text-decoration: none;
-            position: relative;
-        }
-
-        .nav-item:hover { color: var(--accent-gold); }
-        .nav-item.active::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            width: 80%;
-            height: 3px;
-            background: var(--accent-gold);
-            transform: translateX(-50%);
-            border-radius: 10px;
-        }
-
-        .close-nav {
-            position: absolute;
-            right: 5%;
-            color: var(--white);
-            font-size: 2rem;
-            cursor: pointer;
-        }
-
-        /* --- MAIN LAYOUT --- */
-        main {
-            margin-top: 100px;
-            padding: 2rem 5% 5rem 5%;
-            max-width: 1100px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .page-header {
-            margin-bottom: 50px;
-            text-align: center;
-            animation: fadeInDown 0.8s ease forwards;
-        }
-
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-20px); }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* --- ANNOUNCEMENT CARDS --- */
-        .announcement-list {
+        .rc-notification-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--rc-ui-border-soft);
             display: flex;
-            flex-direction: column;
-            gap: 25px;
-        }
-
-        .announcement-card {
-            background: var(--white);
-            border-radius: 24px;
-            padding: 30px;
-            box-shadow: var(--shadow);
-            display: grid;
-            grid-template-columns: auto 1fr;
-            gap: 30px;
-            transition: var(--transition);
-            opacity: 0;
-            animation: slideIn 0.6s ease forwards;
-            position: relative;
-            overflow: hidden;
-            border: 1px solid rgba(0,0,0,0.03);
-        }
-
-        .announcement-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-30px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        .card-urgent { border-left: 10px solid var(--urgent); }
-        .card-opportunity { border-left: 10px solid var(--opportunity); }
-        .card-info { border-left: 10px solid var(--info); }
-        .card-event { border-left: 10px solid var(--event); }
-
-        .date-container {
-            display: flex;
-            flex-direction: column;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            background: var(--bg-light);
-            min-width: 90px;
-            height: 90px;
-            border-radius: 20px;
-            color: var(--primary-blue);
         }
 
-        .date-container .day { font-size: 1.8rem; font-weight: 800; line-height: 1; }
-        .date-container .month { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; margin-top: 2px; }
+        .rc-notification-header h4 { font-weight: 800; font-size: 0.9rem; color: var(--rc-primary-blue); }
 
-        .content-area {
-            display: flex;
-            flex-direction: column;
-        }
+        .rc-notification-list { max-height: 400px; overflow-y: auto; }
 
-        .meta-top {
+        .rc-notification-item {
+            padding: 1rem;
+            border-bottom: 1px solid #f1f5f9;
             display: flex;
-            align-items: center;
             gap: 12px;
-            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .rc-notification-item:hover { background: #f8fafc; }
+        .rc-notification-item.unread { background: #f0f7ff; }
+
+        .rc-notif-dot {
+            width: 8px; height: 8px; background: var(--rc-accent-gold); border-radius: 50%;
+            flex-shrink: 0; margin-top: 6px;
         }
 
-        .importance-tag {
-            padding: 4px 14px;
-            border-radius: 50px;
-            font-size: 0.75rem;
-            font-weight: 800;
-            text-transform: uppercase;
+        .rc-notif-content p { font-size: 0.85rem; line-height: 1.4; margin-bottom: 4px; text-align: left; }
+        .rc-notif-content span { font-size: 0.7rem; color: var(--rc-text-dimmed-color); font-weight: 600; display: block; text-align: left; }
+
+        /* SLIDING OVERLAY SIDEBAR STYLING */
+        .reconnect-global-sidebar-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 90px;
+            background-color: var(--rc-content-white); z-index: 1100;
+            border-bottom: 4px solid var(--rc-accent-gold);
+            display: flex; align-items: center; padding: 0 28px;
+            transform: translateX(-100%);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+        }
+        .reconnect-global-sidebar-overlay.sidebar-state-visible { transform: translateX(0); }
+
+        .reconnect-navigation-links-list {
+            display: flex; gap: 10px; overflow-x: auto; flex: 1; align-items: center; 
+            padding: 0 24px; scrollbar-width: none;
+        }
+        .reconnect-navigation-links-list::-webkit-scrollbar { display: none; }
+
+        .reconnect-sidebar-menu-item-link {
+            display: flex; align-items: center; gap: 9px;
+            padding: 12px 20px; border-radius: 60px; border: none; background: transparent;
+            color: var(--rc-text-dimmed-color); font-weight: 700; white-space: nowrap; cursor: pointer;
+            transition: background-color 0.25s, color 0.25s;
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+        .reconnect-sidebar-menu-item-link.is-currently-active-page {
+            background-color: var(--rc-primary-blue); color: var(--rc-content-white);
+        }
+        .reconnect-sidebar-menu-item-link:hover:not(.is-currently-active-page) {
+            background-color: #f1f5f9; color: var(--rc-primary-blue);
+        }
+
+        .reconnect-sidebar-logout-control {
+            color: var(--rc-ui-alert-danger); border-left: 2px solid var(--rc-ui-border-soft);
+            padding-left: 24px; margin-left: 12px; font-weight: 700;
+            cursor: pointer; background: transparent; border: none;
+            display: flex; align-items: center; gap: 9px; font-size: 0.95rem;
+            text-decoration: none;
+        }
+
+        /* PAGE LAYOUT CONTAINER */
+        .reconnect-view-main-content-container { 
+            max-width: 940px; margin: 36px auto; padding: 0 24px; 
+        }
+
+        .reconnect-view-title-main { 
+            font-size: 2.4rem; font-weight: 900; color: var(--rc-primary-blue); margin-bottom: 10px; 
+        }
+        .reconnect-view-description-text { 
+            color: var(--rc-text-dimmed-color); font-weight: 600; margin-bottom: 36px; font-size: 1.05rem;
+        }
+
+        /* SEARCH AND FILTERING UI STYLES */
+        .reconnect-search-input-wrapper {
+            background-color: var(--rc-content-white); border-radius: 14px; padding: 16px 20px;
+            display: flex; align-items: center; gap: 14px;
+            border: 1px solid var(--rc-ui-border-soft); margin-bottom: 28px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.015);
+        }
+        .reconnect-search-native-input {
+            flex: 1; border: none; outline: none; font-size: 1.05rem; color: var(--rc-text-main-color);
+        }
+
+        .reconnect-category-filter-chips-row {
+            display: flex; gap: 14px; margin-bottom: 36px; overflow-x: auto; 
+            padding-bottom: 10px; scrollbar-width: none;
+        }
+        .reconnect-category-filter-chips-row::-webkit-scrollbar { display: none; }
+
+        .reconnect-filter-category-chip-btn {
+            padding: 11px 24px; border-radius: 60px; border: 2px solid transparent;
+            background-color: var(--rc-content-white); color: var(--rc-text-dimmed-color);
+            font-weight: 700; cursor: pointer; transition: all 0.25s; white-space: nowrap;
+            font-size: 0.95rem;
+        }
+        .reconnect-filter-category-chip-btn.is-active-filter-tab {
+            background-color: var(--rc-accent-gold); color: var(--rc-primary-blue); border-color: var(--rc-accent-gold);
+        }
+
+        /* ANNOUNCEMENT CARD DISPLAY STYLES */
+        .reconnect-announcement-card-display-unit {
+            background-color: var(--rc-content-white); border-radius: 24px; padding: 32px;
+            margin-bottom: 28px; border: 1px solid var(--rc-ui-border-soft);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .reconnect-announcement-card-display-unit:hover {
+            transform: translateY(-3px); box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+        }
+
+        .reconnect-card-top-metadata-flex-row { display: flex; justify-content: space-between; margin-bottom: 18px; }
+        
+        .reconnect-category-identity-tag {
+            font-size: 0.7rem; font-weight: 800; background-color: var(--rc-primary-blue);
+            color: white; padding: 5px 12px; border-radius: 6px; text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        /* URGENCY BADGE SYSTEM */
+        .reconnect-urgency-status-badge {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 0.7rem; font-weight: 900; padding: 6px 14px; border-radius: 8px; text-transform: uppercase;
             letter-spacing: 0.5px;
         }
+        .rc-urgency-box-urgent { background-color: #fef2f2; color: #b91c1c; border: 1px solid #fee2e2; }
+        .rc-urgency-box-high { background-color: #fffbeb; color: #b45309; border: 1px solid #fef3c7; }
+        .rc-urgency-box-general { background-color: #f0fdf4; color: #15803d; border: 1px solid #dcfce7; }
 
-        .tag-urgent { background: rgba(239, 68, 68, 0.1); color: var(--urgent); }
-        .tag-opportunity { background: rgba(34, 197, 94, 0.1); color: var(--opportunity); }
-        .tag-info { background: rgba(59, 130, 246, 0.1); color: var(--info); }
-        .tag-event { background: rgba(212, 175, 55, 0.1); color: var(--event); }
-
-        .posted-date {
-            font-size: 0.85rem;
-            color: var(--grey-text);
-            font-weight: 500;
+        .reconnect-announcement-main-headline {
+            font-size: 1.55rem; font-weight: 800; color: var(--rc-primary-blue); margin-bottom: 10px;
+            line-height: 1.25;
+        }
+        .reconnect-announcement-posted-timestamp {
+            font-size: 0.9rem; color: var(--rc-text-dimmed-color); font-weight: 700;
+            margin-bottom: 22px; display: flex; align-items: center; gap: 8px;
         }
 
-        .announcement-title {
-            color: var(--primary-blue);
-            font-size: 1.5rem;
-            margin-bottom: 12px;
-            font-weight: 700;
+        .reconnect-announcement-body-description {
+            line-height: 1.75; color: #334155; margin-bottom: 28px; font-size: 1rem;
         }
 
-        .announcement-body {
-            color: #4b5563;
-            font-size: 1.05rem;
-            margin-bottom: 20px;
+        .reconnect-announcement-card-footer-flex {
+            display: flex; justify-content: flex-end; align-items: center;
+            padding-top: 24px; border-top: 1px solid var(--rc-ui-border-soft);
+        }
+        .reconnect-social-interaction-action-btn {
+            background: transparent; border: none; color: var(--rc-text-dimmed-color);
+            font-weight: 700; font-size: 0.9rem; cursor: pointer;
+            padding: 8px 16px; border-radius: 8px;
+            display: flex; align-items: center; gap: 8px; transition: all 0.2s;
+        }
+        .reconnect-social-interaction-action-btn:hover { 
+            color: var(--rc-primary-blue); 
+            background-color: #f1f5f9;
         }
 
-        .btn-action {
-            align-self: flex-start;
-            background: var(--primary-blue);
-            color: white;
-            padding: 10px 24px;
-            border-radius: 12px;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 0.9rem;
-            transition: 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-action:hover {
-            background: var(--accent-gold);
-            color: var(--primary-blue);
-            transform: scale(1.05);
-        }
-
-        @media (max-width: 768px) {
-            .announcement-card { grid-template-columns: 1fr; padding: 25px; gap: 20px; }
-            .date-container { flex-direction: row; height: auto; min-width: auto; padding: 10px 20px; gap: 10px; align-self: flex-start; }
-            .date-container .day { font-size: 1.4rem; }
-            .page-header h2 { font-size: 1.8rem; }
-        }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="logo" onclick="toggleNav()">
-            <span>Re</span>connect
+<div class="reconnect-application-root-shell">
+    
+    <!-- NAVIGATION OVERLAY COMPONENT -->
+    <nav id="sidebarOverlay" class="reconnect-global-sidebar-overlay">
+        <button id="closeSidebar" style="background: transparent; border: none; cursor: pointer; padding: 10px;">
+            <i data-lucide="x" color="#3b489a" size="32"></i>
+        </button>
+        <div class="reconnect-navigation-links-list" id="navContainer">
+            <!-- Nav items injected by JS -->
         </div>
-        <div style="font-weight: 700; color: var(--primary-blue); font-size: 0.9rem; display: flex; align-items: center; gap: 8px;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-            Live Updates
+        <a href="{% url 'logout' %}" class="reconnect-sidebar-logout-control">
+            <i data-lucide="log-out" size="20"></i> Logout
+        </a>
+    </nav>
+
+    <!-- TOP BRANDING HEADER COMPONENT -->
+    <header class="reconnect-primary-header-bar">
+        <button class="reconnect-brand-identity-button" id="openSidebar">
+            re<span>Connect</span>
+        </button>
+
+        <div class="reconnect-header-right-utilities">
+            <!-- Bell Trigger -->
+            <div id="bellBtn" style="position: relative; cursor: pointer;">
+                <i data-lucide="bell" size="24" color="white"></i>
+                <span id="unreadBadge" style="position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: var(--rc-accent-gold); border-radius: 50%; border: 2px solid var(--rc-primary-blue);"></span>
+            </div>
+            
+            <!-- Notification Panel -->
+            <div id="notifPanel" class="rc-notification-panel">
+                <div class="rc-notification-header">
+                    <h4>NOTIFICATIONS</h4>
+                    <button id="clearNotifs" style="background: none; border: none; font-size: 0.7rem; font-weight: 700; color: var(--rc-text-dimmed-color); cursor: pointer; text-transform: uppercase;">Clear All</button>
+                </div>
+                <div class="rc-notification-list" id="notifList">
+                    <!-- Notifications Injected by JS -->
+                </div>
+            </div>
+            
+            <a href="{% url 'my_profile' %}" class="rc-profile-link">
+                <div style="text-align: right; display: flex; flex-direction: column;">
+                    <span style="font-weight: 800; font-size: 0.95rem;">{{ user.get_full_name|default:user.username }}</span>
+                    <span style="font-size: 0.7rem; opacity: 0.85; font-weight: 700; letter-spacing: 0.2px;">{% if user.passed_out_year %}CLASS OF {{ user.passed_out_year }}{% else %}ALUMNI{% endif %}</span>
+                </div>
+                <div style="width: 44px; height: 44px; border-radius: 12px; background-color: white; border: 2px solid var(--rc-accent-gold); overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <img src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.first_name|default:'User' }}{% endif %}" alt="User Profile" style="width: 100%; height: 100%;">
+                </div>
+            </a>
         </div>
     </header>
 
-    <nav id="topNav">
-        <ul class="nav-links">
-            <li><a href="{% url 'alumni_dashboard' %}" class="nav-item">Dashboard</a></li>
-            <li><a href="{% url 'announcements' %}" class="nav-item active">Announcements</a></li>
-            <li><a href="{% url 'connect' %}" class="nav-item">Connect</a></li>
-            <li><a href="{% url 'events' %}" class="nav-item">Events</a></li>
-            <li><a href="{% url 'settings' %}" class="nav-item">Settings</a></li>
-        </ul>
-        <div class="close-nav" onclick="toggleNav()">×</div>
-    </nav>
+    <!-- ANNOUNCEMENT MODULE MAIN CONTENT -->
+    <main class="reconnect-view-main-content-container">
+        <h1 class="reconnect-view-title-main">Announcements</h1>
+        <p class="reconnect-view-description-text">Stay updated with critical notices and highlights from your alumni community.</p>
 
-    <main>
-        <div class="page-header">
-            <h2 style="color: var(--primary-blue);">Official Announcements</h2>
-            <p style="color: var(--grey-text); max-width: 600px; margin: 10px auto;">Stay updated with prioritized news, opportunities, and campus events.</p>
+        <!-- Global Search Interface -->
+        <div class="reconnect-search-input-wrapper">
+            <i data-lucide="search" size="22" color="#64748b"></i>
+            <input 
+                type="text" 
+                id="searchInput"
+                placeholder="Search announcements..." 
+                class="reconnect-search-native-input"
+            />
         </div>
 
-        <div class="announcement-list" id="announcement-container">
-            <!-- Content Injected by JavaScript -->
+        <!-- Dynamic Category Filtering Chips -->
+        <div class="reconnect-category-filter-chips-row" id="categoryTabs">
+            <!-- Injected by JS -->
         </div>
+
+        <!-- Announcement Feed Display Area -->
+        <section class="reconnect-announcement-feed-root" id="announcementFeed">
+            <!-- Cards injected by JS -->
+        </section>
     </main>
+</div>
 
-    <script>
-        const announcements = [
-            {% for ann in announcements %}
-            {
-                id: {{ ann.id }},
-                importance: '{{ ann.importance|escapejs }}',
-                title: '{{ ann.title|escapejs }}',
-                body: '{{ ann.body|escapejs }}',
-                date: { day: '{{ ann.display_day|escapejs }}', month: '{{ ann.display_month|escapejs }}' },
-                posted: '{{ ann.created_at|timesince }} ago'{% if ann.action_link %},
-                actionLink: '{{ ann.action_link|escapejs }}',
-                actionLabel: '{{ ann.action_label|escapejs }}'{% endif %}
-            }{% if not forloop.last %},{% endif %}
-            {% endfor %}
-        ];
+<script>
+    // --- DATA ---
+    let ANNOUNCEMENTS = [];
 
-        function renderAnnouncements() {
-            const container = document.getElementById('announcement-container');
-            container.innerHTML = announcements.map((item, index) => {
-                const isEvent = item.importance === 'event';
-                
-                return `
-                <div class="announcement-card card-${item.importance}" style="animation-delay: ${index * 0.15}s">
-                    <div class="date-container">
-                        <span class="day">${item.date.day}</span>
-                        <span class="month">${item.date.month}</span>
-                    </div>
-                    <div class="content-area">
-                        <div class="meta-top">
-                            <span class="importance-tag tag-${item.importance}">${item.importance}</span>
-                            <span class="posted-date">${item.posted}</span>
-                        </div>
-                        <h3 class="announcement-title">${item.title}</h3>
-                        <p class="announcement-body" style="${!isEvent ? 'margin-bottom: 0;' : ''}">${item.body}</p>
-                        ${isEvent ? `
-                        <a href="${item.actionLink}" class="btn-action">
-                            📅 ${item.actionLabel}
-                        </a>
-                        ` : ''}
-                    </div>
+    const NAV_LINKS = [
+        { label: 'Dashboard', icon: 'trending-up', href: '{% url "alumni_dashboard" %}' },
+        { label: 'Announcements', icon: 'megaphone', href: '{% url "announcements" %}', active: true },
+        { label: 'Connect', icon: 'users', href: '{% url "connect" %}' },
+        { label: 'Events', icon: 'calendar', href: '{% url "events" %}' },
+        { label: 'Share', icon: 'plus-circle', href: '{% url "post" %}' },
+        { label: 'Settings', icon: 'settings', href: '{% url "settings" %}' }
+    ];
+
+    const MOCK_NOTIFICATIONS = [];
+
+    let CATEGORIES = ['All'];
+
+    // --- STATE ---
+    let activeCategory = 'All';
+    let searchQuery = '';
+    let notifications = [...MOCK_NOTIFICATIONS];
+
+    // --- DOM ELEMENTS ---
+    const navContainer = document.getElementById('navContainer');
+    const categoryTabs = document.getElementById('categoryTabs');
+    const announcementFeed = document.getElementById('announcementFeed');
+    const searchInput = document.getElementById('searchInput');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const notifPanel = document.getElementById('notifPanel');
+    const notifList = document.getElementById('notifList');
+    const unreadBadge = document.getElementById('unreadBadge');
+    const bellBtn = document.getElementById('bellBtn');
+
+    // --- LOGIC ---
+    function getUrgencyStyles(level) {
+        switch (level) {
+            case 'Urgent': return { icon: 'alert-triangle', className: 'rc-urgency-box-urgent' };
+            case 'High': return { icon: 'alert-circle', className: 'rc-urgency-box-high' };
+            default: return { icon: 'check-circle', className: 'rc-urgency-box-general' };
+        }
+    }
+
+    function renderNav() {
+        navContainer.innerHTML = NAV_LINKS.map(link => `
+            <a href="${link.href}" class="reconnect-sidebar-menu-item-link ${link.active ? 'is-currently-active-page' : ''}">
+                <i data-lucide="${link.icon}" size="20"></i>
+                ${link.label}
+            </a>
+        `).join('');
+    }
+
+    function renderCategories() {
+        categoryTabs.innerHTML = CATEGORIES.map(cat => `
+            <button class="reconnect-filter-category-chip-btn ${activeCategory === cat ? 'is-active-filter-tab' : ''}" onclick="setCategory('${cat}')">
+                ${cat}
+            </button>
+        `).join('');
+    }
+
+    function renderAnnouncements() {
+        const filtered = ANNOUNCEMENTS.filter(item => {
+            const matchesCat = activeCategory === 'All' || item.category === activeCategory;
+            const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                 item.description.toLowerCase().includes(searchQuery.toLowerCase());
+            return matchesCat && matchesSearch;
+        });
+
+        if (filtered.length === 0) {
+            announcementFeed.innerHTML = `
+                <div style="text-align: center; padding: 80px 0; color: var(--rc-text-dimmed-color)">
+                    <i data-lucide="megaphone" size="60" style="opacity: 0.1; margin-bottom: 20px"></i>
+                    <p style="font-weight: 700; font-size: 1.1rem">No announcements found matching your criteria.</p>
                 </div>
+            `;
+        } else {
+            announcementFeed.innerHTML = filtered.map(item => {
+                const urgency = getUrgencyStyles(item.urgencyLevel);
+                return `
+                    <article class="reconnect-announcement-card-display-unit">
+                        <div class="reconnect-card-top-metadata-flex-row">
+                            <span class="reconnect-category-identity-tag">${item.category}</span>
+                            <span class="reconnect-urgency-status-badge ${urgency.className}">
+                                <i data-lucide="${urgency.icon}" size="14"></i>
+                                ${item.urgencyLevel}
+                            </span>
+                        </div>
+
+                        <h2 class="reconnect-announcement-main-headline">${item.title}</h2>
+                        <div class="reconnect-announcement-posted-timestamp">
+                            <i data-lucide="calendar" size="16"></i> Posted on ${item.timestamp}
+                        </div>
+
+                        <p class="reconnect-announcement-body-description">
+                            ${item.description}
+                        </p>
+
+                        <div class="reconnect-announcement-card-footer-flex">
+                            <button class="reconnect-social-interaction-action-btn">
+                                <i data-lucide="share-2" size="20"></i> Share Notice
+                            </button>
+                        </div>
+                    </article>
                 `;
             }).join('');
         }
+        lucide.createIcons();
+    }
 
-        const topNav = document.getElementById('topNav');
-        function toggleNav() { 
-            topNav.classList.toggle('open'); 
+    function renderNotifications() {
+        const unreadCount = notifications.filter(n => n.unread).length;
+        unreadBadge.style.display = unreadCount > 0 ? 'block' : 'none';
+
+        if (notifications.length === 0) {
+            notifList.innerHTML = `<div style="padding: 2rem; text-align: center; color: var(--rc-text-dimmed-color); font-size: 0.8rem; font-weight: 600;">No new notifications</div>`;
+            return;
         }
 
-        window.onload = renderAnnouncements;
-    </script>
+        notifList.innerHTML = notifications.map(notif => `
+            <div class="rc-notification-item ${notif.unread ? 'unread' : ''}" onclick="markAsRead(${notif.id})">
+                ${notif.unread ? '<div class="rc-notif-dot"></div>' : '<div style="width:8px; flex-shrink:0;"></div>'}
+                <div class="rc-notif-content">
+                    <p>${notif.text}</p>
+                    <span>${notif.time}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    window.markAsRead = (id) => {
+        notifications = notifications.map(n => n.id === id ? { ...n, unread: false } : n);
+        renderNotifications();
+    };
+
+    // --- EVENT HANDLERS ---
+    window.setCategory = (cat) => {
+        activeCategory = cat;
+        renderCategories();
+        renderAnnouncements();
+    };
+
+    searchInput.addEventListener('input', (e) => {
+        searchQuery = e.target.value;
+        renderAnnouncements();
+    });
+
+    document.getElementById('openSidebar').addEventListener('click', () => {
+        sidebarOverlay.classList.add('sidebar-state-visible');
+    });
+
+    document.getElementById('closeSidebar').addEventListener('click', () => {
+        sidebarOverlay.classList.remove('sidebar-state-visible');
+    });
+
+    // --- INITIALIZE ---
+    window.onload = () => {
+        renderNav();
+
+        // Load announcements dynamically from API
+        fetch('{% url "api_announcements_list" %}')
+            .then(r => r.json())
+            .then(data => {
+                ANNOUNCEMENTS = data.announcements.map(a => ({
+                    id: a.id,
+                    category: a.importance === 'urgent' ? 'Urgent' : (a.importance === 'opportunity' ? 'Careers' : (a.importance === 'event' ? 'Events' : 'General')),
+                    title: a.title,
+                    timestamp: a.posted.replace('Posted: ', ''),
+                    description: a.body,
+                    urgencyLevel: a.importance === 'urgent' ? 'Urgent' : (a.importance === 'opportunity' ? 'High' : 'General')
+                }));
+                // Build categories from data
+                const cats = new Set(ANNOUNCEMENTS.map(a => a.category));
+                CATEGORIES = ['All', ...cats];
+                renderCategories();
+                renderAnnouncements();
+            })
+            .catch(() => {
+                renderCategories();
+                renderAnnouncements();
+            });
+
+        renderNotifications();
+
+        // Notification Toggle logic
+        bellBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = notifPanel.style.display === 'flex';
+            notifPanel.style.display = isOpen ? 'none' : 'flex';
+        });
+
+        document.getElementById('clearNotifs').addEventListener('click', () => {
+            notifications = [];
+            renderNotifications();
+        });
+
+        window.addEventListener('click', () => {
+            notifPanel.style.display = 'none';
+        });
+
+        notifPanel.addEventListener('click', (e) => e.stopPropagation());
+
+        lucide.createIcons();
+    };
+</script>
+
 </body>
 </html>

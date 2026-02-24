@@ -3,265 +3,228 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Events | Reconnect Alumni Portal</title>
+    <title>reConnect - Events Portal</title>
+    <!-- Lucide Icons Library -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
+        /* THEME VARIABLES DEFINITION */
         :root {
-            --bg-light: #f4f7f9; 
-            --primary-blue: #1e3a8a;  
-            --accent-gold: #D4AF37;   
-            --dark-text: #333333;
-            --white: #ffffff;
-            --grey-text: #666666;
-            --transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-            --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --rc-primary-blue: #3b489a;
+            --rc-accent-gold: #e1a92a;
+            --rc-page-background: #f3f4f9;
+            --rc-content-white: #ffffff;
+            --rc-text-main-color: #1e293b;
+            --rc-text-dimmed-color: #64748b;
+            --rc-ui-border-soft: #e2e8f0;
+            --rc-ui-alert-danger: #ef4444;
+            --rc-card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, sans-serif;
+        /* RESET STYLES */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            background-color: var(--rc-page-background); 
+            color: var(--rc-text-main-color); 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            -webkit-font-smoothing: antialiased;
         }
 
-        body {
-            background-color: var(--bg-light);
-            color: var(--dark-text);
-            overflow-x: hidden;
-            line-height: 1.6;
+        /* TOP NAVIGATION HEADER STYLING */
+        .rc-header {
+            position: sticky; top: 0; z-index: 1000;
+            background-color: var(--rc-primary-blue);
+            color: white; padding: 12px 28px;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.1);
         }
 
-        /* --- HEADER & NAVIGATION --- */
-        header {
-            background: var(--white);
-            padding: 0 5%;
-            height: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: fixed;
-            top: 0;
-            width: 100%;
+        .rc-logo-btn { background: transparent; border: none; cursor: pointer; display: flex; align-items: center; text-decoration: none; }
+        .rc-logo-text { font-size: 1.8rem; font-weight: 900; letter-spacing: -1.2px; color: white; }
+        .rc-logo-text span { color: var(--rc-accent-gold); }
+
+        .rc-header-right { display: flex; align-items: center; gap: 20px; }
+        .rc-profile-link { display: flex; align-items: center; gap: 12px; text-decoration: none; color: white; border-left: 1px solid rgba(255,255,255,0.2); padding-left: 20px; }
+
+        /* Notification Panel */
+        .rc-notification-panel {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            width: 320px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--rc-card-shadow);
+            border: 1px solid var(--rc-ui-border-soft);
+            color: var(--rc-text-main-color);
+            display: none;
+            flex-direction: column;
             z-index: 1000;
-            box-shadow: var(--shadow);
+            overflow: hidden;
+            animation: slideDown 0.2s ease-out;
         }
-
-        .logo {
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: var(--primary-blue);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            z-index: 1100;
-            transition: transform 0.3s ease;
-            text-decoration: none;
-            user-select: none;
-        }
-
-        .logo span {
-            color: var(--accent-gold);
-            background: var(--primary-blue);
-            padding: 2px 10px;
-            border-radius: 6px;
-        }
-
-        /* The Animated Nav Bar (Sliding top-left to right) */
-        nav {
-            position: fixed;
-            top: 0;
-            left: -100%; 
-            width: 100%;
-            height: 80px;
-            background: var(--primary-blue);
-            z-index: 1050;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: var(--transition);
-        }
-
-        nav.open { left: 0; }
-
-        .nav-links {
-            display: flex;
-            list-style: none;
-            gap: 40px;
-        }
-
-        .nav-item {
-            color: var(--white);
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.3s;
-            padding: 10px 15px;
-            text-decoration: none;
-            position: relative;
-        }
-
-        .nav-item:hover { color: var(--accent-gold); }
         
-        .nav-item.active::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            width: 80%;
-            height: 3px;
-            background: var(--accent-gold);
-            transform: translateX(-50%);
-            border-radius: 10px;
-        }
-
-        .close-nav {
-            position: absolute;
-            right: 5%;
-            color: var(--white);
-            font-size: 2rem;
-            cursor: pointer;
-        }
-
-        /* --- MAIN LAYOUT --- */
-        main {
-            margin-top: 100px;
-            padding: 2rem 5% 5rem 5%;
-            max-width: 1400px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        /* --- SEARCH SECTION --- */
-        .search-container {
-            margin-bottom: 50px;
-            text-align: center;
-            animation: fadeInDown 0.8s ease forwards;
-        }
-
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-20px); }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .search-box {
-            position: relative;
-            max-width: 600px;
-            margin: 20px auto;
+        .rc-notification-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--rc-ui-border-soft);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .search-input {
-            width: 100%;
-            padding: 18px 25px 18px 55px;
-            border-radius: 50px;
-            border: none;
-            background: var(--white);
-            box-shadow: var(--shadow);
-            font-size: 1.1rem;
-            outline: none;
-            transition: 0.3s;
-            color: var(--dark-text);
+        .rc-notification-header h4 { font-weight: 800; font-size: 0.9rem; color: var(--rc-primary-blue); }
+
+        .rc-notification-list { max-height: 400px; overflow-y: auto; }
+
+        .rc-notification-item {
+            padding: 1rem;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            gap: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .rc-notification-item:hover { background: #f8fafc; }
+        .rc-notification-item.unread { background: #f0f7ff; }
+
+        .rc-notif-dot {
+            width: 8px; height: 8px; background: var(--rc-accent-gold); border-radius: 50%;
+            flex-shrink: 0; margin-top: 6px;
         }
 
-        .search-input:focus {
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
-            transform: translateY(-2px);
+        .rc-notif-content p { font-size: 0.85rem; line-height: 1.4; margin-bottom: 4px; }
+        .rc-notif-content span { font-size: 0.7rem; color: var(--rc-text-dimmed-color); font-weight: 600; }
+
+        /* SIDEBAR NAVIGATION OVERLAY */
+        .rc-nav-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 90px;
+            background: white; z-index: 1100; border-bottom: 4px solid var(--rc-accent-gold);
+            display: flex; align-items: center; padding: 0 28px;
+            transform: translateX(-100%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: var(--rc-card-shadow);
+        }
+        .rc-nav-overlay.open { transform: translateX(0); }
+        .rc-nav-list { display: flex; gap: 10px; flex: 1; align-items: center; padding: 0 20px; overflow-x: auto; scrollbar-width: none; }
+        .rc-nav-link { 
+            display: flex; align-items: center; gap: 8px; padding: 10px 20px; 
+            border-radius: 50px; text-decoration: none; color: var(--rc-text-dimmed-color); 
+            font-weight: 700; font-size: 0.9rem; transition: 0.2s; white-space: nowrap;
+        }
+        .rc-nav-link.active { background: var(--rc-primary-blue); color: white; }
+        .rc-nav-link:hover:not(.active) { background: #f1f5f9; color: var(--rc-primary-blue); }
+
+        /* MAIN CONTENT AREA */
+        .rc-view-container { 
+            max-width: 1200px; margin: 36px auto; padding: 0 24px; 
         }
 
-        .search-icon {
-            position: absolute;
-            left: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--primary-blue);
-            opacity: 0.6;
+        .rc-view-header { text-align: center; margin-bottom: 40px; }
+        .rc-view-header h1 { font-size: 2.5rem; font-weight: 900; color: var(--rc-primary-blue); margin-bottom: 10px; }
+        .rc-view-header p { color: var(--rc-text-dimmed-color); font-weight: 600; font-size: 1.1rem; }
+
+        /* SEARCH UI */
+        .rc-search-input-wrapper {
+            background-color: var(--rc-content-white); border-radius: 16px; padding: 18px 24px;
+            display: flex; align-items: center; gap: 14px;
+            border: 1px solid var(--rc-ui-border-soft); margin: 0 auto 50px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.015);
+            max-width: 700px;
+        }
+        .rc-search-native-input {
+            flex: 1; border: none; outline: none; font-size: 1.1rem; color: var(--rc-text-main-color); font-weight: 500;
         }
 
-        /* --- EVENTS GRID --- */
-        .events-grid {
+        /* EVENTS GRID */
+        .rc-events-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
             gap: 30px;
         }
 
-        .event-card {
-            background: var(--white);
-            border-radius: 25px;
+        .rc-event-card {
+            background: white;
+            border-radius: 24px;
             overflow: hidden;
-            box-shadow: var(--shadow);
-            transition: var(--transition);
-            opacity: 0;
-            animation: fadeInUp 0.6s ease forwards;
+            border: 1px solid var(--rc-ui-border-soft);
+            transition: all 0.3s ease;
             display: flex;
             flex-direction: column;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
         }
 
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+        .rc-event-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.08);
         }
 
-        .event-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
-        }
-
-        .event-poster {
+        .rc-event-poster {
             height: 200px;
             background-size: cover;
             background-position: center;
             position: relative;
         }
 
-        .event-category {
+        .rc-event-category {
             position: absolute;
             bottom: 15px;
             left: 15px;
-            background: rgba(30, 58, 138, 0.85);
-            color: var(--white);
-            padding: 4px 12px;
+            background: rgba(59, 72, 154, 0.9);
+            color: white;
+            padding: 5px 14px;
             border-radius: 50px;
             font-size: 0.75rem;
-            font-weight: 700;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             backdrop-filter: blur(4px);
         }
 
-        .event-body {
-            padding: 25px;
+        .rc-event-body {
+            padding: 24px;
             flex-grow: 1;
             display: flex;
             flex-direction: column;
         }
 
-        .event-date {
-            color: var(--accent-gold);
+        .rc-event-date {
+            color: var(--rc-accent-gold);
             font-weight: 800;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             margin-bottom: 8px;
-            display: block;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
         }
 
-        .event-title {
-            color: var(--primary-blue);
+        .rc-event-title {
+            color: var(--rc-primary-blue);
             font-size: 1.4rem;
             margin-bottom: 12px;
-            font-weight: 700;
+            font-weight: 800;
             line-height: 1.3;
         }
 
-        .event-desc {
-            color: var(--grey-text);
+        .rc-event-desc {
+            color: var(--rc-text-dimmed-color);
             font-size: 0.95rem;
-            margin-bottom: 20px;
+            line-height: 1.6;
+            margin-bottom: 24px;
             flex-grow: 1;
         }
 
-        .btn-details {
-            background: var(--primary-blue);
-            color: var(--white);
-            padding: 12px 25px;
-            border-radius: 12px;
+        .rc-btn-details {
+            background: var(--rc-primary-blue);
+            color: white;
+            padding: 14px;
+            border-radius: 14px;
             text-decoration: none;
             text-align: center;
-            font-weight: 700;
+            font-weight: 800;
             font-size: 0.9rem;
             transition: 0.3s;
             display: flex;
@@ -270,12 +233,12 @@
             gap: 10px;
         }
 
-        .btn-details:hover {
-            background: var(--accent-gold);
-            color: var(--primary-blue);
+        .rc-btn-details:hover {
+            background: var(--rc-accent-gold);
+            color: var(--rc-primary-blue);
         }
 
-        /* --- EMPTY STATE --- */
+        /* EMPTY STATE */
         #no-results {
             display: none;
             text-align: center;
@@ -283,66 +246,117 @@
             grid-column: 1 / -1;
         }
 
-        /* --- RESPONSIVE --- */
+        .hidden { display: none !important; }
+
         @media (max-width: 768px) {
-            .events-grid { grid-template-columns: 1fr; }
-            .nav-links { gap: 20px; }
-            .nav-item { font-size: 0.9rem; }
+            .rc-events-grid { grid-template-columns: 1fr; }
+            .rc-view-header h1 { font-size: 2rem; }
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="logo" id="logoToggle" onclick="toggleNav()">
-            <span>Re</span>connect
+    <!-- SIDEBAR NAVIGATION OVERLAY -->
+    <nav id="sidebarOverlay" class="rc-nav-overlay">
+        <button onclick="toggleNav()" style="background:transparent; border:none; cursor:pointer; padding:10px;">
+            <i data-lucide="x" color="#3b489a" size="32"></i>
+        </button>
+        <div class="rc-nav-list" id="navContainer">
+            <!-- Nav Items injected by JS -->
         </div>
-        <div style="font-weight: 700; color: var(--primary-blue); font-size: 0.9rem; display: flex; align-items: center; gap: 8px;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-            Events Portal
+        <a href="{% url 'logout' %}" style="color:var(--rc-ui-alert-danger); text-decoration:none; font-weight:800; border-left:1px solid #eee; padding-left:24px; margin-left:12px; display:flex; align-items:center; gap:8px;">
+            <i data-lucide="log-out" size="20"></i> Logout
+        </a>
+    </nav>
+
+    <!-- TOP BRANDING HEADER -->
+    <header class="rc-header">
+        <button class="rc-logo-btn" onclick="toggleNav()">
+            <span class="rc-logo-text">re<span>Connect</span></span>
+        </button>
+
+        <div class="rc-header-right">
+            <!-- Bell Trigger -->
+            <div id="bellBtn" style="position: relative; cursor: pointer;">
+                <i data-lucide="bell" size="24" color="white"></i>
+                <span id="unreadBadge" style="position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: var(--rc-accent-gold); border-radius: 50%; border: 2px solid var(--rc-primary-blue);"></span>
+            </div>
+            
+            <!-- Notification Panel -->
+            <div id="notifPanel" class="rc-notification-panel">
+                <div class="rc-notification-header">
+                    <h4>NOTIFICATIONS</h4>
+                    <button id="clearNotifs" style="background: none; border: none; font-size: 0.7rem; font-weight: 700; color: var(--rc-text-dimmed-color); cursor: pointer; text-transform: uppercase;">Clear All</button>
+                </div>
+                <div class="rc-notification-list" id="notifList">
+                    <!-- Notifications Injected by JS -->
+                </div>
+            </div>
+            
+            <a href="{% url 'my_profile' %}" class="rc-profile-link">
+                <div style="text-align: right; display: flex; flex-direction: column;">
+                    <span style="font-weight: 800; font-size: 0.9rem;">{{ user.get_full_name|default:user.username }}</span>
+                    <span style="font-size: 0.65rem; opacity: 0.85; font-weight: 800; text-transform: uppercase;">{% if user.passed_out_year %}CLASS OF {{ user.passed_out_year }}{% else %}ALUMNI{% endif %}</span>
+                </div>
+                <img src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.first_name|default:'User' }}{% endif %}" alt="Profile" style="width: 42px; height: 42px; border-radius: 12px; background-color: white; border: 2px solid var(--rc-accent-gold);">
+            </a>
         </div>
     </header>
 
-    <!-- Animated Navigation -->
-    <nav id="topNav">
-        <ul class="nav-links">
-            <li><a href="{% url 'alumni_dashboard' %}" class="nav-item">Dashboard</a></li>
-            <li><a href="{% url 'announcements' %}" class="nav-item">Announcements</a></li>
-            <li><a href="{% url 'connect' %}" class="nav-item">Connect</a></li>
-            <li><a href="{% url 'events' %}" class="nav-item active">Events</a></li>
-            <li><a href="{% url 'settings' %}" class="nav-item">Settings</a></li>
-        </ul>
-        <div class="close-nav" onclick="toggleNav()">×</div>
-    </nav>
-
-    <main>
-        <div class="search-container">
-            <h2 style="color: var(--primary-blue); font-size: 2.2rem;">Events Directory</h2>
-            <p style="color: var(--grey-text); margin-bottom: 20px;">Search through all our campus events, reunions, and networking sessions.</p>
-            
-            <div class="search-box">
-                <svg class="search-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                <input type="text" id="eventSearch" class="search-input" placeholder="Search by title, category, or date..." onkeyup="filterEvents()">
-            </div>
+    <main class="rc-view-container">
+        <div class="rc-view-header">
+            <h1>Events Directory</h1>
+            <p>Connect with your community through reunions, seminars, and networking sessions.</p>
         </div>
 
-        <div class="events-grid" id="eventsContainer">
+        <!-- SEARCH INTERFACE -->
+        <div class="rc-search-input-wrapper">
+            <i data-lucide="search" size="24" color="#64748b"></i>
+            <input 
+                type="text" 
+                id="eventSearch" 
+                class="rc-search-native-input" 
+                placeholder="Search by title, category, or date..." 
+                onkeyup="filterEvents()"
+            />
+        </div>
+
+        <div class="rc-events-grid" id="eventsContainer">
             <!-- Events injected by JS -->
         </div>
 
         <div id="no-results">
-            <h3 style="color: var(--primary-blue);">No events found matching your search.</h3>
-            <p style="color: var(--grey-text);">Try different keywords or browse all categories.</p>
+            <i data-lucide="calendar-x" size="60" style="opacity: 0.1; color: var(--rc-primary-blue); margin-bottom: 20px;"></i>
+            <h3 style="color: var(--rc-primary-blue); font-weight: 800;">No events found matching your search.</h3>
+            <p style="color: var(--rc-text-dimmed-color); font-weight: 600;">Try different keywords or browse all categories.</p>
         </div>
     </main>
 
     <script>
-        // Data from database
-        const allEvents = [
-            {% for ev in events %}
-            { id: {{ ev.id }}, title: "{{ ev.title|escapejs }}", date: "{{ ev.date_display|escapejs }}", category: "{{ ev.category|escapejs }}", img: "{{ ev.image_url|escapejs }}", desc: "{{ ev.description|escapejs }}" }{% if not forloop.last %},{% endif %}
-            {% endfor %}
+        const NAV_LINKS = [
+            { label: 'Dashboard', icon: 'trending-up', href: '{% url "alumni_dashboard" %}' },
+            { label: 'Announcements', icon: 'megaphone', href: '{% url "announcements" %}' },
+            { label: 'Connect', icon: 'users', href: '{% url "connect" %}' },
+            { label: 'Events', icon: 'calendar', href: '{% url "events" %}', active: true },
+            { label: 'Share', icon: 'plus-circle', href: '{% url "post" %}' },
+            { label: 'Settings', icon: 'settings', href: '{% url "settings" %}' }
         ];
+
+        let allEvents = [];
+
+        const MOCK_NOTIFICATIONS = [];
+
+        let notifications = [...MOCK_NOTIFICATIONS];
+
+        function renderNav() {
+            const container = document.getElementById('navContainer');
+            container.innerHTML = NAV_LINKS.map(link => `
+                <a href="${link.href}" class="rc-nav-link ${link.active ? 'active' : ''}">
+                    <i data-lucide="${link.icon}" size="18"></i>
+                    ${link.label}
+                </a>
+            `).join('');
+        }
 
         function renderEvents(list) {
             const container = document.getElementById('eventsContainer');
@@ -357,21 +371,22 @@
             container.style.display = 'grid';
             noResults.style.display = 'none';
             
-            container.innerHTML = list.map((ev, index) => `
-                <div class="event-card" style="animation-delay: ${index * 0.1}s">
-                    <div class="event-poster" style="background-image: url('${ev.img}')">
-                        <span class="event-category">${ev.category}</span>
+            container.innerHTML = list.map((ev) => `
+                <div class="rc-event-card">
+                    <div class="rc-event-poster" style="background-image: url('${ev.img}')">
+                        <span class="rc-event-category">${ev.category}</span>
                     </div>
-                    <div class="event-body">
-                        <span class="event-date">${ev.date}</span>
-                        <h3 class="event-title">${ev.title}</h3>
-                        <p class="event-desc">${ev.desc}</p>
-                        <a href="/event-details/?id=${ev.id}" class="btn-details">
-                            View Schedule ➜
+                    <div class="rc-event-body">
+                        <span class="rc-event-date"><i data-lucide="calendar" size="14"></i> ${ev.date}</span>
+                        <h3 class="rc-event-title">${ev.title}</h3>
+                        <p class="rc-event-desc">${ev.desc}</p>
+                        <a href="{% url 'event_details' %}?id=${ev.id}" class="rc-btn-details">
+                            Event Details <i data-lucide="arrow-right" size="16"></i>
                         </a>
                     </div>
                 </div>
             `).join('');
+            lucide.createIcons();
         }
 
         function filterEvents() {
@@ -384,14 +399,83 @@
             renderEvents(filtered);
         }
 
-        // Navigation Toggle Logic
-        const topNav = document.getElementById('topNav');
         function toggleNav() { 
-            topNav.classList.toggle('open'); 
+            document.getElementById('sidebarOverlay').classList.toggle('open'); 
         }
 
-        // Initial render
-        window.onload = () => renderEvents(allEvents);
+        function renderNotifications() {
+            const notifList = document.getElementById('notifList');
+            const unreadBadge = document.getElementById('unreadBadge');
+            const unreadCount = notifications.filter(n => n.unread).length;
+            
+            unreadBadge.style.display = unreadCount > 0 ? 'block' : 'none';
+
+            if (notifications.length === 0) {
+                notifList.innerHTML = `<div style="padding: 2rem; text-align: center; color: var(--rc-text-dimmed-color); font-size: 0.8rem; font-weight: 600;">No new notifications</div>`;
+                return;
+            }
+
+            notifList.innerHTML = notifications.map(notif => `
+                <div class="rc-notification-item ${notif.unread ? 'unread' : ''}" onclick="markAsRead(${notif.id})">
+                    ${notif.unread ? '<div class="rc-notif-dot"></div>' : '<div style="width:8px; flex-shrink:0;"></div>'}
+                    <div class="rc-notif-content">
+                        <p>${notif.text}</p>
+                        <span>${notif.time}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.markAsRead = (id) => {
+            notifications = notifications.map(n => n.id === id ? { ...n, unread: false } : n);
+            renderNotifications();
+        };
+
+        // Initialize Page
+        window.onload = () => {
+            renderNav();
+
+            // Load events dynamically from API
+            fetch('{% url "api_events_list" %}')
+                .then(r => r.json())
+                .then(data => {
+                    allEvents = data.events.map(e => ({
+                        id: e.id,
+                        title: e.title,
+                        date: e.date,
+                        category: e.category,
+                        img: e.img || 'https://images.unsplash.com/photo-1540575861501-7cf05a4b125a?auto=format&fit=crop&w=800&q=80',
+                        desc: e.desc
+                    }));
+                    renderEvents(allEvents);
+                })
+                .catch(() => renderEvents(allEvents));
+
+            renderNotifications();
+
+            // Notification Toggle logic
+            const bellBtn = document.getElementById('bellBtn');
+            const notifPanel = document.getElementById('notifPanel');
+
+            bellBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isOpen = notifPanel.style.display === 'flex';
+                notifPanel.style.display = isOpen ? 'none' : 'flex';
+            });
+
+            document.getElementById('clearNotifs').addEventListener('click', () => {
+                notifications = [];
+                renderNotifications();
+            });
+
+            window.addEventListener('click', () => {
+                notifPanel.style.display = 'none';
+            });
+
+            notifPanel.addEventListener('click', (e) => e.stopPropagation());
+
+            lucide.createIcons();
+        };
     </script>
 </body>
 </html>

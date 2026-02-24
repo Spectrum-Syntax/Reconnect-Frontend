@@ -15,6 +15,7 @@ from django.db.models import Q, Max
 from reconnect.models import (
     CustomUser, Conversation, ConversationParticipant, Message,
     Event, EventTimelineItem, Announcement,
+    Post, PostLike, PostComment, Connection, Opportunity, Project,
 )
 
 
@@ -133,7 +134,387 @@ def profile(request):
 
 @login_required
 def event_details(request):
-    return render(request, "alumini/eventdetails.html")
+    event_id = request.GET.get('id')
+    event = None
+    timeline = []
+    if event_id:
+        event = Event.objects.filter(id=event_id, is_active=True).first()
+        if event:
+            timeline = event.timeline.all()
+    template = 'student/eventdetails2.html' if request.user.role == 'student' else 'alumini/eventdetails.html'
+    return render(request, template, {'event': event, 'timeline': timeline, 'user': request.user})
+
+
+# ─── Student Page Views ──────────────────────────────────────────────────────
+
+@login_required
+def student_connect(request):
+    return render(request, "student/student_connect.html", {'user': request.user})
+
+
+@login_required
+def student_explore(request):
+    return render(request, "student/student_explore.html", {'user': request.user})
+
+
+@login_required
+def student_opportunities(request):
+    opportunities = Opportunity.objects.filter(is_active=True)
+    return render(request, "student/student_opportunities.html", {
+        'user': request.user,
+        'opportunities': opportunities,
+    })
+
+
+@login_required
+def student_projects(request):
+    projects = Project.objects.filter(is_active=True)
+    return render(request, "student/student_projects.html", {
+        'user': request.user,
+        'projects': projects,
+    })
+
+
+@login_required
+def student_profile(request):
+    return render(request, "student/student_profile.html", {'user': request.user})
+
+
+@login_required
+def student_settings(request):
+    return render(request, "student/student_settings.html", {'user': request.user})
+
+
+# ─── Alumni Extra Page Views ─────────────────────────────────────────────────
+
+@login_required
+def my_profile(request):
+    return render(request, "alumini/myprofile.html", {'user': request.user})
+
+
+@login_required
+def post_view(request):
+    post_count = Post.objects.filter(author=request.user).count()
+    grant_count = Post.objects.filter(author=request.user, post_type='funding').count()
+    return render(request, "alumini/post.html", {
+        'user': request.user,
+        'post_count': post_count,
+        'grant_count': grant_count,
+    })
+
+
+# ─── Post / Social Feed API ──────────────────────────────────────────────────
+
+@require_POST
+@login_required
+def create_post(request):
+    """Create a social post (general, hiring, funding, openfor)."""
+    post_type = request.POST.get('post_type', 'general').strip()
+    title = request.POST.get('title', '').strip()
+    body = request.POST.get('body', '').strip()
+
+    post = Post(
+        author=request.user,
+        post_type=post_type,
+        title=title,
+        body=body,
+    )
+
+    # Handle image upload
+    img = request.FILES.get('image')
+    if img:
+        post.image = img
+
+    # Hiring-specific fields
+    if post_type == 'hiring':
+        post.company = request.POST.get('company', '').strip()
+        post.role = request.POST.get('role', '').strip()
+        post.job_type = request.POST.get('job_type', '').strip()
+        post.duration = request.POST.get('duration', '').strip()
+        post.stipend = request.POST.get('stipend', '').strip()
+        post.location = request.POST.get('location', '').strip()
+        post.application_url = request.POST.get('application_url', '').strip()
+
+    # Funding-specific
+    if post_type == 'funding':
+        post.amount = request.POST.get('amount', '').strip()
+        post.frequency = request.POST.get('frequency', '').strip()
+        post.eligibility = request.POST.get('eligibility', '').strip()
+
+    # Open-for
+    if post_type == 'openfor':
+        tags = request.POST.getlist('open_for_tags')
+        post.open_for_tags = ','.join(tags)
+
+    post.save()
+    return JsonResponse({'success': True, 'message': 'Post published!', 'id': post.id})
+
+
+@require_GET
+@login_required
+def api_posts_list(request):
+    """Return feed posts."""
+    qs = Post.objects.filter(is_active=True).select_related('author')
+    # Optional filter by user
+    user_id = request.GET.get('user_id')
+    if user_id:
+        qs = qs.filter(author_id=user_id)
+    posts = qs[:50]
+    user = request.user
+    result = []
+    for p in posts:
+        result.append({
+            'id': p.id,
+            'post_type': p.post_type,
+            'title': p.title,
+            'body': p.body,
+            'image': p.image.url if p.image else '',
+            'author_name': p.author.get_full_name() or p.author.username,
+            'author_initials': p.author.get_initials(),
+            'author_department': p.author.department,
+            'author_id': p.author.id,
+            'company': p.company,
+            'role': p.role,
+            'job_type': p.job_type,
+            'location': p.location,
+            'amount': p.amount,
+            'open_for_tags': p.open_for_tags.split(',') if p.open_for_tags else [],
+            'likes': p.like_count(),
+            'comments': p.comment_count(),
+            'liked_by_me': p.likes.filter(user=user).exists(),
+            'created_at': p.created_at.strftime('%b %d, %Y %H:%M'),
+        })
+    return JsonResponse({'posts': result})
+
+
+@require_POST
+@login_required
+def toggle_like(request, post_id):
+    """Toggle like on a post."""
+    post = get_object_or_404(Post, id=post_id)
+    like, created = PostLike.objects.get_or_create(post=post, user=request.user)
+    if not created:
+        like.delete()
+        return JsonResponse({'liked': False, 'count': post.like_count()})
+    return JsonResponse({'liked': True, 'count': post.like_count()})
+
+
+@require_POST
+@login_required
+def add_comment(request, post_id):
+    """Add a comment to a post."""
+    post = get_object_or_404(Post, id=post_id)
+    try:
+        data = json.loads(request.body)
+        content = data.get('content', '').strip()
+    except json.JSONDecodeError:
+        content = request.POST.get('content', '').strip()
+    if not content:
+        return JsonResponse({'error': 'Comment cannot be empty'}, status=400)
+    comment = PostComment.objects.create(post=post, user=request.user, content=content)
+    return JsonResponse({
+        'success': True,
+        'comment': {
+            'id': comment.id,
+            'content': comment.content,
+            'user_name': comment.user.get_full_name() or comment.user.username,
+            'user_initials': comment.user.get_initials(),
+            'created_at': comment.created_at.strftime('%b %d, %Y %H:%M'),
+        }
+    })
+
+
+@require_GET
+@login_required
+def get_comments(request, post_id):
+    """Get comments for a post."""
+    post = get_object_or_404(Post, id=post_id)
+    comments = post.comments.select_related('user').all()
+    result = [{
+        'id': c.id,
+        'content': c.content,
+        'user_name': c.user.get_full_name() or c.user.username,
+        'user_initials': c.user.get_initials(),
+        'created_at': c.created_at.strftime('%b %d, %Y %H:%M'),
+    } for c in comments]
+    return JsonResponse({'comments': result})
+
+
+# ─── Connection API ───────────────────────────────────────────────────────────
+
+@require_POST
+@login_required
+def send_connection_request(request):
+    """Send a connection request."""
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+    to_user_id = data.get('to_user_id')
+    if not to_user_id:
+        return JsonResponse({'error': 'to_user_id required'}, status=400)
+
+    try:
+        to_user = CustomUser.objects.get(id=to_user_id)
+    except CustomUser.DoesNotExist:
+        return JsonResponse({'error': 'User not found'}, status=404)
+
+    if to_user == request.user:
+        return JsonResponse({'error': 'Cannot connect with yourself'}, status=400)
+
+    conn, created = Connection.objects.get_or_create(
+        from_user=request.user, to_user=to_user,
+        defaults={'status': 'pending'}
+    )
+    if not created:
+        return JsonResponse({'status': conn.status, 'message': 'Request already exists'})
+    return JsonResponse({'success': True, 'message': 'Connection request sent'})
+
+
+@require_POST
+@login_required
+def respond_connection(request, connection_id):
+    """Accept or decline a connection request."""
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+    action = data.get('action')  # 'accept' or 'decline'
+    conn = get_object_or_404(Connection, id=connection_id, to_user=request.user)
+
+    if action == 'accept':
+        conn.status = 'accepted'
+        conn.save()
+        return JsonResponse({'success': True, 'status': 'accepted'})
+    elif action == 'decline':
+        conn.status = 'declined'
+        conn.save()
+        return JsonResponse({'success': True, 'status': 'declined'})
+    return JsonResponse({'error': 'Invalid action'}, status=400)
+
+
+@require_GET
+@login_required
+def connection_list(request):
+    """Get user's connections and pending requests."""
+    user = request.user
+    # Accepted connections
+    accepted = Connection.objects.filter(
+        Q(from_user=user, status='accepted') | Q(to_user=user, status='accepted')
+    ).select_related('from_user', 'to_user')
+
+    connections = []
+    for c in accepted:
+        other = c.to_user if c.from_user == user else c.from_user
+        connections.append({
+            'id': c.id,
+            'user_id': other.id,
+            'name': other.get_full_name() or other.username,
+            'initials': other.get_initials(),
+            'department': other.department,
+            'enrollment_number': other.enrollment_number,
+        })
+
+    # Pending requests received
+    pending = Connection.objects.filter(to_user=user, status='pending').select_related('from_user')
+    requests_list = [{
+        'id': c.id,
+        'user_id': c.from_user.id,
+        'name': c.from_user.get_full_name() or c.from_user.username,
+        'initials': c.from_user.get_initials(),
+        'department': c.from_user.department,
+    } for c in pending]
+
+    return JsonResponse({'connections': connections, 'pending_requests': requests_list})
+
+
+# ─── Opportunity & Project API ────────────────────────────────────────────────
+
+@require_GET
+@login_required
+def api_opportunities_list(request):
+    """Return active opportunities."""
+    opps = Opportunity.objects.filter(is_active=True)
+    result = [{
+        'id': o.id,
+        'title': o.title,
+        'company': o.company,
+        'type': o.opportunity_type,
+        'description': o.description,
+        'location': o.location,
+        'stipend': o.stipend,
+        'application_url': o.application_url,
+        'posted_by': o.posted_by.get_full_name() if o.posted_by else '',
+        'created_at': o.created_at.strftime('%b %d, %Y'),
+    } for o in opps]
+    return JsonResponse({'opportunities': result})
+
+
+@require_GET
+@login_required
+def api_projects_list(request):
+    """Return active projects."""
+    projs = Project.objects.filter(is_active=True)
+    result = [{
+        'id': p.id,
+        'title': p.title,
+        'category': p.category,
+        'description': p.description,
+        'tech_stack': p.tech_stack,
+        'team_size': p.team_size,
+        'posted_by': p.posted_by.get_full_name() if p.posted_by else '',
+        'created_at': p.created_at.strftime('%b %d, %Y'),
+    } for p in projs]
+    return JsonResponse({'projects': result})
+
+
+# ─── Explore / People Search API ─────────────────────────────────────────────
+
+@require_GET
+@login_required
+def api_explore_people(request):
+    """Search for people with optional role filter."""
+    q = request.GET.get('q', '').strip()
+    role_filter = request.GET.get('role', '').strip()
+
+    qs = CustomUser.objects.exclude(id=request.user.id)
+
+    if q and len(q) >= 2:
+        qs = qs.filter(
+            Q(first_name__icontains=q) |
+            Q(last_name__icontains=q) |
+            Q(enrollment_number__icontains=q) |
+            Q(department__icontains=q)
+        )
+
+    if role_filter and role_filter != 'all':
+        qs = qs.filter(role=role_filter)
+
+    users = qs[:30]
+    user = request.user
+
+    result = []
+    for u in users:
+        # Check connection status
+        conn = Connection.objects.filter(
+            Q(from_user=user, to_user=u) | Q(from_user=u, to_user=user)
+        ).first()
+        conn_status = conn.status if conn else 'none'
+
+        result.append({
+            'id': u.id,
+            'name': u.get_full_name() or u.username,
+            'initials': u.get_initials(),
+            'department': u.department,
+            'role': u.role,
+            'enrollment_number': u.enrollment_number,
+            'working_status': u.working_status,
+            'connection_status': conn_status,
+            'profile_picture': u.profile_picture.url if u.profile_picture else '',
+        })
+    return JsonResponse({'people': result})
 
 
 # ─── CSV / Bulk Upload ───────────────────────────────────────────────────────
@@ -282,7 +663,7 @@ def create_single_user(request):
 @require_POST
 @login_required
 def update_profile(request):
-    """Handle profile settings update: phone, password, profile picture."""
+    """Handle profile settings update: phone, working_status, password, profile picture."""
     user = request.user
     updated = []
 
@@ -291,6 +672,12 @@ def update_profile(request):
     if phone is not None:
         user.phone = phone.strip()
         updated.append('phone')
+
+    # Working status update
+    ws = request.POST.get('working_status')
+    if ws is not None:
+        user.working_status = ws.strip()
+        updated.append('working_status')
 
     # Profile picture upload
     pic = request.FILES.get('profile_picture')

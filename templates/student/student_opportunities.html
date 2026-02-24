@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>reConnect - Find Opportunities</title>
+    <!-- Lucide Icons Library -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --uni-blue: #3b489a;
+            --uni-gold: #e1a92a;
+            --bg: #f3f4f9;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --white: #ffffff;
+            --border-color: #e2e8f0;
+            --danger-color: #ef4444;
+            --success-color: #22c55e;
+            --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --header-height: 72px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, sans-serif; }
+        body { background-color: var(--bg); color: var(--text-main); min-height: 100vh; }
+
+        .rc-app { min-height: 100vh; position: relative; padding-top: var(--header-height); }
+
+        /* Fixed Header */
+        .rc-header {
+            position: fixed; top: 0; left: 0; right: 0; height: var(--header-height);
+            z-index: 2000; background: var(--uni-blue); color: white;
+            padding: 0 2rem; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .rc-logo-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; color: white; text-decoration: none; }
+        .rc-logo-text { font-size: 1.8rem; font-weight: 900; letter-spacing: -1.5px; }
+        .rc-logo-text span { color: var(--uni-gold); }
+
+        /* Notification Panel */
+        .rc-notification-panel {
+            position: absolute; top: 60px; right: 20px; width: 320px;
+            background: white; border-radius: 16px; box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color); color: var(--text-main);
+            display: none; flex-direction: column; z-index: 1000; overflow: hidden;
+            animation: slideDown 0.2s ease-out;
+        }
+        
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .rc-notification-header { padding: 1rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .rc-notification-header h4 { font-weight: 800; font-size: 0.9rem; color: var(--uni-blue); }
+        .rc-notification-list { max-height: 400px; overflow-y: auto; }
+        .rc-notification-item { padding: 1rem; border-bottom: 1px solid #f1f5f9; display: flex; gap: 12px; cursor: pointer; transition: 0.2s; }
+        .rc-notification-item:hover { background: #f8fafc; }
+        .rc-notification-item.unread { background: #f0f7ff; }
+        .rc-notif-dot { width: 8px; height: 8px; background: var(--uni-gold); border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
+        .rc-notif-content p { font-size: 0.85rem; line-height: 1.4; margin-bottom: 4px; text-align: left; }
+        .rc-notif-content span { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; display: block; text-align: left; }
+
+        /* Navigation Bar Overlay */
+        .rc-nav-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 90px;
+            background: white; z-index: 3000; border-bottom: 4px solid var(--uni-gold);
+            display: flex; align-items: center; padding: 0 2rem;
+            transform: translateX(-100%); transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: var(--card-shadow);
+        }
+        .rc-nav-overlay.open { transform: translateX(0); }
+        .rc-nav-list { display: flex; gap: 0.5rem; overflow-x: auto; padding: 0.5rem; scrollbar-width: none; flex: 1; align-items: center; }
+        .rc-nav-link { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.1rem; border-radius: 100px; font-weight: 600; color: var(--text-muted); transition: 0.2s; text-decoration: none; font-size: 0.9rem; white-space: nowrap; }
+        .rc-nav-link:hover { background: #f1f5f9; color: var(--uni-blue); }
+        .rc-nav-link.active { background: var(--uni-blue); color: white; }
+
+        /* Main Container */
+        .rc-view-container { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem; }
+
+        .rc-page-header { margin-bottom: 2.5rem; }
+        .rc-page-header h1 { font-size: 2.2rem; font-weight: 900; color: var(--uni-blue); margin-bottom: 0.5rem; }
+        .rc-page-header p { color: var(--text-muted); font-weight: 600; font-size: 1.1rem; }
+
+        /* Filters Bar */
+        .rc-filter-bar {
+            display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap;
+            margin-bottom: 2.5rem; background: white; padding: 1.5rem; border-radius: 20px;
+            border: 1px solid var(--border-color); box-shadow: 0 4px 6px rgba(0,0,0,0.015);
+        }
+        .search-group { flex: 1; position: relative; min-width: 250px; }
+        .search-group i { position: absolute; left: 15px; top: 13px; color: var(--text-muted); }
+        .search-group input { width: 100%; padding: 12px 12px 12px 45px; border-radius: 12px; border: 1px solid var(--border-color); font-weight: 600; outline: none; background: #f8fafc; }
+        .search-group input:focus { border-color: var(--uni-gold); background: white; }
+        
+        .filter-tabs { display: flex; gap: 10px; }
+        .filter-btn { padding: 10px 20px; border-radius: 10px; border: 1.5px solid var(--border-color); background: white; color: var(--text-muted); font-weight: 700; cursor: pointer; transition: 0.2s; font-size: 0.85rem; }
+        .filter-btn.active { background: var(--uni-blue); color: white; border-color: var(--uni-blue); }
+
+        /* Opportunity Grid */
+        .rc-opportunities-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 2rem; }
+        .rc-opportunity-card {
+            background: white; border-radius: 24px; padding: 2rem; border: 1px solid var(--border-color);
+            transition: 0.3s; position: relative; display: flex; flex-direction: column;
+        }
+        .rc-opportunity-card:hover { transform: translateY(-10px); box-shadow: var(--card-shadow); border-color: var(--uni-gold); }
+
+        .opp-header { display: flex; justify-content: space-between; margin-bottom: 1.5rem; }
+        .opp-type-tag { font-size: 0.65rem; font-weight: 900; text-transform: uppercase; padding: 5px 12px; border-radius: 6px; letter-spacing: 0.5px; }
+        .tag-intern { background: #eff6ff; color: #1e40af; border: 1px solid #dbeafe; }
+        .tag-fulltime { background: #f0fdf4; color: #15803d; border: 1px solid #dcfce7; }
+
+        .opp-title { font-size: 1.4rem; font-weight: 900; color: var(--uni-blue); line-height: 1.2; margin-bottom: 8px; }
+        .opp-company { font-weight: 800; color: var(--text-muted); font-size: 0.95rem; display: flex; align-items: center; gap: 8px; margin-bottom: 1.5rem; }
+
+        .opp-details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem; }
+        .detail-item { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; font-weight: 700; color: var(--text-main); }
+        .detail-item i { color: var(--uni-gold); flex-shrink: 0; }
+
+        .opp-poster { display: flex; align-items: center; gap: 10px; padding-top: 1.5rem; border-top: 1px solid #f1f5f9; margin-top: auto; }
+        .poster-avatar { width: 32px; height: 32px; border-radius: 8px; }
+        .poster-info span { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; display: block; }
+        .poster-info strong { font-size: 0.8rem; font-weight: 800; color: var(--uni-blue); }
+
+        .btn-apply { margin-left: auto; background: var(--uni-blue); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 800; cursor: pointer; transition: 0.2s; font-size: 0.85rem; }
+        .btn-apply:hover { background: var(--uni-gold); color: var(--uni-blue); }
+
+        /* Application Modal */
+        .rc-modal-overlay { 
+            position: fixed; inset: 0; background: rgba(30, 41, 59, 0.7); 
+            backdrop-filter: blur(4px); z-index: 4000; display: none; 
+            align-items: center; justify-content: center; padding: 1rem; 
+        }
+        .rc-modal { 
+            background: white; width: 100%; max-width: 480px; border-radius: 24px; 
+            padding: 2rem; position: relative; box-shadow: var(--card-shadow);
+            animation: popIn 0.3s cubic-bezier(0.17, 0.89, 0.32, 1.28);
+        }
+        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .rc-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .rc-modal-header h2 { font-weight: 900; color: var(--uni-blue); font-size: 1.3rem; }
+        
+        .upload-area {
+            border: 2px dashed var(--border-color); border-radius: 16px; padding: 30px;
+            text-align: center; cursor: pointer; transition: 0.2s; margin-bottom: 1.5rem;
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
+        }
+        .upload-area:hover { border-color: var(--uni-gold); background: #fef9c3; }
+        .upload-area i { color: var(--uni-blue); }
+        .upload-area p { font-size: 0.85rem; font-weight: 700; color: var(--text-main); }
+        .upload-area span { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; }
+
+        .selected-file {
+            background: #f0fdf4; border: 1px solid #dcfce7; padding: 12px; border-radius: 12px;
+            display: flex; align-items: center; gap: 10px; margin-bottom: 1.5rem; display: none;
+        }
+        .selected-file span { font-size: 0.85rem; font-weight: 700; color: #15803d; }
+
+        .rc-modal-footer { display: flex; gap: 12px; }
+        .btn-modal { flex: 1; padding: 14px; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.2s; border: none; }
+        .btn-cancel { background: #f1f5f9; color: var(--text-muted); }
+        .btn-submit-app { background: var(--uni-blue); color: white; }
+        .btn-submit-app:disabled { background: #cbd5e1; cursor: not-allowed; }
+
+        .hidden { display: none !important; }
+        
+        @media (max-width: 600px) {
+            .rc-opportunities-grid { grid-template-columns: 1fr; }
+            .rc-filter-bar { flex-direction: column; align-items: stretch; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="rc-app">
+    <!-- Student Navigation -->
+    <nav id="navOverlay" class="rc-nav-overlay">
+        <button onclick="toggleNav()" style="background: none; border: none; cursor: pointer; padding: 10px;">
+            <i data-lucide="x" color="#3b489a" size="28"></i>
+        </button>
+        <div class="rc-nav-list" id="navLinks"></div>
+        <a href="{% url 'logout' %}" style="color:var(--danger-color); text-decoration:none; font-weight:700; border-left:2px solid var(--border-color); padding-left:1.5rem; margin-left:0.5rem; display:flex; align-items:center; gap:0.5rem;">
+            <i data-lucide="log-out" size="18"></i> Logout
+        </a>
+    </nav>
+
+    <header class="rc-header">
+        <button class="rc-logo-btn" onclick="toggleNav()">
+            <span class="rc-logo-text">re<span>Connect</span></span>
+        </button>
+        <div style="display: flex; gap: 1.25rem; align-items: center; position: relative;">
+            <div id="bellBtn" style="position: relative; cursor: pointer;">
+                <i data-lucide="bell" size="22" color="white"></i>
+                <span id="unreadBadge" style="position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: var(--uni-gold); border-radius: 50%; border: 2px solid var(--uni-blue);"></span>
+            </div>
+            
+            <div id="notifPanel" class="rc-notification-panel">
+                <div class="rc-notification-header">
+                    <h4>NOTIFICATIONS</h4>
+                    <button id="clearNotifs" style="background: none; border: none; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); cursor: pointer; text-transform: uppercase;">Clear All</button>
+                </div>
+                <div class="rc-notification-list" id="notifList"></div>
+            </div>
+
+            <a href="{% url 'student_profile' %}">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Arjun" style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--uni-gold); background: white; object-fit: cover;">
+            </a>
+        </div>
+    </header>
+
+    <main class="rc-view-container">
+        <div class="rc-page-header">
+            <h1>Find Opportunities</h1>
+            <p>Exclusive referrals and career openings shared by your alumni network.</p>
+        </div>
+
+        <!-- Filter & Search Hub -->
+        <div class="rc-filter-bar">
+            <div class="search-group">
+                <i data-lucide="search" size="20"></i>
+                <input type="text" id="oppSearch" placeholder="Search roles, skills, or companies..." onkeyup="filterOpportunities()">
+            </div>
+            <div class="filter-tabs">
+                <button class="filter-btn active" data-type="all" onclick="setTypeFilter('all', this)">All Roles</button>
+                <button class="filter-btn" data-type="intern" onclick="setTypeFilter('intern', this)">Internships</button>
+                <button class="filter-btn" data-type="fulltime" onclick="setTypeFilter('fulltime', this)">Full-Time</button>
+            </div>
+        </div>
+
+        <!-- Opportunity Grid -->
+        <div class="rc-opportunities-grid" id="oppsGrid">
+            <!-- Opportunities Injected -->
+        </div>
+    </main>
+</div>
+
+<!-- Application Modal -->
+<div id="applyModal" class="rc-modal-overlay">
+    <div class="rc-modal">
+        <div class="rc-modal-header">
+            <h2 id="modalTitle">Apply for Role</h2>
+            <button onclick="closeApplyModal()" style="background:none; border:none; cursor:pointer;"><i data-lucide="x" size="24" color="var(--uni-blue)"></i></button>
+        </div>
+        
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem; font-weight: 600;">
+            This application will be sent directly to <span id="targetAlumni" style="color: var(--uni-blue); font-weight: 800;">Alumni Name</span> via the Connect network.
+        </p>
+
+        <label class="rc-label" style="font-size: 0.7rem; font-weight: 800; color: var(--uni-blue); display: block; margin-bottom: 8px; text-transform: uppercase;">Upload Your Latest Resume</label>
+        <input type="file" id="resumeInput" accept=".pdf,.doc,.docx" class="hidden" onchange="handleResumeSelection(this)">
+        
+        <div class="upload-area" id="uploadTrigger" onclick="document.getElementById('resumeInput').click()">
+            <i data-lucide="upload-cloud" size="40"></i>
+            <p>Click to upload or drag & drop</p>
+            <span>PDF, DOCX (Max 5MB)</span>
+        </div>
+
+        <div id="fileInfo" class="selected-file">
+            <i data-lucide="file-check" size="20" color="#15803d"></i>
+            <span id="fileNameDisplay">resume.pdf</span>
+            <button onclick="resetUpload()" style="margin-left:auto; background:none; border:none; cursor:pointer;"><i data-lucide="trash-2" size="16" color="#ef4444"></i></button>
+        </div>
+
+        <div class="rc-modal-footer">
+            <button class="btn-modal btn-cancel" onclick="closeApplyModal()">Cancel</button>
+            <button class="btn-modal btn-submit-app" id="submitAppBtn" disabled onclick="submitApplication()">Send Application</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const NAV_LINKS = [
+        { label: 'Dashboard', icon: 'trending-up', href: '{% url "student_dashboard" %}' },
+        { label: 'Connect', icon: 'users', href: '{% url "student_connect" %}' },
+        { label: 'Explore', icon: 'compass', href: '{% url "student_explore" %}' },
+        { label: 'Find Opportunities', icon: 'briefcase', href: '{% url "student_opportunities" %}', active: true },
+        { label: 'Get Projects', icon: 'folder-git', href: '{% url "student_projects" %}' },
+        { label: 'Settings', icon: 'settings', href: '{% url "student_settings" %}' }
+    ];
+
+    let OPPORTUNITIES = [];
+
+    let activeType = 'all';
+    let searchQuery = '';
+    let currentSelectedOpp = null;
+    const MOCK_NOTIFICATIONS = [];
+    let notifications = [...MOCK_NOTIFICATIONS];
+
+    function toggleNav() { document.getElementById('navOverlay').classList.toggle('open'); }
+
+    function renderNav() {
+        const container = document.getElementById('navLinks');
+        container.innerHTML = NAV_LINKS.map(link => `
+            <a href="${link.href}" class="rc-nav-link ${link.active ? 'active' : ''}">
+                <i data-lucide="${link.icon}" size="18"></i> ${link.label}
+            </a>
+        `).join('');
+    }
+
+    function renderOpportunities() {
+        const container = document.getElementById('oppsGrid');
+        const filtered = OPPORTUNITIES.filter(opp => {
+            const matchesType = activeType === 'all' || opp.type === activeType;
+            const matchesSearch = opp.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                 opp.company.toLowerCase().includes(searchQuery.toLowerCase());
+            return matchesType && matchesSearch;
+        });
+
+        if (filtered.length === 0) {
+            container.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding: 100px 0; color:var(--text-muted);">
+                <i data-lucide="search-x" size="60" style="opacity: 0.1; margin-bottom: 20px;"></i>
+                <h3 style="font-weight: 800; color: var(--uni-blue);">No matching opportunities found</h3>
+                <p>Try broadening your search keywords.</p>
+            </div>`;
+        } else {
+            container.innerHTML = filtered.map(opp => `
+                <div class="rc-opportunity-card">
+                    <div class="opp-header">
+                        <span class="opp-type-tag ${opp.type === 'intern' ? 'tag-intern' : 'tag-fulltime'}">${opp.type === 'intern' ? 'Internship' : 'Full Time'}</span>
+                        <div style="color:var(--text-muted); font-size:0.7rem; font-weight:800;">
+                            <i data-lucide="clock" size="12" style="vertical-align:middle;"></i> Ends: ${opp.deadline}
+                        </div>
+                    </div>
+                    <h3 class="opp-title">${opp.title}</h3>
+                    <div class="opp-company">
+                        <i data-lucide="building-2" size="16"></i> ${opp.company}
+                    </div>
+                    <div class="opp-details-grid">
+                        <div class="detail-item"><i data-lucide="map-pin" size="16"></i> ${opp.location}</div>
+                        <div class="detail-item"><i data-lucide="banknote" size="16"></i> ${opp.pay}</div>
+                        <div class="detail-item"><i data-lucide="calendar" size="16"></i> ${opp.duration}</div>
+                        <div class="detail-item"><i data-lucide="zap" size="16"></i> Easy Referral</div>
+                    </div>
+                    <div class="opp-poster">
+                        <img src="${opp.posterAvatar}" class="poster-avatar">
+                        <div class="poster-info">
+                            <span>Shared by Alumni</span>
+                            <strong>${opp.postedBy}</strong>
+                        </div>
+                        <button class="btn-apply" onclick="openApplyModal(${JSON.stringify(opp).replace(/"/g, '&quot;')})">Apply Now</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        lucide.createIcons();
+    }
+
+    // Modal Functions
+    function openApplyModal(opp) {
+        currentSelectedOpp = opp;
+        document.getElementById('modalTitle').innerText = `Apply for ${opp.title}`;
+        document.getElementById('targetAlumni').innerText = opp.postedBy;
+        document.getElementById('applyModal').style.display = 'flex';
+        resetUpload();
+    }
+
+    function closeApplyModal() {
+        document.getElementById('applyModal').style.display = 'none';
+        currentSelectedOpp = null;
+    }
+
+    function handleResumeSelection(input) {
+        if (input.files && input.files[0]) {
+            const fileName = input.files[0].name;
+            document.getElementById('fileNameDisplay').innerText = fileName;
+            document.getElementById('uploadTrigger').style.display = 'none';
+            document.getElementById('fileInfo').style.display = 'flex';
+            document.getElementById('submitAppBtn').disabled = false;
+            lucide.createIcons();
+        }
+    }
+
+    function resetUpload() {
+        document.getElementById('resumeInput').value = "";
+        document.getElementById('uploadTrigger').style.display = 'flex';
+        document.getElementById('fileInfo').style.display = 'none';
+        document.getElementById('submitAppBtn').disabled = true;
+    }
+
+    function submitApplication() {
+        const btn = document.getElementById('submitAppBtn');
+        btn.innerText = "Sending...";
+        btn.disabled = true;
+
+        setTimeout(() => {
+            alert(`Success! Your resume has been sent to ${currentSelectedOpp.postedBy}. They will review it and get back to you via the Connect portal.`);
+            closeApplyModal();
+            btn.innerText = "Send Application";
+        }, 1500);
+    }
+
+    function setTypeFilter(type, btn) {
+        activeType = type;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderOpportunities();
+    }
+
+    function filterOpportunities() {
+        searchQuery = document.getElementById('oppSearch').value;
+        renderOpportunities();
+    }
+
+    function renderNotifications() {
+        const notifList = document.getElementById('notifList');
+        const unreadBadge = document.getElementById('unreadBadge');
+        const unreadCount = notifications.filter(n => n.unread).length;
+        unreadBadge.style.display = unreadCount > 0 ? 'block' : 'none';
+
+        if (notifications.length === 0) {
+            notifList.innerHTML = `<div style="padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.8rem; font-weight: 600;">No new notifications</div>`;
+            return;
+        }
+
+        notifList.innerHTML = notifications.map(notif => `
+            <div class="rc-notification-item ${notif.unread ? 'unread' : ''}" onclick="markAsRead(${notif.id})">
+                ${notif.unread ? '<div class="rc-notif-dot"></div>' : '<div style="width:8px; flex-shrink:0;"></div>'}
+                <div class="rc-notif-content">
+                    <p>${notif.text}</p>
+                    <span>${notif.time}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    window.markAsRead = (id) => {
+        notifications = notifications.map(n => n.id === id ? { ...n, unread: false } : n);
+        renderNotifications();
+    };
+
+    window.onclick = function(e) { 
+        if (e.target == document.getElementById('applyModal')) closeApplyModal();
+        if (!e.target.closest('#bellBtn') && !e.target.closest('#notifPanel')) {
+            document.getElementById('notifPanel').style.display = 'none';
+        }
+    }
+
+    window.onload = () => {
+        renderNav();
+        renderNotifications();
+
+        // Load opportunities from API
+        fetch('{% url "api_opportunities_list" %}')
+            .then(r => r.json())
+            .then(data => {
+                OPPORTUNITIES = (data.opportunities || []).map(o => ({
+                    id: o.id,
+                    title: o.title,
+                    company: o.company,
+                    type: o.type || 'fulltime',
+                    location: o.location || 'Remote',
+                    pay: o.stipend || 'Not specified',
+                    duration: 'Open',
+                    postedBy: o.posted_by || 'Alumni',
+                    posterAvatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(o.posted_by || 'User')}`,
+                    deadline: o.created_at || ''
+                }));
+                renderOpportunities();
+            })
+            .catch(() => renderOpportunities());
+
+        document.getElementById('bellBtn').onclick = (e) => {
+            e.stopPropagation();
+            const panel = document.getElementById('notifPanel');
+            panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
+        };
+
+        document.getElementById('clearNotifs').onclick = () => {
+            notifications = [];
+            renderNotifications();
+        };
+    };
+</script>
+
+</body>
+</html>

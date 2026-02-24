@@ -3,478 +3,438 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Account Settings | Reconnect</title>
+    <title>reConnect - Settings</title>
+    <!-- Lucide Icons Library -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
+        /* THEME VARIABLES */
         :root {
-            --bg-light: #f4f7f9; 
-            --primary-blue: #1e3a8a;  
-            --accent-gold: #D4AF37;   
-            --dark-text: #333333;
-            --white: #ffffff;
-            --grey-text: #666666;
-            --locked-bg: #f0f2f5;
-            --transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-            --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --rc-primary-blue: #3b489a;
+            --rc-accent-gold: #e1a92a;
+            --rc-page-background: #f3f4f9;
+            --rc-content-white: #ffffff;
+            --rc-text-main-color: #1e293b;
+            --rc-text-dimmed-color: #64748b;
+            --rc-ui-border-soft: #e2e8f0;
+            --rc-card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, sans-serif;
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, sans-serif; }
+        body { background-color: var(--rc-page-background); color: var(--rc-text-main-color); min-height: 100vh; }
+
+        /* Navigation Header */
+        .rc-header {
+            position: sticky; top: 0; z-index: 1000; background-color: var(--rc-primary-blue);
+            color: white; padding: 12px 28px; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.1);
         }
+        .rc-logo-btn { background: transparent; border: none; cursor: pointer; display: flex; align-items: center; text-decoration: none; }
+        .rc-logo-text { font-size: 1.8rem; font-weight: 900; letter-spacing: -1.2px; color: white; }
+        .rc-logo-text span { color: var(--rc-accent-gold); }
 
-        body {
-            background-color: var(--bg-light);
-            color: var(--dark-text);
-            padding-top: 80px;
+        .rc-header-right { display: flex; align-items: center; gap: 20px; }
+        .rc-profile-link { display: flex; align-items: center; gap: 12px; text-decoration: none; color: white; border-left: 1px solid rgba(255,255,255,0.2); padding-left: 20px; }
+
+        /* SIDEBAR NAVIGATION OVERLAY */
+        .rc-nav-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 90px;
+            background: white; z-index: 1100; border-bottom: 4px solid var(--rc-accent-gold);
+            display: flex; align-items: center; padding: 0 28px;
+            transform: translateX(-100%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: var(--rc-card-shadow);
         }
-
-        /* --- HEADER & NAVIGATION (Synced) --- */
-        header {
-            background: var(--white);
-            padding: 0 5%;
-            height: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: fixed;
-            top: 0;
-            width: 100%;
-            z-index: 1000;
-            box-shadow: var(--shadow);
+        .rc-nav-overlay.open { transform: translateX(0); }
+        .rc-nav-list { display: flex; gap: 10px; flex: 1; align-items: center; padding: 0 20px; overflow-x: auto; scrollbar-width: none; }
+        .rc-nav-link { 
+            display: flex; align-items: center; gap: 8px; padding: 10px 20px; 
+            border-radius: 50px; text-decoration: none; color: var(--rc-text-dimmed-color); 
+            font-weight: 700; font-size: 0.9rem; transition: 0.2s; white-space: nowrap;
         }
+        .rc-nav-link.active { background: var(--rc-primary-blue); color: white; }
 
-        .logo {
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: var(--primary-blue);
-            cursor: pointer;
-            text-decoration: none;
-        }
-
-        .logo span {
-            color: var(--accent-gold);
-            background: var(--primary-blue);
-            padding: 2px 10px;
-            border-radius: 6px;
-        }
-
-        nav {
-            position: fixed;
-            top: 0;
-            left: -100%; 
-            width: 100%;
-            height: 80px;
-            background: var(--primary-blue);
-            z-index: 1050;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: var(--transition);
-        }
-
-        nav.open { left: 0; }
-
-        .nav-links {
-            display: flex;
-            list-style: none;
-            gap: 40px;
-        }
-
-        .nav-item {
-            color: var(--white);
-            font-weight: 600;
-            text-decoration: none;
-            padding: 10px 15px;
-            transition: 0.3s;
-        }
-
-        .nav-item:hover { color: var(--accent-gold); }
-        .nav-item.active::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            width: 80%;
-            height: 3px;
-            background: var(--accent-gold);
-            transform: translateX(-50%);
-            border-radius: 10px;
-        }
-
-        .close-nav {
-            position: absolute;
-            right: 5%;
-            color: var(--white);
-            font-size: 2rem;
-            cursor: pointer;
-        }
-
-        /* --- MAIN CONTENT --- */
-        main {
-            max-width: 1000px;
-            margin: 40px auto;
-            padding: 0 5% 100px 5%;
-        }
-
-        .settings-grid {
+        /* Main Grid Layout */
+        .rc-settings-grid {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 0 24px;
             display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 40px;
-            animation: fadeIn 0.8s ease;
+            grid-template-columns: 280px 1fr;
+            gap: 30px;
+            align-items: start;
         }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-        @media (max-width: 768px) {
-            .settings-grid { grid-template-columns: 1fr; }
-            nav { height: 100vh; flex-direction: column; }
-            .nav-links { flex-direction: column; align-items: center; }
+        /* Settings Sidebar */
+        .rc-settings-nav {
+            background: white; border-radius: 24px; padding: 15px;
+            border: 1px solid var(--rc-ui-border-soft); box-shadow: var(--rc-card-shadow);
         }
-
-        /* --- PROFILE CARD --- */
-        .profile-card {
-            background: var(--white);
-            border-radius: 24px;
-            padding: 40px;
-            text-align: center;
-            box-shadow: var(--shadow);
-            height: fit-content;
+        .rc-settings-tab {
+            width: 100%; display: flex; align-items: center; gap: 12px;
+            padding: 14px 18px; border-radius: 12px; border: none; background: transparent;
+            color: var(--rc-text-dimmed-color); font-weight: 700; cursor: pointer;
+            transition: 0.2s; text-align: left;
         }
+        .rc-settings-tab:hover { background: #f8fafc; color: var(--rc-primary-blue); }
+        .rc-settings-tab.active { background: #eff6ff; color: var(--rc-primary-blue); }
 
-        .profile-pic-container {
-            position: relative;
-            width: 150px;
-            height: 150px;
-            margin: 0 auto 20px auto;
+        /* Content Sections */
+        .rc-settings-content { display: flex; flex-direction: column; gap: 25px; }
+        .rc-card { 
+            background: white; border-radius: 24px; padding: 30px;
+            border: 1px solid var(--rc-ui-border-soft); box-shadow: var(--rc-card-shadow);
         }
-
-        .profile-pic {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 4px solid var(--accent-gold);
-            padding: 5px;
-            background: var(--white);
+        .rc-card-title { font-size: 1.2rem; font-weight: 900; color: var(--rc-primary-blue); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        
+        /* Form Elements */
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-weight: 800; font-size: 0.75rem; color: var(--rc-text-dimmed-color); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-control { 
+            width: 100%; padding: 14px 18px; border-radius: 12px; border: 1.5px solid var(--rc-ui-border-soft);
+            font-size: 1rem; font-weight: 600; outline: none; transition: 0.2s; background: #fcfdfe;
         }
+        .form-control:focus { border-color: var(--rc-accent-gold); box-shadow: 0 0 0 4px rgba(225, 169, 42, 0.1); }
+        .form-control:disabled { background: #f1f5f9; color: var(--rc-text-dimmed-color); cursor: not-allowed; border-style: dashed; }
 
-        .change-pic-btn {
-            position: absolute;
-            bottom: 5px;
-            right: 5px;
-            background: var(--primary-blue);
-            color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            border: 3px solid var(--white);
-            transition: 0.3s;
+        /* Buttons */
+        .rc-btn {
+            padding: 12px 24px; border-radius: 12px; font-weight: 800; font-size: 0.9rem; cursor: pointer;
+            transition: 0.2s; border: none; display: inline-flex; align-items: center; gap: 8px;
         }
+        .rc-btn-primary { background: var(--rc-primary-blue); color: white; }
+        .rc-btn-primary:hover { opacity: 0.9; transform: translateY(-2px); }
+        .rc-btn-gold { background: var(--rc-accent-gold); color: var(--rc-primary-blue); }
 
-        .change-pic-btn:hover { background: var(--accent-gold); transform: scale(1.1); }
+        /* Verified Badge */
+        .verified-badge { background: #dcfce7; color: #15803d; font-size: 0.65rem; padding: 4px 8px; border-radius: 6px; font-weight: 900; margin-left: auto; }
 
-        /* --- FORM STYLING --- */
-        .card {
-            background: var(--white);
-            border-radius: 24px;
-            padding: 40px;
-            box-shadow: var(--shadow);
-            margin-bottom: 30px;
-        }
+        .hidden { display: none; }
 
-        .section-title {
-            color: var(--primary-blue);
-            font-size: 1.5rem;
-            margin-bottom: 25px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--accent-gold);
-            display: inline-block;
-        }
+        /* Notification Prefs */
+        .pref-item { display: flex; align-items: center; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid var(--rc-ui-border-soft); }
+        .pref-item:last-child { border-bottom: none; }
+        .pref-info h4 { font-size: 0.95rem; font-weight: 800; color: var(--rc-text-main-color); }
+        .pref-info p { font-size: 0.8rem; color: var(--rc-text-dimmed-color); font-weight: 600; }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
+        /* Toggle Switch */
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; inset: 0; background-color: #cbd5e1; transition: .3s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--rc-primary-blue); }
+        input:checked + .slider:before { transform: translateX(20px); }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 700;
-            font-size: 0.9rem;
-            color: var(--grey-text);
-        }
-
-        .input-field {
-            width: 100%;
-            padding: 12px 18px;
-            border-radius: 12px;
-            border: 1px solid #e0e0e0;
-            outline: none;
-            font-size: 1rem;
-            transition: 0.3s;
-        }
-
-        .input-field:focus {
-            border-color: var(--primary-blue);
-            box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.05);
-        }
-
-        /* Read-only / Locked fields */
-        .input-field.locked {
-            background-color: var(--locked-bg);
-            color: var(--grey-text);
-            cursor: not-allowed;
-            border-style: dashed;
-        }
-
-        .lock-icon {
-            float: right;
-            color: #999;
-            font-size: 0.8rem;
-        }
-
-        .btn-save {
-            background: var(--primary-blue);
-            color: white;
-            padding: 15px 40px;
-            border: none;
-            border-radius: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.3s;
-            width: 100%;
-        }
-
-        .btn-save:hover {
-            background: var(--accent-gold);
-            color: var(--primary-blue);
-            transform: translateY(-2px);
-        }
-
-        .password-feedback {
-            font-size: 0.8rem;
-            margin-top: 5px;
-            display: none;
+        @media (max-width: 850px) {
+            .rc-settings-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="logo" onclick="toggleNav()">
-            <span>Re</span>connect
+    <!-- SIDEBAR NAVIGATION OVERLAY -->
+    <nav id="sidebarOverlay" class="rc-nav-overlay">
+        <button onclick="toggleNav()" style="background:transparent; border:none; cursor:pointer; padding:10px;">
+            <i data-lucide="x" color="#3b489a" size="32"></i>
+        </button>
+        <div class="rc-nav-list" id="navContainer">
+            <!-- Nav Items injected by JS -->
         </div>
-        <div style="font-weight: 700; color: var(--primary-blue)">Settings</div>
-    </header>
-
-    <nav id="topNav">
-        <ul class="nav-links">
-            <li><a href="{% url 'alumni_dashboard' %}" class="nav-item">Dashboard</a></li>
-            <li><a href="{% url 'announcements' %}" class="nav-item">Announcements</a></li>
-            <li><a href="{% url 'connect' %}" class="nav-item">Connect</a></li>
-            <li><a href="{% url 'events' %}" class="nav-item">Events</a></li>
-            <li><a href="{% url 'settings' %}" class="nav-item active">Settings</a></li>
-        </ul>
-        <div class="close-nav" onclick="toggleNav()">×</div>
+        <a href="{% url 'logout' %}" style="color:var(--rc-ui-alert-danger); text-decoration:none; font-weight:800; border-left:1px solid #eee; padding-left:24px; margin-left:12px; display:flex; align-items:center; gap:8px;">
+            <i data-lucide="log-out" size="20"></i> Logout
+        </a>
     </nav>
 
-    <main>
-        <div class="settings-grid">
-            <!-- Sidebar: Profile Pic Summary -->
-            <div class="profile-card">
-                <div class="profile-pic-container">
-                    {% if user.profile_picture %}
-                    <img src="{{ user.profile_picture.url }}" class="profile-pic" id="display-pic">
-                    {% else %}
-                    <div class="profile-pic" id="display-pic" style="display:flex;align-items:center;justify-content:center;font-size:3rem;font-weight:800;color:var(--primary-blue);background:#e2e8f0;">{{ user.get_initials }}</div>
-                    {% endif %}
-                    <label for="pic-upload" class="change-pic-btn">
-                        📷
-                        <input type="file" id="pic-upload" style="display:none" accept="image/*" onchange="previewImage(this)">
-                    </label>
+    <!-- HEADER -->
+    <header class="rc-header">
+        <button class="rc-logo-btn" onclick="toggleNav()">
+            <span class="rc-logo-text">re<span>Connect</span></span>
+        </button>
+        <div class="rc-header-right">
+            <i data-lucide="bell" size="24" style="cursor: pointer;"></i>
+            <a href="{% url 'my_profile' %}" class="rc-profile-link">
+                <div style="text-align: right; display: flex; flex-direction: column;">
+                    <span style="font-weight: 800; font-size: 0.9rem;">{{ user.get_full_name|default:user.username }}</span>
+                    <span style="font-size: 0.65rem; opacity: 0.85; font-weight: 800; text-transform: uppercase;">{% if user.passed_out_year %}CLASS OF {{ user.passed_out_year }}{% else %}ALUMNI{% endif %}</span>
                 </div>
-                <h2 id="summary-name">{{ user.get_full_name|default:user.username }}</h2>
-                <p style="color: var(--accent-gold); font-weight: 700;">{{ user.department|default:"Department not set" }}</p>
-                <p style="color: var(--grey-text); font-size: 0.9rem;">{% if user.passed_out_year %}Batch of {{ user.passed_out_year }}{% else %}Batch not set{% endif %}</p>
-            </div>
+                <img src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.first_name|default:'User' }}{% endif %}" alt="Profile" style="width: 42px; height: 42px; border-radius: 12px; background-color: white; border: 2px solid var(--rc-accent-gold);">
+            </a>
+        </div>
+    </header>
 
-            <!-- Content Area -->
-            <div class="settings-content">
-                
-                <!-- Editable Details -->
-                <div class="card">
-                    <h3 class="section-title">Personal Settings</h3>
-                    <div class="form-group">
-                        <label>Phone Number</label>
-                        <input type="tel" class="input-field" id="settings-phone" value="{{ user.phone }}" placeholder="Update your phone number">
+    <main class="rc-settings-grid">
+        <!-- Sidebar Navigation -->
+        <aside class="rc-settings-nav">
+            <button class="rc-settings-tab active" onclick="switchTab('account', this)">
+                <i data-lucide="user" size="20"></i> Account & Verification
+            </button>
+            <button class="rc-settings-tab" onclick="switchTab('security', this)">
+                <i data-lucide="shield-check" size="20"></i> Security
+            </button>
+            <button class="rc-settings-tab" onclick="switchTab('app', this)">
+                <i data-lucide="settings" size="20"></i> App Preferences
+            </button>
+        </aside>
+
+        <!-- Main Content Area -->
+        <section class="rc-settings-content">
+            
+            <!-- SECTION: ACCOUNT & VERIFIED PROFILE -->
+            <div id="section-account">
+                <!-- Verified Data (Read Only) -->
+                <div class="rc-card" style="margin-bottom: 25px; border-top: 4px solid var(--rc-accent-gold);">
+                    <div class="rc-card-title">
+                        <i data-lucide="verified" color="var(--rc-accent-gold)"></i> 
+                        Verified Enrollment Data
+                        <span class="verified-badge">LOCKED BY ADMIN</span>
                     </div>
-
-                    <div style="margin-top: 30px;">
-                        <h4 style="margin-bottom: 15px; color: var(--grey-text);">Change Password</h4>
-                        <div class="form-group">
-                            <label>Current Password</label>
-                            <input type="password" class="input-field" id="current-pw" placeholder="••••••••">
-                        </div>
-                        <div class="form-group">
-                            <label>New Password</label>
-                            <input type="password" id="new-pw" class="input-field" placeholder="Enter new password">
-                        </div>
-                        <div class="form-group">
-                            <label>Confirm New Password</label>
-                            <input type="password" id="confirm-pw" class="input-field" placeholder="Repeat new password" onkeyup="checkPasswordMatch()">
-                            <p id="pw-match-text" class="password-feedback">Passwords match!</p>
-                        </div>
-                    </div>
-                    
-                    <div id="save-status" style="margin-bottom:15px;text-align:center;font-weight:700;display:none;"></div>
-                    <button class="btn-save" onclick="handleSave()">Save Profile Updates</button>
-                </div>
-
-                <!-- Non-Editable / Locked Details -->
-                <div class="card">
-                    <div style="display: flex; justify-content: space-between; align-items: baseline;">
-                        <h3 class="section-title">Institutional Records</h3>
-                        <span style="font-size: 0.75rem; color: #999;">🔒 Verified - Contact Admin to edit</span>
-                    </div>
-
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                         <div class="form-group">
                             <label>Full Name</label>
-                            <input type="text" class="input-field locked" value="{{ user.get_full_name|default:user.username }}" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label>Department</label>
-                            <input type="text" class="input-field locked" value="{{ user.department|default:'—' }}" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label>Date of Birth</label>
-                            <input type="text" class="input-field locked" value="{% if user.date_of_birth %}{{ user.date_of_birth|date:'d-M-Y' }}{% else %}—{% endif %}" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label>Passed Out Year</label>
-                            <input type="text" class="input-field locked" value="{{ user.passed_out_year|default:'—' }}" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label>CGPA</label>
-                            <input type="text" class="input-field locked" value="{{ user.cgpa|default:'—' }}" readonly>
+                            <input type="text" class="form-control" value="{{ user.get_full_name }}" disabled title="Contact admin to change this">
                         </div>
                         <div class="form-group">
                             <label>Enrollment Number</label>
-                            <input type="text" class="input-field locked" value="{{ user.enrollment_number }}" readonly>
+                            <input type="text" class="form-control" value="{{ user.enrollment_number }}" disabled>
                         </div>
                         <div class="form-group">
-                            <label>Register Number</label>
-                            <input type="text" class="input-field locked" value="{{ user.register_number|default:'—' }}" readonly>
+                            <label>Department</label>
+                            <input type="text" class="form-control" value="{{ user.department }}" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label>Passed Out Year</label>
+                            <input type="text" class="form-control" value="{{ user.passed_out_year|default_if_none:'' }}" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label>Batch</label>
+                            <input type="text" class="form-control" value="{{ user.passed_out_year|default_if_none:'' }}" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label>Date of Birth</label>
+                            <input type="text" class="form-control" value="{{ user.date_of_birth|default_if_none:'' }}" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label>CGPA</label>
+                            <input type="text" class="form-control" value="{{ user.cgpa|default_if_none:'' }}" disabled>
                         </div>
                     </div>
                 </div>
 
+                <!-- Modifiable Account Data -->
+                <div class="rc-card">
+                    <div class="rc-card-title"><i data-lucide="user-plus"></i> Personal Information</div>
+                    
+                    <div class="form-group">
+                        <label>Working Status</label>
+                        <select class="form-control" id="workingStatus">
+                            <option value="Working Professional" {% if user.working_status == 'Working Professional' %}selected{% endif %}>Working Professional</option>
+                            <option value="Entrepreneur / Founder" {% if user.working_status == 'Entrepreneur / Founder' %}selected{% endif %}>Entrepreneur / Founder</option>
+                            <option value="Higher Studies" {% if user.working_status == 'Higher Studies' %}selected{% endif %}>Higher Studies</option>
+                            <option value="Seeking Opportunities" {% if user.working_status == 'Seeking Opportunities' %}selected{% endif %}>Seeking Opportunities</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" class="form-control" id="phoneInput" value="{{ user.phone }}">
+                            <button class="rc-btn rc-btn-gold" onclick="sendOtp()" id="otpBtn">Verify via OTP</button>
+                        </div>
+                        <p id="otpMsg" style="font-size: 0.75rem; color: #15803d; font-weight: 700; margin-top: 8px; display: none;">OTP Sent to your number!</p>
+                    </div>
+
+                    <div id="otpInputArea" class="form-group hidden">
+                        <label>Enter 6-Digit OTP</label>
+                        <input type="text" class="form-control" placeholder="X X X X X X" maxlength="6">
+                    </div>
+
+                    <button class="rc-btn rc-btn-primary" style="margin-top: 10px;" onclick="saveAccount()">Update Personal Info</button>
+                </div>
             </div>
-        </div>
+
+            <!-- SECTION: SECURITY -->
+            <div id="section-security" class="hidden">
+                <div class="rc-card">
+                    <div class="rc-card-title"><i data-lucide="key"></i> Change Password</div>
+                    
+                    <div class="form-group">
+                        <label>Current Password</label>
+                        <input type="password" class="form-control" id="currentPassword" placeholder="Type old password">
+                    </div>
+
+                    <div class="form-group">
+                        <label>New Password</label>
+                        <input type="password" class="form-control" id="newPassword" placeholder="Create new password">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Confirm New Password</label>
+                        <input type="password" class="form-control" id="confirmPassword" placeholder="Repeat new password">
+                    </div>
+
+                    <button class="rc-btn rc-btn-primary" onclick="updatePassword()">Save New Password</button>
+                </div>
+
+                <div class="rc-card" style="margin-top: 25px;">
+                    <div class="rc-card-title"><i data-lucide="log-out"></i> Login Sessions</div>
+                    <p style="font-size: 0.85rem; color: var(--rc-text-dimmed-color); margin-bottom: 20px; font-weight: 600;">Log out from all other devices for better security.</p>
+                    <button class="rc-btn" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;">Logout Other Sessions</button>
+                </div>
+            </div>
+
+            <!-- SECTION: APP PREFERENCES -->
+            <div id="section-app" class="hidden">
+                <div class="rc-card">
+                    <div class="rc-card-title"><i data-lucide="smartphone"></i> Application Settings</div>
+                    
+                    <div class="pref-item">
+                        <div class="pref-info">
+                            <h4>Public Profile Visibility</h4>
+                            <p>Allow juniors and recruiters to find your profile in searches.</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="pref-item">
+                        <div class="pref-info">
+                            <h4>Email Notifications</h4>
+                            <p>Get notified about new events, grants, and messages.</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="pref-item">
+                        <div class="pref-info">
+                            <h4>Dark Mode</h4>
+                            <p>Reduce eye strain during night-time usage (Coming Soon).</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" disabled>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="pref-item">
+                        <div class="pref-info">
+                            <h4>Analytics Sharing</h4>
+                            <p>Share anonymous usage data to help us improve reConnect.</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+        </section>
     </main>
 
     <script>
-        const topNav = document.getElementById('topNav');
-        
-        function toggleNav() {
-            topNav.classList.toggle('open');
+        const NAV_LINKS = [
+            { label: 'Dashboard', icon: 'trending-up', href: '{% url "alumni_dashboard" %}' },
+            { label: 'Announcements', icon: 'megaphone', href: '{% url "announcements" %}' },
+            { label: 'Connect', icon: 'users', href: '{% url "connect" %}' },
+            { label: 'Events', icon: 'calendar', href: '{% url "events" %}' },
+            { label: 'Share', icon: 'plus-circle', href: '{% url "post" %}' },
+            { label: 'Settings', icon: 'settings', href: '{% url "settings" %}', active: true }
+        ];
+
+        function renderNav() {
+            const container = document.getElementById('navContainer');
+            container.innerHTML = NAV_LINKS.map(link => `
+                <a href="${link.href}" class="rc-nav-link ${link.active ? 'active' : ''}">
+                    <i data-lucide="${link.icon}" size="18"></i>
+                    ${link.label}
+                </a>
+            `).join('');
+            lucide.createIcons();
         }
 
-        function checkPasswordMatch() {
-            const p1 = document.getElementById('new-pw').value;
-            const p2 = document.getElementById('confirm-pw').value;
-            const feedback = document.getElementById('pw-match-text');
+        function toggleNav() { 
+            document.getElementById('sidebarOverlay').classList.toggle('open'); 
+        }
+
+        function switchTab(section, btn) {
+            document.querySelectorAll('.rc-settings-tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+
+            ['account', 'security', 'app'].forEach(s => {
+                document.getElementById(`section-${s}`).classList.add('hidden');
+            });
+            document.getElementById(`section-${section}`).classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function sendOtp() {
+            const btn = document.getElementById('otpBtn');
+            const msg = document.getElementById('otpMsg');
+            const inputArea = document.getElementById('otpInputArea');
             
-            if (p1 === "" && p2 === "") {
-                feedback.style.display = 'none';
-                return;
-            }
-
-            feedback.style.display = 'block';
-            if (p1 === p2) {
-                feedback.innerText = "✓ Passwords match";
-                feedback.style.color = "#22c55e";
-            } else {
-                feedback.innerText = "✗ Passwords do not match";
-                feedback.style.color = "#ef4444";
-            }
+            btn.innerText = "Resend OTP";
+            msg.style.display = "block";
+            inputArea.classList.remove('hidden');
         }
 
-        function previewImage(input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const pic = document.getElementById('display-pic');
-                    if (pic.tagName === 'IMG') {
-                        pic.src = e.target.result;
-                    } else {
-                        // Replace initials div with an img
-                        const img = document.createElement('img');
-                        img.src = e.target.result;
-                        img.className = 'profile-pic';
-                        img.id = 'display-pic';
-                        pic.parentNode.replaceChild(img, pic);
-                    }
-                }
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-
-        async function handleSave() {
-            const statusEl = document.getElementById('save-status');
+        function saveAccount() {
             const formData = new FormData();
-
-            // Phone
-            formData.append('phone', document.getElementById('settings-phone').value);
-
-            // Password fields
-            const currentPw = document.getElementById('current-pw').value;
-            const newPw = document.getElementById('new-pw').value;
-            const confirmPw = document.getElementById('confirm-pw').value;
-            if (newPw) {
-                formData.append('current_password', currentPw);
-                formData.append('new_password', newPw);
-                formData.append('confirm_password', confirmPw);
-            }
-
-            // Profile picture
-            const picInput = document.getElementById('pic-upload');
-            if (picInput.files.length) {
-                formData.append('profile_picture', picInput.files[0]);
-            }
-
-            try {
-                const res = await fetch('{% url "update_profile" %}', {
-                    method: 'POST',
-                    headers: { 'X-CSRFToken': '{{ csrf_token }}' },
-                    body: formData,
-                });
-                const data = await res.json();
-                statusEl.style.display = 'block';
-                if (res.ok) {
-                    statusEl.style.color = '#22c55e';
-                    statusEl.innerText = '✓ ' + data.message;
-                    // Clear password fields
-                    document.getElementById('current-pw').value = '';
-                    document.getElementById('new-pw').value = '';
-                    document.getElementById('confirm-pw').value = '';
-                    document.getElementById('pw-match-text').style.display = 'none';
-                } else {
-                    statusEl.style.color = '#ef4444';
-                    statusEl.innerText = '✗ ' + (data.error || 'Save failed');
-                }
-                setTimeout(() => { statusEl.style.display = 'none'; }, 5000);
-            } catch (err) {
-                statusEl.style.display = 'block';
-                statusEl.style.color = '#ef4444';
-                statusEl.innerText = '✗ Network error';
-            }
+            formData.append('phone', document.getElementById('phoneInput').value);
+            formData.append('working_status', document.getElementById('workingStatus').value);
+            fetch('{% url "update_profile" %}', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCsrfToken() },
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) alert('Personal information updated successfully!');
+                else alert(data.error || 'Update failed');
+            })
+            .catch(() => alert('Network error'));
         }
+
+        function updatePassword() {
+            const formData = new FormData();
+            formData.append('current_password', document.getElementById('currentPassword').value);
+            formData.append('new_password', document.getElementById('newPassword').value);
+            formData.append('confirm_password', document.getElementById('confirmPassword').value);
+            fetch('{% url "update_profile" %}', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCsrfToken() },
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Password changed successfully!');
+                    document.getElementById('currentPassword').value = '';
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('confirmPassword').value = '';
+                } else {
+                    alert(data.error || 'Password update failed');
+                }
+            })
+            .catch(() => alert('Network error'));
+        }
+
+        function getCsrfToken() {
+            const name = 'csrftoken';
+            const cookies = document.cookie.split(';');
+            for (let c of cookies) {
+                c = c.trim();
+                if (c.startsWith(name + '=')) return c.substring(name.length + 1);
+            }
+            return '';
+        }
+
+        window.onload = () => {
+            renderNav();
+            lucide.createIcons();
+        };
     </script>
 </body>
 </html>

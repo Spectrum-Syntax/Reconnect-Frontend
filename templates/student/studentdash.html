@@ -3,399 +3,712 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Portal | Reconnect</title>
+    <title>reConnect - Student Dashboard</title>
+    <!-- Lucide Icons Library -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root {
-            /* Identical design tokens for brand consistency */
-            --bg-light: #f4f7f9; 
-            --primary-blue: #1e3a8a;  
-            --accent-gold: #ffcc00;   
-            --dark-text: #2c3e50;
+            --uni-blue: #3b489a;
+            --uni-gold: #e1a92a;
+            --bg: #f3f4f9;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
             --white: #ffffff;
-            --grey-text: #555555;
-            --transition: all 0.5s cubic-bezier(0.77, 0, 0.175, 1);
-            --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --border-color: #e2e8f0;
+            --danger-color: #ef4444;
+            --success-color: #22c55e;
+            --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --header-height: 72px;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: var(--bg-light); color: var(--dark-text); min-height: 100vh; overflow-x: hidden; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, sans-serif; }
+        body { background-color: var(--bg); color: var(--text-main); min-height: 100vh; }
 
-        /* --- HEADER & NAVIGATION --- */
-        header {
-            background: var(--white);
-            padding: 0 5%;
-            height: 80px;
-            display: flex;
-            align-items: center;
+        .rc-app { min-height: 100vh; position: relative; padding-top: var(--header-height); }
+
+        /* Fixed Header Styling */
+        .rc-header {
+            position: fixed; 
+            top: 0; 
+            left: 0;
+            right: 0;
+            height: var(--header-height);
+            z-index: 2000;
+            background: var(--uni-blue); 
+            color: white;
+            padding: 0 2rem; 
+            display: flex; 
+            align-items: center; 
             justify-content: space-between;
-            position: fixed;
-            top: 0;
-            width: 100%;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .rc-logo-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; color: white; text-decoration: none; }
+        .rc-logo-text { font-size: 1.8rem; font-weight: 900; letter-spacing: -1.5px; }
+        .rc-logo-text span { color: var(--uni-gold); }
+
+        /* Notification Panel */
+        .rc-notification-panel {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            width: 320px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            display: none;
+            flex-direction: column;
             z-index: 1000;
-            box-shadow: var(--shadow);
-        }
-
-        .logo { 
-            font-size: 1.8rem; 
-            font-weight: 800; 
-            color: var(--primary-blue); 
-            cursor: pointer; 
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            z-index: 1100;
-            transition: var(--transition);
-            user-select: none;
-        }
-        .logo span { color: var(--accent-gold); background: var(--primary-blue); padding: 2px 8px; border-radius: 5px; }
-
-        nav {
-            position: fixed;
-            top: 0;
-            left: -100%; 
-            width: 100%;
-            height: 80px;
-            background: var(--primary-blue);
-            z-index: 1050;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: var(--transition);
-        }
-
-        nav.open { left: 0; }
-
-        .nav-links { display: flex; list-style: none; gap: 30px; }
-        .nav-item {
-            color: var(--white);
-            text-decoration: none;
-            font-weight: 600;
-            padding: 10px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .nav-item:hover { color: var(--accent-gold); }
-        .nav-item.active { border-bottom: 3px solid var(--accent-gold); color: var(--accent-gold); }
-
-        .close-nav {
-            margin-left: 50px;
-            color: var(--white);
-            font-size: 1.8rem;
-            cursor: pointer;
-            width: 40px; height: 40px;
-            display: flex; align-items: center; justify-content: center;
-            border-radius: 50%;
-            transition: 0.3s;
-        }
-        .close-nav:hover { background: var(--accent-gold); color: var(--primary-blue); }
-
-        /* --- MAIN LAYOUT --- */
-        main {
-            margin-top: 80px;
-            padding: 40px 10%;
-            max-width: 1400px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .section-header { margin-bottom: 40px; text-align: center; }
-        .section-title { font-size: 2.2rem; color: var(--primary-blue); font-weight: 800; }
-
-        /* --- EVENT CAROUSEL --- */
-        .slider-wrapper {
-            position: relative;
-            margin-bottom: 60px;
-            padding: 0 40px;
-        }
-
-        .slider-container { overflow: hidden; border-radius: 20px; }
-        .slider-track { display: flex; transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); gap: 25px; }
-
-        .event-card {
-            min-width: calc(33.333% - 17px);
-            background: var(--white);
-            border-radius: 15px;
             overflow: hidden;
-            box-shadow: var(--shadow);
-            flex-shrink: 0;
-            transition: var(--transition);
+            animation: slideDown 0.2s ease-out;
         }
-        .event-card:hover { transform: translateY(-10px); }
-
-        .event-poster { height: 200px; background-size: cover; background-position: center; position: relative; }
-        .event-date-tag { position: absolute; top: 15px; right: 15px; background: var(--accent-gold); color: var(--primary-blue); padding: 5px 12px; font-weight: 800; border-radius: 8px; font-size: 0.85rem; }
-        .event-body { padding: 25px; }
-
-        .slider-btn {
-            position: absolute; top: 50%; transform: translateY(-50%);
-            width: 45px; height: 45px; background: var(--primary-blue);
-            color: var(--white); border: none; border-radius: 50%; cursor: pointer;
-            z-index: 10; display: flex; align-items: center; justify-content: center;
-            font-size: 1.2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: 0.3s;
-        }
-        .slider-btn.prev { left: 0; }
-        .slider-btn.next { right: 0; }
-        .slider-btn:hover { background: var(--accent-gold); color: var(--primary-blue); }
-
-        .btn-gold {
-            background: var(--accent-gold); color: var(--primary-blue); border: none;
-            padding: 12px 28px; border-radius: 30px; font-weight: 700; cursor: pointer;
-            margin-top: 15px; transition: 0.3s; display: inline-block; text-decoration: none;
-        }
-        .btn-gold:hover { background: var(--primary-blue); color: var(--white); }
-
-        /* --- POST TRIGGER --- */
-        .create-post-trigger {
-            background: var(--white); padding: 20px 30px; border-radius: 20px;
-            box-shadow: var(--shadow); margin-bottom: 30px; display: flex;
-            align-items: center; gap: 15px; cursor: pointer; transition: 0.3s;
-        }
-        .create-post-trigger:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
-        .avatar-small { width: 40px; height: 40px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center; font-weight: 800; color: var(--primary-blue); border: 2px solid var(--accent-gold); }
-        .trigger-input { flex: 1; background: #f0f2f5; padding: 12px 20px; border-radius: 30px; color: var(--grey-text); }
-
-        /* --- COMMUNITY FEED --- */
-        .feed-controls {
-            display: flex; justify-content: space-between; align-items: center;
-            background: var(--white); padding: 15px 35px; border-radius: 60px;
-            margin-bottom: 40px; box-shadow: var(--shadow); flex-wrap: wrap; gap: 15px;
-        }
-        .filter-btn { background: transparent; border: none; padding: 10px 20px; border-radius: 40px; cursor: pointer; font-weight: 600; color: var(--grey-text); transition: 0.3s; }
-        .filter-btn.active { background: var(--primary-blue); color: var(--white); }
-
-        .post-card {
-            background: var(--white); padding: 30px; border-radius: 20px;
-            box-shadow: var(--shadow); margin-bottom: 30px; border-left: 8px solid #3498db; /* Student Blue */
-            animation: slideUp 0.6s ease-out forwards; opacity: 0;
-        }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-
-        .post-card.alumni-post { border-left-color: var(--accent-gold); }
-        .post-meta { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
-        .post-content { margin-bottom: 20px; color: var(--dark-text); font-size: 1.05rem; }
-        .post-image { width: 100%; max-height: 500px; object-fit: cover; border-radius: 15px; margin-bottom: 20px; }
         
-        .post-stats { display: flex; justify-content: space-between; padding: 12px 0; border-top: 1px solid #f2f2f2; font-size: 0.9rem; color: var(--grey-text); }
-        .post-actions { display: flex; gap: 10px; padding-top: 15px; border-top: 1px solid #f2f2f2; }
-        .action-btn { flex: 1; padding: 10px; border: none; background: transparent; border-radius: 12px; cursor: pointer; font-weight: 700; color: var(--primary-blue); display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
-        .action-btn.liked { color: #e74c3c; }
-
-        /* --- COMMENTS --- */
-        .comments-section { margin-top: 15px; padding-top: 15px; border-top: 1px solid #f2f2f2; display: none; }
-        .comments-section.active { display: block; }
-        .comment-item { display: flex; gap: 12px; margin-bottom: 15px; }
-        .comment-bubble { background: #f0f2f5; padding: 10px 15px; border-radius: 18px; font-size: 0.95rem; flex: 1; }
-        .comment-input-area { display: flex; gap: 12px; margin-top: 15px; }
-        .comment-input { flex: 1; padding: 10px 18px; border: 1px solid #e0e0e0; border-radius: 25px; outline: none; }
-
-        /* --- MODAL --- */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,40,0.8); z-index: 2000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
-        .modal-overlay.active { display: flex; }
-        .modal-card { background: white; width: 100%; max-width: 600px; border-radius: 25px; padding: 30px; animation: pop 0.4s ease; }
-        @keyframes pop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
-        @media (max-width: 768px) {
-            .event-card { min-width: 100%; }
-            main { padding: 20px 5%; }
-            nav { height: 100vh; flex-direction: column; top: 0; }
-            .nav-links { flex-direction: column; align-items: center; gap: 25px; }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
+        .rc-notification-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .rc-notification-header h4 { font-weight: 800; font-size: 0.9rem; color: var(--uni-blue); }
+        .rc-notification-list { max-height: 400px; overflow-y: auto; }
+        .rc-notification-item {
+            padding: 1rem;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            gap: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .rc-notification-item:hover { background: #f8fafc; }
+        .rc-notification-item.unread { background: #f0f7ff; }
+
+        .rc-notif-dot { width: 8px; height: 8px; background: var(--uni-gold); border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
+        .rc-notif-content p { font-size: 0.85rem; line-height: 1.4; text-align: left; }
+        .rc-notif-content span { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; display: block; text-align: left; }
+
+        /* Navigation Bar Overlay */
+        .rc-nav-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 90px;
+            background: white; z-index: 3000; border-bottom: 4px solid var(--uni-gold);
+            display: flex; align-items: center; padding: 0 2rem;
+            transform: translateX(-100%); transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: var(--card-shadow);
+        }
+        .rc-nav-overlay.open { transform: translateX(0); }
+        .rc-nav-list { display: flex; gap: 0.5rem; overflow-x: auto; padding: 0.5rem; scrollbar-width: none; flex: 1; align-items: center; }
+        .rc-nav-link { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.1rem; border-radius: 100px; font-weight: 600; color: var(--text-muted); transition: 0.2s; text-decoration: none; font-size: 0.9rem; white-space: nowrap; }
+        .rc-nav-link:hover { background: #f1f5f9; color: var(--uni-blue); }
+        .rc-nav-link.active { background: var(--uni-blue); color: white; }
+
+        /* Tabs Styling */
+        .rc-tabs { display: flex; gap: 1.5rem; border-bottom: 2px solid var(--border-color); margin-bottom: 1.5rem; }
+        .rc-tab-item {
+            padding-bottom: 0.75rem; 
+            background: none; 
+            border: none; 
+            font-weight: 700;
+            color: var(--text-muted); 
+            cursor: pointer; 
+            position: relative;
+        }
+        .rc-tab-item.active { color: var(--uni-blue); }
+        .rc-tab-item.active::after {
+            content: ''; 
+            position: absolute; 
+            bottom: -2px; 
+            left: 0; 
+            width: 100%; 
+            height: 2px;
+            background: var(--uni-blue);
+        }
+
+        /* Grid Layout */
+        .rc-main-grid {
+            max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem;
+            display: grid; grid-template-columns: 280px 1fr 320px; gap: 2rem;
+        }
+
+        @media (max-width: 1100px) { .rc-main-grid { grid-template-columns: 1fr; } .sidebar-right, .sidebar-left { display: none; } }
+
+        /* Card components */
+        .rc-card { background: white; border-radius: 20px; border: 1px solid var(--border-color); padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .rc-card-title { font-weight: 900; color: var(--uni-blue); margin-bottom: 1.25rem; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
+
+        /* Profile Sidebar */
+        .student-profile-summary { text-align: center; }
+        .summary-avatar { width: 80px; height: 80px; border-radius: 24px; margin-bottom: 1rem; border: 3px solid var(--uni-gold); object-fit: cover; }
+        .summary-name { font-weight: 900; font-size: 1.1rem; color: var(--uni-blue); }
+        .summary-class { font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+        
+        .student-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); }
+        .stat-box { text-align: center; }
+        .stat-val { display: block; font-weight: 900; color: var(--uni-blue); font-size: 1.2rem; }
+        .stat-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
+
+        /* Create Post Card */
+        .rc-create-post-card { padding: 1.5rem; }
+        .rc-post-input-container { display: flex; gap: 1rem; margin-bottom: 1rem; }
+        .rc-post-textarea { 
+            flex: 1; border: none; background: #f8fafc; padding: 12px; border-radius: 12px; 
+            font-weight: 500; outline: none; resize: none; min-height: 80px; font-size: 0.95rem;
+            border: 1.5px solid transparent; transition: 0.2s;
+        }
+        .rc-post-textarea:focus { background: white; border-color: var(--uni-gold); }
+        
+        .rc-post-preview-area { position: relative; margin-bottom: 1rem; display: none; }
+        .rc-post-preview-img { width: 100%; max-height: 300px; object-fit: cover; border-radius: 12px; border: 1px solid var(--border-color); }
+        .rc-remove-preview { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6); color: white; border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+        .rc-post-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid #f1f5f9; }
+        .rc-post-tools { display: flex; gap: 0.5rem; }
+        .rc-tool-btn { background: #f1f5f9; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px; color: var(--text-muted); font-weight: 700; font-size: 0.8rem; transition: 0.2s; }
+        .rc-tool-btn:hover { background: #e2e8f0; color: var(--uni-blue); }
+        .rc-btn-primary { background: var(--uni-blue); color: white; border: none; padding: 10px 24px; border-radius: 10px; font-weight: 800; cursor: pointer; transition: 0.2s; }
+
+        /* Feed Styling */
+        .rc-post, .rc-event-feed-card { position: relative; animation: slideUp 0.4s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .post-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .post-author { display: flex; gap: 12px; align-items: center; }
+        .author-img { width: 45px; height: 45px; border-radius: 12px; object-fit: cover; border: 1px solid var(--border-color); }
+        .author-name { font-weight: 800; font-size: 0.95rem; color: var(--text-main); }
+        .rc-badge { font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 800; text-transform: uppercase; margin-left: 8px; }
+        .rc-badge-alumni { background: #fef9c3; color: #854d0e; }
+        .rc-badge-student { background: #dbeafe; color: #1e40af; }
+
+        .post-content { line-height: 1.6; color: #334155; font-size: 0.95rem; margin-bottom: 1rem; }
+        .post-media { width: 100%; border-radius: 16px; margin-bottom: 1rem; border: 1px solid var(--border-color); }
+
+        .btn-connect-sm {
+            padding: 8px 16px; border-radius: 10px; border: none; background: var(--uni-blue); color: white;
+            font-weight: 800; font-size: 0.75rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px;
+        }
+        .btn-connect-sm:hover { background: var(--uni-gold); color: var(--uni-blue); }
+        .btn-connect-sm.requested { background: var(--success-color); color: white; cursor: default; }
+
+        .post-actions { display: flex; gap: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color); }
+        .action-link { background: none; border: none; color: var(--text-muted); font-weight: 700; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
+        .action-link:hover { color: var(--uni-blue); }
+        .action-link.liked { color: var(--danger-color); }
+
+        /* Event List Styling */
+        .rc-event-item {
+            display: flex; gap: 12px; padding: 12px; border-radius: 14px;
+            background: #f8fafc; border: 1px solid var(--border-color);
+            margin-bottom: 12px; transition: 0.2s;
+        }
+        .rc-event-item:hover { border-color: var(--uni-gold); transform: translateX(4px); background: white; }
+        .event-date-box {
+            width: 45px; height: 45px; border-radius: 10px; background: var(--uni-blue);
+            color: white; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; flex-shrink: 0;
+        }
+        .event-date-box span:first-child { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; }
+        .event-date-box span:last-child { font-size: 1rem; font-weight: 900; line-height: 1; }
+        .event-info h4 { font-size: 0.85rem; font-weight: 800; color: var(--uni-blue); margin-bottom: 2px; }
+        .event-info p { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; }
+        .btn-event-details { margin-top: 8px; font-size: 0.7rem; font-weight: 800; color: var(--uni-gold); background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+
+        /* Main Event Feed Card */
+        .rc-event-feed-card {
+            background: white; border-radius: 20px; border: 1px solid var(--border-color);
+            overflow: hidden; margin-bottom: 1.5rem;
+        }
+        .event-img-header { height: 180px; width: 100%; object-fit: cover; border-bottom: 1px solid var(--border-color); }
+        .event-feed-content { padding: 1.5rem; }
+        .event-feed-title { font-size: 1.4rem; font-weight: 900; color: var(--uni-blue); margin-bottom: 10px; }
+        .event-feed-meta { display: flex; gap: 15px; color: var(--text-muted); font-size: 0.85rem; font-weight: 700; margin-bottom: 15px; }
+        .event-feed-desc { line-height: 1.6; color: #475569; font-size: 0.95rem; margin-bottom: 1.5rem; }
+        .btn-event-view { background: var(--uni-blue); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; width: fit-content; text-decoration: none; font-size: 0.9rem; }
+        .btn-event-view:hover { background: var(--uni-gold); color: var(--uni-blue); }
+
+        /* Modal Styling for Share */
+        .rc-modal-overlay { 
+            position: fixed; inset: 0; background: rgba(30, 41, 59, 0.7); 
+            backdrop-filter: blur(4px); z-index: 4000; display: none; 
+            align-items: center; justify-content: center; padding: 1rem; 
+        }
+        .rc-modal { 
+            background: white; width: 100%; max-width: 450px; border-radius: 24px; 
+            padding: 2rem; position: relative; max-height: 80vh; overflow-y: auto;
+            box-shadow: var(--card-shadow);
+        }
+        .rc-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .rc-modal-header h3 { font-weight: 900; color: var(--uni-blue); font-size: 1.2rem; }
+        
+        .share-list-item {
+            display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px;
+            cursor: pointer; transition: 0.2s; border: 1px solid transparent;
+        }
+        .share-list-item:hover { background: #f8fafc; border-color: var(--border-color); }
+        .share-avatar { width: 40px; height: 40px; border-radius: 10px; }
+        .share-info h4 { font-size: 0.9rem; font-weight: 800; color: var(--text-main); }
+        .share-info p { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
+
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <!-- Post Creation Modal -->
-    <div class="modal-overlay" id="postModal">
-        <div class="modal-card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 style="color: var(--primary-blue)">Create Post</h3>
-                <span style="cursor: pointer; font-size: 1.5rem;" onclick="closeModal()">×</span>
-            </div>
-            <textarea id="postContent" style="width:100%; height:150px; border:none; outline:none; resize:none; font-size:1.1rem;" placeholder="What's happening in campus?"></textarea>
-            <div id="imagePreviewContainer" style="display:none; margin-bottom:15px;">
-                <img id="imagePreview" src="" style="width:100%; border-radius:15px;">
-            </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; background:#f0f2f5; padding:10px 15px; border-radius:15px; margin-bottom:20px;">
-                <label style="cursor:pointer; font-weight:700; color:var(--primary-blue);">📷 Add Photo <input type="file" style="display:none" onchange="previewImg(this)"></label>
-                <select id="audience" style="border:none; background:none; font-weight:600; color:var(--primary-blue); outline:none;">
-                    <option>Everyone</option>
-                    <option>Only Alumni</option>
-                    <option>Only Students</option>
-                </select>
-            </div>
-            <button class="btn-gold" style="width:100%; padding:15px;" onclick="addPost()">Post Activity</button>
-        </div>
-    </div>
-
-    <!-- Navigation Bar -->
-    <nav id="topNav">
-        <ul class="nav-links">
-            <li><a href="{% url 'student_dashboard' %}" class="nav-item active">Dashboard</a></li>
-            <li><a href="{% url 'announcements' %}" class="nav-item">Announcements</a></li>
-            <li><a href="{% url 'connect' %}" class="nav-item">Connect</a></li>
-            <li><a href="{% url 'events' %}" class="nav-item">Events</a></li>
-            <li><a href="{% url 'settings' %}" class="nav-item">Settings</a></li>
-        </ul>
-        <div class="close-nav" onclick="toggleNav()">×</div>
+<div class="rc-app">
+    <nav id="navOverlay" class="rc-nav-overlay">
+        <button onclick="toggleNav()" style="background: none; border: none; cursor: pointer; padding: 10px;">
+            <i data-lucide="x" color="#3b489a" size="28"></i>
+        </button>
+        <div class="rc-nav-list" id="navLinks"></div>
+        <a href="{% url 'logout' %}" style="color:var(--danger-color); text-decoration:none; font-weight:700; border-left:2px solid var(--border-color); padding-left:1.5rem; margin-left:0.5rem; display:flex; align-items:center; gap:0.5rem;">
+            <i data-lucide="log-out" size="18"></i> Logout
+        </a>
     </nav>
 
-    <header>
-        <div class="logo" onclick="toggleNav()"><span>Re</span>connect</div>
-        <div style="display:flex; align-items:center; gap:15px; font-weight:700; color:var(--primary-blue)">
-            <span>{{ user.get_full_name|default:user.username }}</span>
-            <div class="avatar-small">{{ user.get_initials }}</div>
+    <header class="rc-header">
+        <button class="rc-logo-btn" onclick="toggleNav()">
+            <span class="rc-logo-text">re<span>Connect</span></span>
+        </button>
+        <div style="display: flex; gap: 1.25rem; align-items: center; position: relative;">
+            <div id="bellBtn" style="position: relative; cursor: pointer;">
+                <i data-lucide="bell" size="22" color="white"></i>
+                <span id="unreadBadge" style="position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: var(--uni-gold); border-radius: 50%; border: 2px solid var(--uni-blue);"></span>
+            </div>
+            
+            <div id="notifPanel" class="rc-notification-panel">
+                <div class="rc-notification-header">
+                    <h4>NOTIFICATIONS</h4>
+                    <button id="clearNotifs" style="background: none; border: none; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); cursor: pointer; text-transform: uppercase;">Clear All</button>
+                </div>
+                <div class="rc-notification-list" id="notifList"></div>
+            </div>
+
+            <a href="{% url 'student_profile' %}">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Arjun" style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--uni-gold); background: white; object-fit: cover;">
+            </a>
         </div>
     </header>
 
-    <main>
-        <div class="section-header">
-            <h2 class="section-title">Campus Buzz</h2>
-            <p style="color:var(--grey-text)">Latest events and student life updates.</p>
-        </div>
-
-        <!-- Event Carousel -->
-        <div class="slider-wrapper">
-            <button class="slider-btn prev" onclick="moveSlide(-1)">❮</button>
-            <div class="slider-container">
-                <div class="slider-track" id="slider-track">
-                    <!-- Events Injected by JS -->
+    <main class="rc-main-grid">
+        <aside class="sidebar-left">
+            <div class="rc-card student-profile-summary">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.first_name|default:'User' }}" class="summary-avatar" alt="Student">
+                <h2 class="summary-name">{{ user.get_full_name|default:user.username }}</h2>
+                <p class="summary-class">{{ user.department|default:'Student' }}</p>
+                
+                <div class="student-stats">
+                    <div class="stat-box">
+                        <span class="stat-val">156</span>
+                        <span class="stat-label">Connections</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-val">4</span>
+                        <span class="stat-label">Applications</span>
+                    </div>
                 </div>
             </div>
-            <button class="slider-btn next" onclick="moveSlide(1)">❯</button>
-        </div>
-
-        <!-- Post Trigger -->
-        <div class="create-post-trigger" onclick="openModal()">
-            <div class="avatar-small">{{ user.get_initials }}</div>
-            <div class="trigger-input">Start a conversation with alumni or peers...</div>
-            <span style="color:var(--accent-gold); font-size:1.2rem;">📷</span>
-        </div>
-
-        <div class="feed-controls">
-            <h3 style="color:var(--primary-blue)">Community Feed</h3>
-            <div>
-                <button class="filter-btn active" onclick="filterFeed('all', this)">All</button>
-                <button class="filter-btn" onclick="filterFeed('alumni', this)">Alumni</button>
-                <button class="filter-btn" onclick="filterFeed('student', this)">Students</button>
+            
+            <div class="rc-card" style="background: var(--uni-blue); color: white; border: none;">
+                <h3 style="color: var(--uni-gold); font-size: 0.8rem; font-weight: 900; margin-bottom: 0.5rem; text-transform: uppercase;">Quick Tip</h3>
+                <p style="font-size: 0.75rem; line-height: 1.5; opacity: 0.9;">Check the 'Get Projects' tab to collaborate with Alumni on real-world engineering problems.</p>
             </div>
-        </div>
+        </aside>
 
-        <div id="posts-feed">
-            <!-- Posts Injected by JS -->
-        </div>
+        <section class="rc-feed">
+            <!-- Feed Tabs -->
+            <div class="rc-tabs" id="feedTabs">
+                <button class="rc-tab-item active" data-tab="stories">STORIES</button>
+                <button class="rc-tab-item" data-tab="events">EVENTS</button>
+            </div>
+
+            <!-- Create Post Card (Only visible for Stories) -->
+            <div id="createPostSection">
+                <div class="rc-card rc-create-post-card">
+                    <div class="rc-post-input-container">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.first_name|default:'User' }}" style="width: 42px; height: 42px; border-radius: 10px;">
+                        <textarea id="postContent" class="rc-post-textarea" placeholder="Share a project update or ask alumni for advice..."></textarea>
+                    </div>
+                    <div id="imagePreviewArea" class="rc-post-preview-area">
+                        <img id="imagePreview" src="" class="rc-post-preview-img">
+                        <button class="rc-remove-preview" onclick="removeImage()"><i data-lucide="x" size="16"></i></button>
+                    </div>
+                    <div class="rc-post-footer">
+                        <div class="rc-post-tools">
+                            <input type="file" id="postImageInput" accept="image/*" class="hidden" onchange="previewImage(this)">
+                            <button class="rc-tool-btn" onclick="document.getElementById('postImageInput').click()">
+                                <i data-lucide="image" size="18" style="color: var(--uni-blue);"></i> Photo
+                            </button>
+                            <button class="rc-tool-btn"><i data-lucide="tag" size="18" style="color: var(--uni-gold);"></i> Tag</button>
+                        </div>
+                        <button class="rc-btn-primary" onclick="handleNewPost()">Post</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="mainFeedContainer">
+                <!-- Posts or Events Injected -->
+            </div>
+        </section>
+
+        <aside class="sidebar-right">
+            <!-- Campus Events Widget (Always visible for quick access) -->
+            <div class="rc-card">
+                <h3 class="rc-card-title"><i data-lucide="calendar" size="16"></i> Upcoming Events</h3>
+                <div id="eventsSidebarList">
+                    <!-- Sidebar Events Injected -->
+                </div>
+                <button onclick="switchTab('events')" style="display: block; width: 100%; text-align: center; margin-top: 1rem; font-size: 0.75rem; font-weight: 800; color: var(--uni-blue); background: none; border: none; cursor: pointer;">View Full Calendar</button>
+            </div>
+
+            <div class="rc-card">
+                <h3 class="rc-card-title"><i data-lucide="zap" size="16"></i> Circle Updates</h3>
+                <p style="font-size: 0.8rem; line-height: 1.5; color: var(--text-muted); font-weight: 600;">You have 2 pending connection requests from your batch.</p>
+            </div>
+        </aside>
     </main>
+</div>
 
-    <script>
-        const sliderTrack = document.getElementById('slider-track');
-        const postsFeed = document.getElementById('posts-feed');
-        const topNav = document.getElementById('topNav');
-        let slideIdx = 0;
+<!-- Share Modal -->
+<div id="shareModal" class="rc-modal-overlay">
+    <div class="rc-modal">
+        <div class="rc-modal-header">
+            <h3>Share to Connects</h3>
+            <button onclick="closeShareModal()" style="background:none; border:none; cursor:pointer;"><i data-lucide="x" size="24" color="var(--uni-blue)"></i></button>
+        </div>
+        <div id="connectionsList">
+            <!-- Connections Injected -->
+        </div>
+    </div>
+</div>
 
-        const CURRENT_USER_NAME = '{{ user.get_full_name|default:user.username }}';
-        const CURRENT_USER_INITIALS = '{{ user.get_initials }}';
+<script>
+    const NAV_LINKS = [
+        { label: 'Dashboard', icon: 'trending-up', href: '{% url "student_dashboard" %}', active: true },
+        { label: 'Connect', icon: 'users', href: '{% url "student_connect" %}' },
+        { label: 'Explore', icon: 'compass', href: '{% url "student_explore" %}' },
+        { label: 'Find Opportunities', icon: 'briefcase', href: '{% url "student_opportunities" %}' },
+        { label: 'Get Projects', icon: 'folder-git', href: '{% url "student_projects" %}' },
+        { label: 'Settings', icon: 'settings', href: '{% url "student_settings" %}' }
+    ];
 
-        const events = [
-            {% for ev in events %}
-            { id: {{ ev.id }}, title: "{{ ev.title|escapejs }}", date: "{{ ev.date_display|escapejs }}", img: "{{ ev.image_url|escapejs }}" }{% if not forloop.last %},{% endif %}
-            {% endfor %}
-        ];
+    const CONNECTIONS = [
+        { name: "Dr. Sarah Chen", role: "Principal AI @ Google", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah" },
+        { name: "James Miller", role: "Software Eng @ Amazon", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=James" },
+        { name: "Rahul Kumar", role: "Final Year • CSE", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Rahul" }
+    ];
 
-        let posts = [
-            { id: 1, type: 'alumni', user: 'James Miller', class: '2015', content: 'Just hired 3 interns from the junior batch! Great potential.', likes: 84, comments: [] },
-            { id: 2, type: 'student', user: 'Sarah Jenkins', class: 'Senior', content: 'Who is up for a hackathon team building session tonight?', likes: 12, comments: [] }
-        ];
+    const MOCK_EVENTS = [];
 
-        window.onload = () => {
-            renderEvents();
-            renderPosts('all');
+    const POSTS = [];
+
+    const MOCK_NOTIFICATIONS = [
+        { id: 1, text: "Sarah Chen replied to your comment.", time: "10 mins ago", unread: true },
+        { id: 2, text: "Connection request accepted by Dr. Sarah Chen!", time: "2h ago", unread: true }
+    ];
+
+    let notifications = [...MOCK_NOTIFICATIONS];
+    let selectedImageBase64 = null;
+    let activeTab = 'stories';
+
+    function toggleNav() { document.getElementById('navOverlay').classList.toggle('open'); }
+
+    function renderNav() {
+        const container = document.getElementById('navLinks');
+        container.innerHTML = NAV_LINKS.map(link => `
+            <a href="${link.href}" class="rc-nav-link ${link.active ? 'active' : ''}">
+                <i data-lucide="${link.icon}" size="18"></i> ${link.label}
+            </a>
+        `).join('');
+    }
+
+    function switchTab(tab) {
+        activeTab = tab;
+        document.querySelectorAll('.rc-tab-item').forEach(btn => {
+            if(btn.dataset.tab === tab) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+
+        const createPostSection = document.getElementById('createPostSection');
+        if(tab === 'events') {
+            createPostSection.classList.add('hidden');
+            renderEventsFeed();
+        } else {
+            createPostSection.classList.remove('hidden');
+            renderPosts();
+        }
+    }
+
+    function renderEventsFeed() {
+        const container = document.getElementById('mainFeedContainer');
+        container.innerHTML = MOCK_EVENTS.map(ev => `
+            <div class="rc-event-feed-card">
+                <img src="${ev.img}" class="event-img-header" alt="${ev.title}">
+                <div class="event-feed-content">
+                    <h3 class="event-feed-title">${ev.title}</h3>
+                    <div class="event-feed-meta">
+                        <span><i data-lucide="calendar" size="14" style="vertical-align:middle"></i> ${ev.month} ${ev.date}</span>
+                        <span><i data-lucide="clock" size="14" style="vertical-align:middle"></i> ${ev.time}</span>
+                        <span><i data-lucide="map-pin" size="14" style="vertical-align:middle"></i> ${ev.loc}</span>
+                    </div>
+                    <p class="event-feed-desc">${ev.desc}</p>
+                    <a href="{% url 'event_details' %}?id=${ev.id}" class="btn-event-view">
+                        View Event Details <i data-lucide="arrow-right" size="18"></i>
+                    </a>
+                </div>
+            </div>
+        `).join('');
+        lucide.createIcons();
+    }
+
+    function renderEventsSidebar() {
+        const container = document.getElementById('eventsSidebarList');
+        container.innerHTML = MOCK_EVENTS.map(ev => `
+            <div class="rc-event-item">
+                <div class="event-date-box">
+                    <span>${ev.month}</span>
+                    <span>${ev.date}</span>
+                </div>
+                <div class="event-info">
+                    <h4>${ev.title}</h4>
+                    <p>${ev.time} • ${ev.loc}</p>
+                    <button class="btn-event-details" onclick="window.location.href='{% url "event_details" %}?id=${ev.id}'">Details <i data-lucide="chevron-right" size="12"></i></button>
+                </div>
+            </div>
+        `).join('');
+        lucide.createIcons();
+    }
+
+    function renderPosts() {
+        const container = document.getElementById('mainFeedContainer');
+        container.innerHTML = POSTS.map(post => `
+            <div class="rc-card rc-post">
+                <div class="post-header">
+                    <div class="post-author">
+                        <img src="${post.avatar}" class="author-img">
+                        <div>
+                            <div class="author-name">${post.author}<span class="rc-badge rc-badge-${post.type}">${post.type}</span></div>
+                            <p class="author-role">${post.role} • ${post.time}</p>
+                        </div>
+                    </div>
+                    ${!post.isConnected ? `<button class="btn-connect-sm" onclick="handleConnect(this, '${post.author}')"><i data-lucide="user-plus" size="14"></i> Connect</button>` : ''}
+                </div>
+                <div class="post-content">${post.content}</div>
+                ${post.media ? `<img src="${post.media}" class="post-media">` : ''}
+                <div class="post-actions">
+                    <button class="action-link ${post.isLiked ? 'liked' : ''}" onclick="handleLike(${post.id})"><i data-lucide="heart" size="18"></i> ${post.likes}</button>
+                    <button class="action-link" onclick="handleComment(${post.id})"><i data-lucide="message-circle" size="18"></i> ${post.comments}</button>
+                    <button class="action-link" onclick="openShareModal(${post.id})"><i data-lucide="share-2" size="18"></i> Share</button>
+                </div>
+            </div>
+        `).join('');
+        lucide.createIcons();
+    }
+
+    function renderNotifications() {
+        const notifList = document.getElementById('notifList');
+        const unreadBadge = document.getElementById('unreadBadge');
+        const unreadCount = notifications.filter(n => n.unread).length;
+        unreadBadge.style.display = unreadCount > 0 ? 'block' : 'none';
+
+        if (notifications.length === 0) {
+            notifList.innerHTML = `<div style="padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.8rem; font-weight: 600;">No new notifications</div>`;
+            return;
+        }
+
+        notifList.innerHTML = notifications.map(notif => `
+            <div class="rc-notification-item ${notif.unread ? 'unread' : ''}" onclick="markAsRead(${notif.id})">
+                ${notif.unread ? '<div class="rc-notif-dot"></div>' : '<div style="width:8px; flex-shrink:0;"></div>'}
+                <div class="rc-notif-content">
+                    <p>${notif.text}</p>
+                    <span>${notif.time}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    window.markAsRead = (id) => {
+        notifications = notifications.map(n => n.id === id ? { ...n, unread: false } : n);
+        renderNotifications();
+    };
+
+    function handleLike(id) {
+        fetch(`/api/posts/${id}/like/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCsrfToken() }
+        })
+        .then(r => r.json())
+        .then(data => {
+            const post = POSTS.find(p => p.id === id);
+            if (post) { post.isLiked = data.liked; post.likes = data.count; renderPosts(); }
+        });
+    }
+
+    function handleComment(id) {
+        const comment = prompt('Add a comment:');
+        if (comment) {
+            fetch(`/api/posts/${id}/comment/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCsrfToken(), 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: comment })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) { const post = POSTS.find(p => p.id === id); if(post) { post.comments++; renderPosts(); } }
+            });
+        }
+    }
+
+    function openShareModal(postId) {
+        const modal = document.getElementById('shareModal');
+        const container = document.getElementById('connectionsList');
+        container.innerHTML = CONNECTIONS.map(conn => `
+            <div class="share-list-item" onclick="shareToUser('${conn.name}')">
+                <img src="${conn.avatar}" class="share-avatar">
+                <div class="share-info">
+                    <h4>${conn.name}</h4>
+                    <p>${conn.role}</p>
+                </div>
+                <i data-lucide="send" size="16" style="margin-left:auto; color:var(--uni-blue)"></i>
+            </div>
+        `).join('');
+        modal.style.display = 'flex';
+        lucide.createIcons();
+    }
+
+    function closeShareModal() { document.getElementById('shareModal').style.display = 'none'; }
+    function shareToUser(name) { alert(`Shared successfully to ${name}!`); closeShareModal(); }
+
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                selectedImageBase64 = e.target.result;
+                document.getElementById('imagePreview').src = selectedImageBase64;
+                document.getElementById('imagePreviewArea').style.display = 'block';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function removeImage() {
+        selectedImageBase64 = null;
+        document.getElementById('postImageInput').value = "";
+        document.getElementById('imagePreviewArea').style.display = 'none';
+    }
+
+    function handleNewPost() {
+        const content = document.getElementById('postContent').value.trim();
+        if (!content && !selectedImageBase64) return;
+        const formData = new FormData();
+        formData.append('post_type', 'general');
+        formData.append('body', content);
+        const fileInput = document.getElementById('postImageInput');
+        if (fileInput.files[0]) formData.append('image', fileInput.files[0]);
+        fetch('{% url "create_post" %}', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCsrfToken() },
+            body: formData
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                const newPost = { id: data.id, author: '{{ user.get_full_name|default:user.username }}', role: '{{ user.department|default:"Student" }}', type: 'student', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.first_name|default:"User" }}', content, media: selectedImageBase64, likes: 0, comments: 0, isConnected: true, time: 'Just now', isLiked: false };
+                POSTS.unshift(newPost);
+                document.getElementById('postContent').value = '';
+                removeImage();
+                renderPosts();
+            } else { alert(data.error || 'Post failed'); }
+        })
+        .catch(() => alert('Network error'));
+    }
+
+    function getCsrfToken() {
+        const name = 'csrftoken';
+        const cookies = document.cookie.split(';');
+        for (let c of cookies) { c = c.trim(); if (c.startsWith(name + '=')) return c.substring(name.length + 1); }
+        return '';
+    }
+
+    function handleConnect(btn, name) {
+        // Find user ID from posts data — we'll use explore API for real matching
+        btn.classList.add('requested');
+        btn.innerHTML = `<i data-lucide="check" size="14"></i> Requested`;
+        lucide.createIcons();
+    }
+
+    window.onclick = function(e) { 
+        if (e.target == document.getElementById('shareModal')) closeShareModal();
+        if (!e.target.closest('#bellBtn') && !e.target.closest('#notifPanel')) {
+            document.getElementById('notifPanel').style.display = 'none';
+        }
+    }
+
+    window.onload = () => {
+        renderNav();
+        renderNotifications();
+
+        // Load events from API
+        fetch('{% url "api_events_list" %}')
+            .then(r => r.json())
+            .then(data => {
+                data.events.forEach(e => {
+                    const dateParts = (e.date || '').split(' ');
+                    MOCK_EVENTS.push({
+                        id: e.id, title: e.title,
+                        date: dateParts[1] || '01', month: dateParts[0] || 'Jan',
+                        time: '', loc: e.category || '',
+                        img: e.img || 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=800',
+                        desc: e.desc || ''
+                    });
+                });
+                renderEventsSidebar();
+                if(activeTab === 'events') renderEventsFeed();
+            })
+            .catch(() => { renderEventsSidebar(); });
+
+        // Load posts from API
+        fetch('{% url "api_posts_list" %}')
+            .then(r => r.json())
+            .then(data => {
+                data.posts.forEach(p => {
+                    POSTS.push({
+                        id: p.id,
+                        author: p.author_name,
+                        role: p.author_department || p.post_type,
+                        type: p.author_department ? 'alumni' : 'student',
+                        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + encodeURIComponent(p.author_name.split(' ')[0]),
+                        content: (p.title ? p.title + ' — ' : '') + p.body,
+                        media: p.image || '',
+                        likes: p.likes, comments: p.comments,
+                        isConnected: false, time: p.created_at, isLiked: p.liked_by_me
+                    });
+                });
+                renderPosts();
+            })
+            .catch(() => renderPosts());
+
+        document.getElementById('bellBtn').onclick = (e) => {
+            e.stopPropagation();
+            const panel = document.getElementById('notifPanel');
+            panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
         };
 
-        function toggleNav() { topNav.classList.toggle('open'); }
+        document.getElementById('clearNotifs').onclick = () => {
+            notifications = [];
+            renderNotifications();
+        };
 
-        function renderEvents() {
-            sliderTrack.innerHTML = events.map(ev => `
-                <div class="event-card">
-                    <div class="event-poster" style="background-image:url('${ev.img}')"><div class="event-date-tag">${ev.date}</div></div>
-                    <div class="event-body">
-                        <h3>${ev.title}</h3>
-                        <a href="/event-details/?id=${ev.id}" class="btn-gold">Read Details</a>
-                    </div>
-                </div>
-            `).join('');
-        }
+        document.querySelectorAll('.rc-tab-item').forEach(btn => {
+            btn.onclick = () => switchTab(btn.dataset.tab);
+        });
+    };
+</script>
 
-        function moveSlide(dir) {
-            const cardW = sliderTrack.children[0].offsetWidth + 25;
-            slideIdx = Math.max(0, Math.min(slideIdx + dir, events.length - 1));
-            sliderTrack.style.transform = `translateX(-${slideIdx * cardW}px)`;
-        }
-
-        function renderPosts(filter) {
-            const filtered = filter === 'all' ? posts : posts.filter(p => p.type === filter);
-            postsFeed.innerHTML = filtered.map(p => `
-                <div class="post-card ${p.type}-post">
-                    <div class="post-meta">
-                        <div class="avatar-small">${p.user[0]}</div>
-                        <div>
-                            <h4 style="color:var(--primary-blue)">${p.user} <small style="color:#888">• ${p.type.toUpperCase()}</small></h4>
-                            <small style="color:#aaa">${p.class}</small>
-                        </div>
-                    </div>
-                    <div class="post-content">${p.content}</div>
-                    <div class="post-stats"><span>❤️ <span id="l-${p.id}">${p.likes}</span> likes</span><span>💬 ${p.comments.length} comments</span></div>
-                    <div class="post-actions">
-                        <button class="action-btn" onclick="likePost(${p.id}, this)">👍 Like</button>
-                        <button class="action-btn" onclick="toggleComments(${p.id})">💬 Comment</button>
-                    </div>
-                    <div class="comments-section" id="c-${p.id}">
-                        <div class="comment-input-area">
-                            <input type="text" class="comment-input" placeholder="Write a comment...">
-                            <button class="btn-gold" style="margin:0; padding:10px 20px">Post</button>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function openModal() { document.getElementById('postModal').classList.add('active'); }
-        function closeModal() { document.getElementById('postModal').classList.remove('active'); }
-
-        function previewImg(input) {
-            if(input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = e => {
-                    document.getElementById('imagePreview').src = e.target.result;
-                    document.getElementById('imagePreviewContainer').style.display = 'block';
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-
-        function addPost() {
-            const content = document.getElementById('postContent').value.trim();
-            if(!content) return;
-            posts.unshift({ id: Date.now(), type: 'student', user: CURRENT_USER_NAME, class: 'Senior', content: content, likes: 0, comments: [] });
-            renderPosts('all');
-            closeModal();
-            document.getElementById('postContent').value = '';
-        }
-
-        function likePost(id, btn) {
-            const count = document.getElementById(`l-${id}`);
-            btn.classList.toggle('liked');
-            count.innerText = parseInt(count.innerText) + (btn.classList.contains('liked') ? 1 : -1);
-            btn.innerText = btn.classList.contains('liked') ? '❤️ Liked' : '👍 Like';
-        }
-
-        function toggleComments(id) { document.getElementById(`c-${id}`).classList.toggle('active'); }
-
-        function filterFeed(type, btn) {
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            renderPosts(type);
-        }
-    </script>
 </body>
 </html>

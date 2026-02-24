@@ -3,245 +3,268 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | Reconnect Portal</title>
+    <title>reConnect - Portal Login</title>
+    <!-- Lucide Icons Library -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root {
-            /* Identical design tokens for brand consistency */
-            --bg-light: #f4f7f9; 
-            --primary-blue: #1e3a8a;  
-            --accent-gold: #ffcc00;   
-            --dark-text: #2c3e50;
+            --uni-blue: #3b489a;
+            --uni-gold: #e1a92a;
+            --bg: #f3f4f9;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
             --white: #ffffff;
-            --grey-text: #555555;
-            --transition: all 0.5s cubic-bezier(0.77, 0, 0.175, 1);
-            --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --border-color: #e2e8f0;
+            --card-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
 
-        * { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, sans-serif; }
+        
         body { 
-            background-color: var(--bg-light); 
-            color: var(--dark-text); 
+            background-color: var(--bg); 
+            color: var(--text-main); 
             height: 100vh; 
             display: flex; 
             align-items: center; 
-            justify-content: center;
+            justify-content: center; 
             overflow: hidden;
-        }
-
-        /* --- BACKGROUND ELEMENTS --- */
-        .bg-circle {
-            position: fixed;
-            border-radius: 50%;
-            background: var(--primary-blue);
-            opacity: 0.03;
-            z-index: -1;
-        }
-        .circle-1 { width: 400px; height: 400px; top: -100px; left: -100px; }
-        .circle-2 { width: 300px; height: 300px; bottom: -50px; right: -50px; background: var(--accent-gold); }
-
-        /* --- LOGIN CARD --- */
-        .login-card {
-            background: var(--white);
-            width: 100%;
-            max-width: 450px;
-            padding: 50px 40px;
-            border-radius: 25px;
-            box-shadow: var(--shadow);
-            text-align: center;
-            animation: slideUp 0.8s ease-out forwards;
-        }
-
-        @keyframes slideUp { 
-            from { opacity: 0; transform: translateY(40px); } 
-            to { opacity: 1; transform: translateY(0); } 
-        }
-
-        .logo { 
-            font-size: 2.2rem; 
-            font-weight: 800; 
-            color: var(--primary-blue); 
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            margin-bottom: 10px;
-            user-select: none;
-        }
-        .logo span { 
-            color: var(--accent-gold); 
-            background: var(--primary-blue); 
-            padding: 2px 10px; 
-            border-radius: 8px; 
-        }
-
-        .login-subtitle {
-            color: var(--grey-text);
-            font-size: 0.95rem;
-            margin-bottom: 35px;
-            font-weight: 500;
-        }
-
-        /* --- FORM STYLES --- */
-        .form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-
-        label {
-            display: block;
-            font-weight: 700;
-            font-size: 0.85rem;
-            color: var(--primary-blue);
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .input-wrapper {
             position: relative;
         }
 
-        input {
+        /* --- ANIMATED BACKGROUND --- */
+        .bg-blobs {
+            position: absolute;
             width: 100%;
-            padding: 14px 20px;
-            border-radius: 12px;
-            border: 2px solid #e0e6ed;
-            outline: none;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            filter: blur(80px);
+            opacity: 0.6;
+        }
+
+        .blob {
+            position: absolute;
+            width: 450px;
+            height: 450px;
+            border-radius: 50%;
+            animation: move 20s infinite alternate;
+        }
+
+        .blob-1 { background: var(--uni-blue); top: -100px; left: -100px; animation-duration: 25s; }
+        .blob-2 { background: var(--uni-gold); bottom: -150px; right: -100px; animation-duration: 30s; }
+        .blob-3 { background: #6366f1; top: 50%; left: 50%; transform: translate(-50%, -50%); animation-duration: 22s; }
+
+        @keyframes move {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(100px, 100px) scale(1.2); }
+        }
+
+        /* --- LOGIN CARD --- */
+        .login-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(15px);
+            width: 100%;
+            max-width: 420px;
+            padding: 3.5rem 3rem;
+            border-radius: 36px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: var(--card-shadow);
+            text-align: center;
+            animation: cardEntrance 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(40px);
+        }
+
+        @keyframes cardEntrance {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo-area { margin-bottom: 3rem; }
+        .logo-text { font-size: 2.5rem; font-weight: 900; letter-spacing: -2px; color: var(--uni-blue); }
+        .logo-text span { color: var(--uni-gold); }
+        .portal-type { font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 3px; color: var(--text-muted); margin-top: 8px; }
+
+        /* --- FORMS --- */
+        .form-group { margin-bottom: 1.75rem; text-align: left; position: relative; }
+        .form-label { display: block; font-size: 0.7rem; font-weight: 800; color: var(--uni-blue); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px; padding-left: 4px; }
+        
+        .input-wrapper { position: relative; display: flex; align-items: center; }
+        .input-wrapper i { position: absolute; left: 16px; color: var(--text-muted); transition: 0.3s; z-index: 2; }
+        
+        .form-control {
+            width: 100%;
+            padding: 16px 16px 16px 48px;
+            border-radius: 18px;
+            border: 2px solid transparent;
+            background: #f1f5f9;
             font-size: 1rem;
-            transition: var(--transition);
-            background: #fcfdfe;
+            font-weight: 600;
+            color: var(--text-main);
+            outline: none;
+            transition: all 0.3s;
         }
 
-        input:focus {
-            border-color: var(--primary-blue);
+        .form-control:focus {
             background: white;
-            box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.05);
+            border-color: var(--uni-gold);
+            box-shadow: 0 0 0 4px rgba(225, 169, 42, 0.1);
         }
 
-        .login-options {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            font-size: 0.85rem;
-        }
+        .form-control:focus + i { color: var(--uni-blue); }
 
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            color: var(--grey-text);
-        }
-
-        .checkbox-group input {
-            width: auto;
-            cursor: pointer;
-        }
-
-        .forgot-link {
-            color: var(--primary-blue);
-            text-decoration: none;
-            font-weight: 700;
-            transition: 0.3s;
-        }
-        .forgot-link:hover { color: var(--accent-gold); }
-
-        .btn-login {
-            width: 100%;
-            padding: 16px;
+        /* --- PASSWORD TOGGLE --- */
+        .password-toggle {
+            position: absolute;
+            right: 16px;
+            background: none;
             border: none;
-            background: var(--primary-blue);
-            color: var(--white);
-            font-size: 1.1rem;
-            font-weight: 700;
-            border-radius: 15px;
             cursor: pointer;
-            transition: var(--transition);
-            box-shadow: 0 10px 20px rgba(30, 58, 138, 0.2);
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px;
+            border-radius: 8px;
+            transition: 0.2s;
+            z-index: 2;
+        }
+        .password-toggle:hover { background: #e2e8f0; color: var(--uni-blue); }
+
+        /* --- ACTION BUTTON --- */
+        .login-btn {
+            width: 100%;
+            padding: 18px;
+            background: var(--uni-blue);
+            color: white;
+            border: none;
+            border-radius: 18px;
+            font-size: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 1rem;
+            box-shadow: 0 6px 15px rgba(59, 72, 154, 0.3);
         }
 
-        .btn-login:hover {
-            background: var(--accent-gold);
-            color: var(--primary-blue);
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(255, 204, 0, 0.3);
+        .login-btn:hover {
+            background: var(--uni-gold);
+            color: var(--uni-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(225, 169, 42, 0.3);
         }
 
-        .footer-text {
-            margin-top: 30px;
-            font-size: 0.9rem;
-            color: var(--grey-text);
-        }
+        .login-btn:active { transform: scale(0.98); }
 
-        .footer-text a {
-            color: var(--primary-blue);
-            text-decoration: none;
+        .loader {
+            width: 22px;
+            height: 22px;
+            border: 3.5px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Bottom helper text */
+        .helper-text {
+            margin-top: 2.5rem;
+            font-size: 0.75rem;
             font-weight: 700;
-        }
-
-        @media (max-width: 480px) {
-            .login-card {
-                padding: 40px 25px;
-                border-radius: 0;
-                height: 100vh;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-            }
+            color: var(--text-muted);
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
     </style>
 </head>
 <body>
 
-    <div class="bg-circle circle-1"></div>
-    <div class="bg-circle circle-2"></div>
-
-    <div class="login-card">
-        <div class="logo">
-            <span>Re</span>connect
-        </div>
-        <p class="login-subtitle">Welcome back to your Alumni & Student Hub</p>
-
-        {% if messages %}
-            {% for message in messages %}
-                <p style="color:red; margin-bottom:15px;">{{ message }}</p>
-            {% endfor %}
-        {% endif %}
-
-        <form method="POST" action="{% url 'login' %}">
-            {% csrf_token %}
-            
-            <div class="form-group">
-                <label for="enrollment">Enrollment Number</label>
-                <div class="input-wrapper">
-                    <input type="text" id="enrollment" name="enrollment_number" placeholder="e.g. ENR-2024-001" required>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label for="password">Password</label>
-                <div class="input-wrapper">
-                    <input type="password" id="password" name="password" placeholder="••••••••" required>
-                </div>
-            </div>
-
-            <div class="login-options">
-                <label class="checkbox-group">
-                    <input type="checkbox"> Remember me
-                </label>
-                <a href="#" class="forgot-link">Forgot password?</a>
-            </div>
-
-            <button type="submit" class="btn-login">Login to Portal</button>
-        </form>
+    <div class="bg-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
     </div>
 
+    <div class="login-card">
+        <div class="logo-area">
+            <h1 class="logo-text">re<span>Connect</span></h1>
+            <p class="portal-type">Secure Gateway</p>
+        </div>
+
+        {% if messages %}
+        <div style="margin-bottom:1.5rem;">
+            {% for message in messages %}
+            <div style="background:#fee2e2;color:#b91c1c;padding:12px 16px;border-radius:12px;font-weight:700;font-size:0.85rem;">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form id="loginForm" method="POST" action="{% url 'login' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">Enrollment Number</label>
+                <div class="input-wrapper">
+                    <i data-lucide="user"></i>
+                    <input type="text" id="enrollment" name="enrollment_number" class="form-control" placeholder="ENR-0000-000" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <div class="input-wrapper">
+                    <i data-lucide="lock"></i>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
+                    <button type="button" class="password-toggle" onclick="togglePassword()">
+                        <i data-lucide="eye" id="eyeIcon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="login-btn" id="submitBtn">
+                <span id="btnText">Enter Portal</span>
+                <div class="loader" id="btnLoader"></div>
+                <i data-lucide="arrow-right" id="btnIcon"></i>
+            </button>
+        </form>
+
+        <div class="helper-text">
+            Official University Networking Platform
+        </div>
+    </div>
+
+    <script>
+        function togglePassword() {
+            const input = document.getElementById('password');
+            const icon = document.getElementById('eyeIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.setAttribute('data-lucide', 'eye-off');
+            } else {
+                input.type = 'password';
+                icon.setAttribute('data-lucide', 'eye');
+            }
+            lucide.createIcons();
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', function() {
+            const btnText = document.getElementById('btnText');
+            const loader = document.getElementById('btnLoader');
+            const icon = document.getElementById('btnIcon');
+            const submitBtn = document.getElementById('submitBtn');
+            btnText.style.display = 'none';
+            icon.style.display = 'none';
+            loader.style.display = 'block';
+            submitBtn.disabled = true;
+        });
+
+        // Initialize icons
+        lucide.createIcons();
+    </script>
 </body>
 </html>

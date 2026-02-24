@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>reConnect - Explore Discovery</title>
+    <!-- Lucide Icons Library -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --uni-blue: #3b489a;
+            --uni-gold: #e1a92a;
+            --bg: #f3f4f9;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --white: #ffffff;
+            --border-color: #e2e8f0;
+            --danger-color: #ef4444;
+            --success-color: #22c55e;
+            --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --header-height: 72px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, sans-serif; }
+        body { background-color: var(--bg); color: var(--text-main); min-height: 100vh; }
+
+        .rc-app { min-height: 100vh; position: relative; padding-top: var(--header-height); }
+
+        /* Fixed Header */
+        .rc-header {
+            position: fixed; top: 0; left: 0; right: 0; height: var(--header-height);
+            z-index: 2000; background: var(--uni-blue); color: white;
+            padding: 0 2rem; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .rc-logo-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; color: white; text-decoration: none; }
+        .rc-logo-text { font-size: 1.8rem; font-weight: 900; letter-spacing: -1.5px; }
+        .rc-logo-text span { color: var(--uni-gold); }
+
+        /* Notification Panel */
+        .rc-notification-panel {
+            position: absolute; top: 60px; right: 20px; width: 320px;
+            background: white; border-radius: 16px; box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color); color: var(--text-main);
+            display: none; flex-direction: column; z-index: 1000; overflow: hidden;
+            animation: slideDown 0.2s ease-out;
+        }
+        
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .rc-notification-header { padding: 1rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .rc-notification-header h4 { font-weight: 800; font-size: 0.9rem; color: var(--uni-blue); }
+        .rc-notification-list { max-height: 400px; overflow-y: auto; }
+        .rc-notification-item { padding: 1rem; border-bottom: 1px solid #f1f5f9; display: flex; gap: 12px; cursor: pointer; transition: 0.2s; }
+        .rc-notification-item:hover { background: #f8fafc; }
+        .rc-notification-item.unread { background: #f0f7ff; }
+        .rc-notif-dot { width: 8px; height: 8px; background: var(--uni-gold); border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
+        .rc-notif-content p { font-size: 0.85rem; line-height: 1.4; margin-bottom: 4px; text-align: left; }
+        .rc-notif-content span { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; display: block; text-align: left; }
+
+        /* Navigation Bar Overlay */
+        .rc-nav-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 90px;
+            background: white; z-index: 3000; border-bottom: 4px solid var(--uni-gold);
+            display: flex; align-items: center; padding: 0 2rem;
+            transform: translateX(-100%); transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: var(--card-shadow);
+        }
+        .rc-nav-overlay.open { transform: translateX(0); }
+        .rc-nav-list { display: flex; gap: 0.5rem; overflow-x: auto; padding: 0.5rem; scrollbar-width: none; flex: 1; align-items: center; }
+        .rc-nav-link { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.1rem; border-radius: 100px; font-weight: 600; color: var(--text-muted); transition: 0.2s; text-decoration: none; font-size: 0.9rem; white-space: nowrap; }
+        .rc-nav-link:hover { background: #f1f5f9; color: var(--uni-blue); }
+        .rc-nav-link.active { background: var(--uni-blue); color: white; }
+
+        /* Main Container */
+        .rc-view-container { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem; }
+
+        /* Hero Discovery Section */
+        .rc-hero-discovery { text-align: center; padding: 3rem 0; }
+        .rc-hero-discovery h1 { font-size: 2.5rem; font-weight: 900; color: var(--uni-blue); margin-bottom: 1rem; }
+        .rc-hero-discovery p { color: var(--text-muted); font-weight: 600; font-size: 1.1rem; margin-bottom: 2.5rem; }
+
+        /* Aesthetic Search Hub */
+        .rc-search-hub {
+            background: white; border-radius: 24px; padding: 10px;
+            display: flex; align-items: center; gap: 1rem;
+            border: 1px solid var(--border-color); box-shadow: var(--card-shadow);
+            max-width: 800px; margin: 0 auto 3rem; transition: 0.3s;
+        }
+        .rc-search-hub:focus-within { border-color: var(--uni-gold); box-shadow: 0 15px 30px -5px rgba(225, 169, 42, 0.15); }
+        .rc-search-input { flex: 1; border: none; outline: none; padding: 1rem; font-size: 1.1rem; font-weight: 600; color: var(--text-main); }
+        .rc-search-btn { background: var(--uni-blue); color: white; border: none; padding: 1rem 2rem; border-radius: 18px; font-weight: 800; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; }
+        .rc-search-btn:hover { background: var(--uni-gold); color: var(--uni-blue); }
+
+        /* Discovery Categories */
+        .rc-category-row { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 4rem; }
+        .rc-cat-chip { padding: 10px 24px; border-radius: 50px; border: 2px solid var(--border-color); background: white; color: var(--text-muted); font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .rc-cat-chip:hover { border-color: var(--uni-blue); color: var(--uni-blue); }
+        .rc-cat-chip.active { background: var(--uni-blue); color: white; border-color: var(--uni-blue); }
+
+        /* Grid Results */
+        .rc-discovery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+        .rc-discover-card { background: white; border-radius: 24px; padding: 1.5rem; border: 1px solid var(--border-color); transition: 0.3s; display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .rc-discover-card:hover { transform: translateY(-8px); box-shadow: var(--card-shadow); border-color: var(--uni-gold); }
+        
+        .card-avatar { width: 100px; height: 100px; border-radius: 50%; margin-bottom: 1.25rem; border: 4px solid var(--bg); object-fit: cover; }
+        .card-name { font-weight: 900; font-size: 1.1rem; color: var(--uni-blue); margin-bottom: 4px; }
+        .card-role { font-size: 0.8rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 1rem; }
+        .card-tags { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-bottom: 1.5rem; }
+        .card-tag { font-size: 0.65rem; font-weight: 800; padding: 4px 10px; border-radius: 6px; background: #f1f5f9; color: var(--uni-blue); }
+
+        .btn-view-profile { width: 100%; padding: 12px; border-radius: 12px; border: 2px solid var(--uni-blue); background: transparent; color: var(--uni-blue); font-weight: 800; cursor: pointer; transition: 0.2s; margin-top: auto; }
+        .btn-view-profile:hover { background: var(--uni-blue); color: white; }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div class="rc-app">
+    <!-- Student Navigation -->
+    <nav id="navOverlay" class="rc-nav-overlay">
+        <button onclick="toggleNav()" style="background: none; border: none; cursor: pointer; padding: 10px;">
+            <i data-lucide="x" color="#3b489a" size="28"></i>
+        </button>
+        <div class="rc-nav-list" id="navLinks"></div>
+        <a href="{% url 'logout' %}" style="color:var(--danger-color); text-decoration:none; font-weight:700; border-left:2px solid var(--border-color); padding-left:1.5rem; margin-left:0.5rem; display:flex; align-items:center; gap:0.5rem;">
+            <i data-lucide="log-out" size="18"></i> Logout
+        </a>
+    </nav>
+
+    <header class="rc-header">
+        <button class="rc-logo-btn" onclick="toggleNav()">
+            <span class="rc-logo-text">re<span>Connect</span></span>
+        </button>
+        <div style="display: flex; gap: 1.25rem; align-items: center; position: relative;">
+            <div id="bellBtn" style="position: relative; cursor: pointer;">
+                <i data-lucide="bell" size="22" color="white"></i>
+                <span id="unreadBadge" style="position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: var(--uni-gold); border-radius: 50%; border: 2px solid var(--uni-blue);"></span>
+            </div>
+            
+            <div id="notifPanel" class="rc-notification-panel">
+                <div class="rc-notification-header">
+                    <h4>NOTIFICATIONS</h4>
+                    <button id="clearNotifs" style="background: none; border: none; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); cursor: pointer; text-transform: uppercase;">Clear All</button>
+                </div>
+                <div class="rc-notification-list" id="notifList"></div>
+            </div>
+
+            <a href="{% url 'student_profile' %}">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Arjun" style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--uni-gold); background: white; object-fit: cover;">
+            </a>
+        </div>
+    </header>
+
+    <main class="rc-view-container">
+        <!-- Hero Search -->
+        <section class="rc-hero-discovery">
+            <h1>Discovery Hub</h1>
+            <p>Find the perfect mentor, project partner, or career path.</p>
+            
+            <div class="rc-search-hub">
+                <i data-lucide="search" size="24" color="var(--text-muted)" style="margin-left: 1rem;"></i>
+                <input type="text" class="rc-search-input" id="discoverSearch" placeholder="Search by name, company, or tech stack...">
+                <button class="rc-search-btn" onclick="performSearch()">
+                    <span>Spotlight</span>
+                    <i data-lucide="sparkles" size="18"></i>
+                </button>
+            </div>
+
+            <div class="rc-category-row">
+                <button class="rc-cat-chip active">All</button>
+                <button class="rc-cat-chip">Alumni</button>
+                <button class="rc-cat-chip">Peers</button>
+                <button class="rc-cat-chip">Research</button>
+                <button class="rc-cat-chip">Mentors</button>
+            </div>
+        </section>
+
+        <!-- Discovery Results -->
+        <div class="rc-discovery-grid" id="discoveryResults">
+            <!-- Results injected by JS -->
+        </div>
+    </main>
+</div>
+
+<script>
+    const NAV_LINKS = [
+        { label: 'Dashboard', icon: 'trending-up', href: '{% url "student_dashboard" %}' },
+        { label: 'Connect', icon: 'users', href: '{% url "student_connect" %}' },
+        { label: 'Explore', icon: 'compass', href: '{% url "student_explore" %}', active: true },
+        { label: 'Find Opportunities', icon: 'briefcase', href: '{% url "student_opportunities" %}' },
+        { label: 'Get Projects', icon: 'folder-git', href: '{% url "student_projects" %}' },
+        { label: 'Settings', icon: 'settings', href: '{% url "student_settings" %}' }
+    ];
+
+    let MOCK_DATA = [];
+
+    const MOCK_NOTIFICATIONS = [];
+
+    let notifications = [...MOCK_NOTIFICATIONS];
+
+    let activeCategory = 'All';
+
+    function toggleNav() { document.getElementById('navOverlay').classList.toggle('open'); }
+
+    function renderNav() {
+        const container = document.getElementById('navLinks');
+        container.innerHTML = NAV_LINKS.map(link => `
+            <a href="${link.href}" class="rc-nav-link ${link.active ? 'active' : ''}">
+                <i data-lucide="${link.icon}" size="18"></i> ${link.label}
+            </a>
+        `).join('');
+    }
+
+    function renderResults(filter = '') {
+        const container = document.getElementById('discoveryResults');
+        let results = MOCK_DATA;
+        if (filter) {
+            results = results.filter(item =>
+                item.name.toLowerCase().includes(filter.toLowerCase()) ||
+                (item.tags && item.tags.some(t => t.toLowerCase().includes(filter.toLowerCase())))
+            );
+        }
+        if (activeCategory !== 'All') {
+            const catMap = {'Alumni': 'alumni', 'Peers': 'student', 'Research': 'alumni', 'Mentors': 'alumni'};
+            const roleFilter = catMap[activeCategory] || '';
+            if (roleFilter) results = results.filter(item => item.type && item.type.toLowerCase() === roleFilter);
+        }
+
+        if (results.length === 0) {
+            container.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding: 80px 0; color:var(--text-muted);">
+                <h3 style="font-weight: 800; color: var(--uni-blue);">No people found</h3>
+                <p>Try a different search or category.</p>
+            </div>`;
+            return;
+        }
+
+        container.innerHTML = results.map(item => `
+            <div class="rc-discover-card">
+                <img src="${item.avatar}" class="card-avatar">
+                <h3 class="card-name">${item.name}</h3>
+                <p class="card-role">${item.role}</p>
+                <div class="card-tags">
+                    ${(item.tags || []).map(t => `<span class="card-tag">${t}</span>`).join('')}
+                </div>
+                <button class="btn-view-profile" onclick="window.location.href='{% url "profile" %}?id=${item.id}'">View Profile</button>
+            </div>
+        `).join('');
+        lucide.createIcons();
+    }
+
+    function performSearch() {
+        const query = document.getElementById('discoverSearch').value;
+        // Also fetch from API with query
+        loadPeople(query);
+    }
+
+    function loadPeople(query = '') {
+        let url = '{% url "api_explore_people" %}';
+        const params = new URLSearchParams();
+        if (query) params.set('q', query);
+        if (params.toString()) url += '?' + params.toString();
+
+        fetch(url)
+            .then(r => r.json())
+            .then(data => {
+                MOCK_DATA = (data.people || []).map(p => ({
+                    id: p.id,
+                    name: p.name,
+                    role: p.working_status || p.department || p.role,
+                    type: p.role,
+                    avatar: p.profile_picture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(p.name)}`,
+                    tags: [p.department, p.role].filter(Boolean)
+                }));
+                renderResults();
+            })
+            .catch(() => renderResults());
+    }
+
+    function renderNotifications() {
+        const notifList = document.getElementById('notifList');
+        const unreadBadge = document.getElementById('unreadBadge');
+        const unreadCount = notifications.filter(n => n.unread).length;
+        unreadBadge.style.display = unreadCount > 0 ? 'block' : 'none';
+
+        if (notifications.length === 0) {
+            notifList.innerHTML = `<div style="padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.8rem; font-weight: 600;">No new notifications</div>`;
+            return;
+        }
+
+        notifList.innerHTML = notifications.map(notif => `
+            <div class="rc-notification-item ${notif.unread ? 'unread' : ''}" onclick="markAsRead(${notif.id})">
+                ${notif.unread ? '<div class="rc-notif-dot"></div>' : '<div style="width:8px; flex-shrink:0;"></div>'}
+                <div class="rc-notif-content">
+                    <p>${notif.text}</p>
+                    <span>${notif.time}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    window.markAsRead = (id) => {
+        notifications = notifications.map(n => n.id === id ? { ...n, unread: false } : n);
+        renderNotifications();
+    };
+
+    window.onclick = function(e) { 
+        if (!e.target.closest('#bellBtn') && !e.target.closest('#notifPanel')) {
+            document.getElementById('notifPanel').style.display = 'none';
+        }
+    }
+
+    window.onload = () => {
+        renderNav();
+        loadPeople();
+        renderNotifications();
+
+        // Category chip filtering
+        document.querySelectorAll('.rc-cat-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                document.querySelectorAll('.rc-cat-chip').forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                activeCategory = chip.innerText;
+                renderResults();
+            });
+        });
+
+        document.getElementById('bellBtn').onclick = (e) => {
+            e.stopPropagation();
+            const panel = document.getElementById('notifPanel');
+            panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
+        };
+
+        document.getElementById('clearNotifs').onclick = () => {
+            notifications = [];
+            renderNotifications();
+        };
+
+        document.getElementById('discoverSearch').addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') performSearch();
+        });
+    };
+</script>
+
+</body>
+</html>

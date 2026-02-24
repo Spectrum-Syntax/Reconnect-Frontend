@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>reConnect - Get Projects</title>
+    <!-- Lucide Icons Library -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --uni-blue: #3b489a;
+            --uni-gold: #e1a92a;
+            --bg: #f3f4f9;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --white: #ffffff;
+            --border-color: #e2e8f0;
+            --danger-color: #ef4444;
+            --success-color: #22c55e;
+            --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --header-height: 72px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, sans-serif; }
+        body { background-color: var(--bg); color: var(--text-main); min-height: 100vh; }
+
+        .rc-app { min-height: 100vh; position: relative; padding-top: var(--header-height); }
+
+        /* Fixed Header */
+        .rc-header {
+            position: fixed; top: 0; left: 0; right: 0; height: var(--header-height);
+            z-index: 2000; background: var(--uni-blue); color: white;
+            padding: 0 2rem; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .rc-logo-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; color: white; text-decoration: none; }
+        .rc-logo-text { font-size: 1.8rem; font-weight: 900; letter-spacing: -1.5px; }
+        .rc-logo-text span { color: var(--uni-gold); }
+
+        /* Notification Panel */
+        .rc-notification-panel {
+            position: absolute; top: 60px; right: 20px; width: 320px;
+            background: white; border-radius: 16px; box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color); color: var(--text-main);
+            display: none; flex-direction: column; z-index: 1000; overflow: hidden;
+            animation: slideDown 0.2s ease-out;
+        }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .rc-notification-header { padding: 1rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .rc-notification-header h4 { font-weight: 800; font-size: 0.9rem; color: var(--uni-blue); }
+        .rc-notification-list { max-height: 400px; overflow-y: auto; }
+        .rc-notification-item { padding: 1rem; border-bottom: 1px solid #f1f5f9; display: flex; gap: 12px; cursor: pointer; transition: 0.2s; }
+        .rc-notification-item:hover { background: #f8fafc; }
+        .rc-notification-item.unread { background: #f0f7ff; }
+
+        /* Navigation Bar Overlay */
+        .rc-nav-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 90px;
+            background: white; z-index: 3000; border-bottom: 4px solid var(--uni-gold);
+            display: flex; align-items: center; padding: 0 2rem;
+            transform: translateX(-100%); transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: var(--card-shadow);
+        }
+        .rc-nav-overlay.open { transform: translateX(0); }
+        .rc-nav-list { display: flex; gap: 0.5rem; overflow-x: auto; padding: 0.5rem; scrollbar-width: none; flex: 1; align-items: center; }
+        .rc-nav-link { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.1rem; border-radius: 100px; font-weight: 600; color: var(--text-muted); transition: 0.2s; text-decoration: none; font-size: 0.9rem; white-space: nowrap; }
+        .rc-nav-link:hover { background: #f1f5f9; color: var(--uni-blue); }
+        .rc-nav-link.active { background: var(--uni-blue); color: white; }
+
+        /* Main Container */
+        .rc-view-container { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem; }
+
+        .rc-page-header { margin-bottom: 2.5rem; text-align: center; }
+        .rc-page-header h1 { font-size: 2.2rem; font-weight: 900; color: var(--uni-blue); margin-bottom: 0.5rem; }
+        .rc-page-header p { color: var(--text-muted); font-weight: 600; font-size: 1.1rem; }
+
+        /* Filter Tabs */
+        .rc-filter-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 3rem; }
+        .rc-filter-chip { padding: 10px 24px; border-radius: 50px; border: 2px solid var(--border-color); background: white; color: var(--text-muted); font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .rc-filter-chip.active { background: var(--uni-blue); color: white; border-color: var(--uni-blue); }
+
+        /* Projects Grid */
+        .rc-projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 2rem; }
+        .rc-project-card { background: white; border-radius: 24px; border: 1px solid var(--border-color); transition: 0.3s; display: flex; flex-direction: column; overflow: hidden; }
+        .rc-project-card:hover { transform: translateY(-8px); box-shadow: var(--card-shadow); border-color: var(--uni-gold); }
+
+        .project-banner { height: 140px; background: linear-gradient(135deg, #eff6ff, #dbeafe); display: flex; align-items: center; justify-content: center; position: relative; }
+        .project-banner i { color: var(--uni-blue); opacity: 0.5; }
+        .project-tag { position: absolute; top: 15px; right: 15px; padding: 4px 12px; border-radius: 6px; font-size: 0.65rem; font-weight: 900; text-transform: uppercase; background: white; color: var(--uni-blue); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+
+        .project-content { padding: 1.5rem; flex: 1; display: flex; flex-direction: column; }
+        .project-title { font-size: 1.3rem; font-weight: 900; color: var(--uni-blue); margin-bottom: 0.75rem; line-height: 1.2; }
+        .project-desc { font-size: 0.9rem; color: #475569; line-height: 1.6; margin-bottom: 1.5rem; }
+        
+        .project-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.5rem; }
+        .meta-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); }
+        .meta-item i { color: var(--uni-gold); }
+
+        .project-footer { display: flex; align-items: center; gap: 10px; padding-top: 1.25rem; border-top: 1px solid #f1f5f9; }
+        .project-poster-img { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border-color); }
+        .project-poster-info strong { font-size: 0.8rem; color: var(--uni-blue); font-weight: 800; display: block; }
+        .project-poster-info span { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; }
+
+        .btn-interest { margin-left: auto; background: var(--uni-blue); color: white; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 800; cursor: pointer; transition: 0.2s; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; }
+        .btn-interest:hover { background: var(--uni-gold); color: var(--uni-blue); }
+
+        /* Modal */
+        .rc-modal-overlay { position: fixed; inset: 0; background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(4px); z-index: 4000; display: none; align-items: center; justify-content: center; padding: 1rem; }
+        .rc-modal { background: white; width: 100%; max-width: 500px; border-radius: 24px; padding: 2rem; position: relative; box-shadow: var(--card-shadow); }
+        .rc-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .rc-modal-header h2 { font-weight: 900; color: var(--uni-blue); font-size: 1.3rem; }
+        .rc-textarea { width: 100%; padding: 1rem; border-radius: 12px; border: 1px solid var(--border-color); background: #fcfdfe; font-weight: 600; outline: none; min-height: 120px; resize: none; margin-bottom: 1.5rem; }
+        .rc-textarea:focus { border-color: var(--uni-gold); }
+        .rc-modal-footer { display: flex; gap: 10px; }
+        .btn-modal { flex: 1; padding: 14px; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.2s; border: none; }
+        .btn-cancel { background: #f1f5f9; color: var(--text-muted); }
+        .btn-send { background: var(--uni-blue); color: white; }
+
+        .hidden { display: none !important; }
+
+        @media (max-width: 600px) { .rc-projects-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div class="rc-app">
+    <!-- Student Navigation -->
+    <nav id="navOverlay" class="rc-nav-overlay">
+        <button onclick="toggleNav()" style="background: none; border: none; cursor: pointer; padding: 10px;">
+            <i data-lucide="x" color="#3b489a" size="28"></i>
+        </button>
+        <div class="rc-nav-list" id="navLinks"></div>
+        <a href="{% url 'logout' %}" style="color:var(--danger-color); text-decoration:none; font-weight:700; border-left:2px solid var(--border-color); padding-left:1.5rem; margin-left:0.5rem; display:flex; align-items:center; gap:0.5rem;">
+            <i data-lucide="log-out" size="18"></i> Logout
+        </a>
+    </nav>
+
+    <header class="rc-header">
+        <button class="rc-logo-btn" onclick="toggleNav()">
+            <span class="rc-logo-text">re<span>Connect</span></span>
+        </button>
+        <div style="display: flex; gap: 1.25rem; align-items: center; position: relative;">
+            <div id="bellBtn" style="position: relative; cursor: pointer;">
+                <i data-lucide="bell" size="22" color="white"></i>
+                <span id="unreadBadge" style="position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: var(--uni-gold); border-radius: 50%; border: 2px solid var(--uni-blue);"></span>
+            </div>
+            
+            <div id="notifPanel" class="rc-notification-panel">
+                <div class="rc-notification-header">
+                    <h4>NOTIFICATIONS</h4>
+                    <button id="clearNotifs" style="background: none; border: none; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); cursor: pointer; text-transform: uppercase;">Clear All</button>
+                </div>
+                <div class="rc-notification-list" id="notifList"></div>
+            </div>
+
+            <a href="{% url 'student_profile' %}">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Arjun" style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--uni-gold); background: white; object-fit: cover;">
+            </a>
+        </div>
+    </header>
+
+    <main class="rc-view-container">
+        <div class="rc-page-header">
+            <h1>Get Projects</h1>
+            <p>Collaborate on research, build startups, or help alumni with real-world technical problems.</p>
+        </div>
+
+        <div class="rc-filter-tabs">
+            <button class="rc-filter-chip active" onclick="filterProjects('All', this)">All Projects</button>
+            <button class="rc-filter-chip" onclick="filterProjects('Research', this)">Research</button>
+            <button class="rc-filter-chip" onclick="filterProjects('Industry', this)">Industry</button>
+            <button class="rc-filter-chip" onclick="filterProjects('Open Source', this)">Open Source</button>
+        </div>
+
+        <div class="rc-projects-grid" id="projectsGrid">
+            <!-- Projects Injected -->
+        </div>
+    </main>
+</div>
+
+<!-- Interest Modal -->
+<div id="interestModal" class="rc-modal-overlay">
+    <div class="rc-modal">
+        <div class="rc-modal-header">
+            <h2 id="modalTitle">Project Interest</h2>
+            <button onclick="closeModal()" style="background:none; border:none; cursor:pointer;"><i data-lucide="x" size="24" color="var(--uni-blue)"></i></button>
+        </div>
+        <p style="font-size: 0.9rem; color: var(--text-muted); font-weight: 600; margin-bottom: 1rem;">
+            A message will be sent to <span id="targetName" style="color: var(--uni-blue); font-weight: 800;">Poster Name</span>. Tell them why you're interested!
+        </p>
+        <textarea id="interestMsg" class="rc-textarea" placeholder="Hi! I have experience with this stack and would love to contribute..."></textarea>
+        <div class="rc-modal-footer">
+            <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
+            <button class="btn-modal btn-send" onclick="sendInterestMessage()">Send Message</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const NAV_LINKS = [
+        { label: 'Dashboard', icon: 'trending-up', href: '{% url "student_dashboard" %}' },
+        { label: 'Connect', icon: 'users', href: '{% url "student_connect" %}' },
+        { label: 'Explore', icon: 'compass', href: '{% url "student_explore" %}' },
+        { label: 'Find Opportunities', icon: 'briefcase', href: '{% url "student_opportunities" %}' },
+        { label: 'Get Projects', icon: 'folder-git', href: '{% url "student_projects" %}', active: true },
+        { label: 'Settings', icon: 'settings', href: '{% url "student_settings" %}' }
+    ];
+
+    let PROJECTS = [];
+
+    let currentSelectedProject = null;
+    let notifications = [];
+
+    function toggleNav() { document.getElementById('navOverlay').classList.toggle('open'); }
+
+    function renderNav() {
+        const container = document.getElementById('navLinks');
+        container.innerHTML = NAV_LINKS.map(link => `
+            <a href="${link.href}" class="rc-nav-link ${link.active ? 'active' : ''}">
+                <i data-lucide="${link.icon}" size="18"></i> ${link.label}
+            </a>
+        `).join('');
+    }
+
+    function renderProjects(category = 'All') {
+        const container = document.getElementById('projectsGrid');
+        const filtered = category === 'All' ? PROJECTS : PROJECTS.filter(p => p.category === category);
+        
+        const icons = { 'Research': 'microscope', 'Industry': 'briefcase', 'Open Source': 'github' };
+
+        container.innerHTML = filtered.map(p => `
+            <div class="rc-project-card">
+                <div class="project-banner">
+                    <i data-lucide="${icons[p.category] || 'folder'}" size="48"></i>
+                    <span class="project-tag">${p.category}</span>
+                </div>
+                <div class="project-content">
+                    <h3 class="project-title">${p.title}</h3>
+                    <p class="project-desc">${p.desc}</p>
+                    <div class="project-meta">
+                        <div class="meta-item"><i data-lucide="clock" size="14"></i> ${p.duration}</div>
+                        <div class="meta-item"><i data-lucide="bar-chart" size="14"></i> ${p.difficulty}</div>
+                        <div class="meta-item"><i data-lucide="code" size="14"></i> ${p.stack}</div>
+                    </div>
+                    <div class="project-footer">
+                        <img src="${p.avatar}" class="project-poster-img">
+                        <div class="project-poster-info">
+                            <span>Project Lead</span>
+                            <strong>${p.postedBy}</strong>
+                        </div>
+                        <button class="btn-interest" onclick="openInterestModal(${JSON.stringify(p).replace(/"/g, '&quot;')})">
+                            <i data-lucide="zap" size="14"></i> Interested
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        lucide.createIcons();
+    }
+
+    function filterProjects(cat, btn) {
+        document.querySelectorAll('.rc-filter-chip').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        renderProjects(cat);
+    }
+
+    // Modal Logic
+    function openInterestModal(project) {
+        currentSelectedProject = project;
+        document.getElementById('modalTitle').innerText = project.title;
+        document.getElementById('targetName').innerText = project.postedBy;
+        document.getElementById('interestModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('interestModal').style.display = 'none';
+        document.getElementById('interestMsg').value = '';
+    }
+
+    function sendInterestMessage() {
+        const msg = document.getElementById('interestMsg').value;
+        if (!msg.trim()) {
+            alert("Please include a brief message about your skills.");
+            return;
+        }
+        
+        alert(`Message sent to ${currentSelectedProject.postedBy}! You can continue the conversation in your Connect tab.`);
+        closeModal();
+    }
+
+    function renderNotifications() {
+        const notifList = document.getElementById('notifList');
+        const unreadBadge = document.getElementById('unreadBadge');
+        const unreadCount = notifications.filter(n => n.unread).length;
+        unreadBadge.style.display = unreadCount > 0 ? 'block' : 'none';
+
+        if (notifications.length === 0) {
+            notifList.innerHTML = `<div style="padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.8rem; font-weight: 600;">No new notifications</div>`;
+            return;
+        }
+
+        notifList.innerHTML = notifications.map(notif => `
+            <div class="rc-notification-item ${notif.unread ? 'unread' : ''}" onclick="markAsRead(${notif.id})">
+                ${notif.unread ? '<div class="rc-notif-dot"></div>' : '<div style="width:8px; flex-shrink:0;"></div>'}
+                <div class="rc-notif-content">
+                    <p>${notif.text}</p>
+                    <span>${notif.time}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    window.markAsRead = (id) => {
+        notifications = notifications.map(n => n.id === id ? { ...n, unread: false } : n);
+        renderNotifications();
+    };
+
+    window.onclick = (e) => {
+        if (e.target == document.getElementById('interestModal')) closeModal();
+        if (!e.target.closest('#bellBtn') && !e.target.closest('#notifPanel')) {
+            document.getElementById('notifPanel').style.display = 'none';
+        }
+    };
+
+    window.onload = () => {
+        renderNav();
+        renderNotifications();
+
+        // Load projects from API
+        fetch('{% url "api_projects_list" %}')
+            .then(r => r.json())
+            .then(data => {
+                PROJECTS = (data.projects || []).map(p => ({
+                    id: p.id,
+                    title: p.title,
+                    category: p.category || 'Research',
+                    desc: p.description || '',
+                    duration: 'Open',
+                    difficulty: 'Intermediate',
+                    stack: p.tech_stack || '',
+                    postedBy: p.posted_by || 'Alumni',
+                    avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(p.posted_by || 'User')}`
+                }));
+                renderProjects();
+            })
+            .catch(() => renderProjects());
+        
+        document.getElementById('bellBtn').onclick = (e) => {
+            e.stopPropagation();
+            const panel = document.getElementById('notifPanel');
+            panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
+        };
+
+        document.getElementById('clearNotifs').onclick = () => {
+            notifications = [];
+            renderNotifications();
+        };
+    };
+</script>
+
+</body>
+</html>

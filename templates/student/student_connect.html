@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>reConnect - Student Connect Center</title>
+    <!-- Lucide Icons Library -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --uni-blue: #3b489a;
+            --uni-gold: #e1a92a;
+            --bg: #f3f4f9;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --white: #ffffff;
+            --border-color: #e2e8f0;
+            --danger-color: #ef4444;
+            --success-color: #22c55e;
+            --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --header-height: 72px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, sans-serif; }
+        body { background-color: var(--bg); color: var(--text-main); overflow: hidden; height: 100vh; }
+
+        .rc-app { height: 100vh; display: flex; flex-direction: column; }
+
+        /* Fixed Header */
+        .rc-header {
+            height: var(--header-height);
+            z-index: 2000; background: var(--uni-blue); color: white;
+            padding: 0 2rem; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+
+        .rc-logo-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; color: white; text-decoration: none; }
+        .rc-logo-text { font-size: 1.8rem; font-weight: 900; letter-spacing: -1.5px; }
+        .rc-logo-text span { color: var(--uni-gold); }
+
+        /* Notification Panel */
+        .rc-notification-panel {
+            position: absolute; top: 60px; right: 20px; width: 320px;
+            background: white; border-radius: 16px; box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color); color: var(--text-main);
+            display: none; flex-direction: column; z-index: 4000; overflow: hidden;
+            animation: slideDown 0.2s ease-out;
+        }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .rc-notification-header { padding: 1rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .rc-notification-header h4 { font-weight: 800; font-size: 0.9rem; color: var(--uni-blue); }
+        .rc-notification-list { max-height: 400px; overflow-y: auto; }
+        .rc-notification-item { padding: 1rem; border-bottom: 1px solid #f1f5f9; display: flex; gap: 12px; cursor: pointer; transition: 0.2s; }
+        .rc-notification-item:hover { background: #f8fafc; }
+        .rc-notification-item.unread { background: #f0f7ff; }
+        .rc-notif-dot { width: 8px; height: 8px; background: var(--uni-gold); border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
+        .rc-notif-content p { font-size: 0.85rem; line-height: 1.4; text-align: left; }
+        .rc-notif-content span { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; display: block; text-align: left; }
+
+        /* Navigation Bar Overlay */
+        .rc-nav-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 90px;
+            background: white; z-index: 3000; border-bottom: 4px solid var(--uni-gold);
+            display: flex; align-items: center; padding: 0 2rem;
+            transform: translateX(-100%); transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: var(--card-shadow);
+        }
+        .rc-nav-overlay.open { transform: translateX(0); }
+        .rc-nav-list { display: flex; gap: 0.5rem; overflow-x: auto; padding: 0.5rem; scrollbar-width: none; flex: 1; align-items: center; }
+        .rc-nav-link { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.1rem; border-radius: 100px; font-weight: 600; color: var(--text-muted); transition: 0.2s; text-decoration: none; font-size: 0.9rem; white-space: nowrap; }
+        .rc-nav-link:hover { background: #f1f5f9; color: var(--uni-blue); }
+        .rc-nav-link.active { background: var(--uni-blue); color: white; }
+
+        /* Connect Layout */
+        .rc-connect-layout { display: grid; grid-template-columns: 360px 1fr; flex: 1; overflow: hidden; }
+
+        /* Sidebar */
+        .rc-chat-sidebar { background: white; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; }
+        .sidebar-header { padding: 1.5rem; border-bottom: 1px solid var(--border-color); }
+        .sidebar-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .sidebar-title-row h2 { font-size: 1.5rem; font-weight: 900; color: var(--uni-blue); }
+        
+        .icon-btn-group { display: flex; gap: 8px; }
+        .rc-icon-btn { width: 36px; height: 36px; border-radius: 10px; border: none; background: #f1f5f9; color: var(--uni-blue); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .rc-icon-btn:hover { background: var(--uni-gold); color: white; }
+
+        .sidebar-search { position: relative; margin-bottom: 1rem; }
+        .sidebar-search i { position: absolute; left: 12px; top: 10px; color: var(--text-muted); }
+        .sidebar-search input { width: 100%; padding: 10px 10px 10px 40px; border-radius: 12px; border: 1px solid var(--border-color); background: #f8fafc; font-weight: 600; outline: none; }
+
+        .sidebar-tabs { display: flex; border-bottom: 1px solid var(--border-color); }
+        .tab-btn { flex: 1; padding: 12px; border: none; background: transparent; font-weight: 800; font-size: 0.75rem; color: var(--text-muted); cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; position: relative; }
+        .tab-btn.active { color: var(--uni-blue); }
+        .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background: var(--uni-gold); }
+
+        .chat-list { flex: 1; overflow-y: auto; }
+        .chat-item { display: flex; align-items: center; gap: 12px; padding: 1rem 1.5rem; cursor: pointer; transition: 0.2s; border-bottom: 1px solid #f8fafc; }
+        .chat-item:hover { background: #f8fafc; }
+        .chat-item.active { background: #eff6ff; border-left: 4px solid var(--uni-blue); }
+        
+        .avatar-box { width: 48px; height: 48px; border-radius: 14px; background: #f1f5f9; position: relative; flex-shrink: 0; overflow: hidden; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .status-dot { width: 12px; height: 12px; background: var(--success-color); border-radius: 50%; position: absolute; bottom: -2px; right: -2px; border: 2px solid white; }
+        
+        .chat-info h4 { font-size: 0.95rem; font-weight: 800; color: var(--text-main); }
+        .chat-info p { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+
+        /* Chat Main Area */
+        .rc-chat-main { display: flex; flex-direction: column; background: #f8fafc; position: relative; }
+        .chat-header { background: white; padding: 12px 25px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .chat-header h4 { font-weight: 900; color: var(--uni-blue); }
+        .chat-header span { font-size: 0.75rem; color: var(--success-color); font-weight: 800; }
+
+        .messages-container { flex: 1; padding: 2rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; }
+        .msg { max-width: 70%; padding: 12px 18px; border-radius: 18px; font-size: 0.95rem; font-weight: 500; line-height: 1.5; }
+        .msg-received { background: white; align-self: flex-start; border-bottom-left-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+        .msg-sent { background: var(--uni-blue); color: white; align-self: flex-end; border-bottom-right-radius: 4px; box-shadow: 0 4px 10px rgba(59, 72, 154, 0.2); }
+
+        .chat-input-area { background: white; padding: 1.5rem 2rem; display: flex; align-items: center; gap: 1rem; border-top: 1px solid var(--border-color); }
+        .chat-input { flex: 1; background: #f1f5f9; border: 1px solid var(--border-color); padding: 12px 20px; border-radius: 30px; outline: none; font-weight: 600; font-size: 0.95rem; }
+        .btn-send { width: 48px; height: 48px; border-radius: 50%; background: var(--uni-blue); color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .btn-send:hover { background: var(--uni-gold); transform: scale(1.05); }
+
+        /* Scrollable View Generic */
+        .rc-scroll-view { flex: 1; overflow-y: auto; padding: 3rem; display: none; }
+        .rc-scroll-view.active { display: block; }
+        .view-header { margin-bottom: 2rem; }
+        .view-header h2 { font-size: 2rem; font-weight: 900; color: var(--uni-blue); }
+        .view-header p { color: var(--text-muted); font-weight: 600; }
+
+        /* Profile Cards */
+        .rc-profile-card { background: white; border-radius: 20px; border: 1px solid var(--border-color); padding: 1.25rem; display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; transition: 0.2s; }
+        .rc-profile-card:hover { transform: translateY(-2px); box-shadow: var(--card-shadow); }
+        .profile-img { width: 50px; height: 50px; border-radius: 12px; object-fit: cover; }
+        .profile-info { flex: 1; }
+        .profile-info h4 { font-size: 1rem; font-weight: 800; color: var(--uni-blue); }
+        .profile-info p { font-size: 0.8rem; color: var(--text-muted); font-weight: 700; }
+
+        .btn-action { padding: 8px 16px; border-radius: 10px; font-weight: 800; font-size: 0.8rem; cursor: pointer; transition: 0.2s; border: none; display: flex; align-items: center; gap: 6px; }
+        .btn-blue { background: var(--uni-blue); color: white; }
+        .btn-outline { border: 2px solid var(--uni-gold); color: var(--uni-gold); background: transparent; }
+
+        /* Directory Grid */
+        .directory-toggle { display: flex; gap: 10px; margin-bottom: 2rem; }
+        .toggle-btn { padding: 8px 20px; border-radius: 50px; border: 1.5px solid var(--border-color); background: white; color: var(--text-muted); font-weight: 800; font-size: 0.8rem; cursor: pointer; }
+        .toggle-btn.active { background: var(--uni-blue); color: white; border-color: var(--uni-blue); }
+
+        /* Filter Controls */
+        .directory-filters { display: flex; gap: 12px; margin-bottom: 2rem; flex-wrap: wrap; }
+        .filter-select { padding: 10px 15px; border-radius: 12px; border: 1px solid var(--border-color); background: white; font-weight: 600; color: var(--text-main); outline: none; min-width: 150px; }
+        .filter-search { flex: 1; padding: 10px 15px; border-radius: 12px; border: 1px solid var(--border-color); background: white; font-weight: 600; outline: none; min-width: 200px; }
+
+        .dir-result-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+
+        /* Group Modal */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(4px); z-index: 5000; display: none; align-items: center; justify-content: center; padding: 1rem; }
+        .modal-content { background: white; width: 100%; max-width: 450px; border-radius: 24px; padding: 2rem; box-shadow: var(--card-shadow); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .modal-header h3 { font-weight: 900; color: var(--uni-blue); }
+        .modal-input { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border-color); outline: none; font-weight: 600; margin-bottom: 1rem; }
+        .selection-list { max-height: 200px; overflow-y: auto; margin-bottom: 1.5rem; }
+        .selection-item { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 10px; cursor: pointer; }
+        .selection-item:hover { background: #f1f5f9; }
+
+        .hidden { display: none !important; }
+        @media (max-width: 900px) { .rc-connect-layout { grid-template-columns: 1fr; } .rc-chat-sidebar { display: none; } }
+    </style>
+</head>
+<body>
+
+<div class="rc-app">
+    <!-- Student Navigation -->
+    <nav id="navOverlay" class="rc-nav-overlay">
+        <button onclick="toggleNav()" style="background: none; border: none; cursor: pointer; padding: 10px;">
+            <i data-lucide="x" color="#3b489a" size="28"></i>
+        </button>
+        <div class="rc-nav-list" id="navLinks"></div>
+        <a href="{% url 'logout' %}" style="color:var(--danger-color); text-decoration:none; font-weight:700; border-left:2px solid var(--border-color); padding-left:1.5rem; margin-left:0.5rem; display:flex; align-items:center; gap:0.5rem;">
+            <i data-lucide="log-out" size="18"></i> Logout
+        </a>
+    </nav>
+
+    <header class="rc-header">
+        <button class="rc-logo-btn" onclick="toggleNav()">
+            <span class="rc-logo-text">re<span>Connect</span></span>
+        </button>
+        <div style="display: flex; gap: 1.25rem; align-items: center; position: relative;">
+            <!-- Bell Trigger -->
+            <div id="bellBtn" style="position: relative; cursor: pointer;">
+                <i data-lucide="bell" size="22" color="white"></i>
+                <span id="unreadBadge" style="position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: var(--uni-gold); border-radius: 50%; border: 2px solid var(--uni-blue);"></span>
+            </div>
+            
+            <!-- Notification Panel -->
+            <div id="notifPanel" class="rc-notification-panel">
+                <div class="rc-notification-header">
+                    <h4>NOTIFICATIONS</h4>
+                    <button id="clearNotifs" style="background: none; border: none; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); cursor: pointer; text-transform: uppercase;">Clear All</button>
+                </div>
+                <div class="rc-notification-list" id="notifList"></div>
+            </div>
+
+            <a href="{% url 'student_profile' %}">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Arjun" style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--uni-gold); background: white; object-fit: cover;">
+            </a>
+        </div>
+    </header>
+
+    <div class="rc-connect-layout">
+        <!-- Sidebar -->
+        <aside class="rc-chat-sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title-row">
+                    <h2>Connect</h2>
+                    <div class="icon-btn-group">
+                        <button class="rc-icon-btn" onclick="openGroupModal()" title="New Group"><i data-lucide="users" size="18"></i></button>
+                        <button class="rc-icon-btn" title="Search People"><i data-lucide="search" size="18"></i></button>
+                    </div>
+                </div>
+                <div class="sidebar-search">
+                    <i data-lucide="search" size="16"></i>
+                    <input type="text" placeholder="Search chats...">
+                </div>
+            </div>
+            <div class="sidebar-tabs">
+                <button class="tab-btn active" onclick="switchView('chats', this)">Messages</button>
+                <button class="tab-btn" onclick="switchView('social', this)">Circles</button>
+                <button class="tab-btn" onclick="switchView('batches', this)">Directory</button>
+            </div>
+            <div class="chat-list" id="chatList">
+                <!-- Chat items injected by JS -->
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="rc-chat-main">
+            <!-- Active Chat View -->
+            <div id="chatWindow" style="display: flex; flex-direction: column; height: 100%;">
+                <div class="chat-header">
+                    <div class="avatar-box" id="activeAvatar">
+                        <img src="" id="activeImg" style="width:100%; height:100%; object-fit:cover;">
+                        <div class="status-dot"></div>
+                    </div>
+                    <div>
+                        <h4 id="activeName">Select a chat</h4>
+                        <span id="activeStatus">Online</span>
+                    </div>
+                </div>
+                <div class="messages-container" id="msgList">
+                    <div style="text-align:center; padding: 5rem; color: var(--text-muted); font-weight: 700;">
+                        <i data-lucide="message-square" size="48" style="opacity:0.1; margin-bottom: 1rem;"></i>
+                        <p>Select a contact or peer to start a conversation.</p>
+                    </div>
+                </div>
+                <div class="chat-input-area">
+                    <button style="background:none; border:none; cursor:pointer;"><i data-lucide="paperclip" size="20" color="var(--text-muted)"></i></button>
+                    <input type="text" class="chat-input" id="chatInput" placeholder="Write your message..." onkeypress="handleKey(event)">
+                    <button class="btn-send" onclick="sendMessage()"><i data-lucide="send" size="18"></i></button>
+                </div>
+            </div>
+
+            <!-- Social/Circles View -->
+            <div id="socialView" class="rc-scroll-view">
+                <div class="view-header">
+                    <h2>Connection Requests</h2>
+                    <p>Manage pending invitations from alumni and peers.</p>
+                </div>
+                <div id="pendingRequests">
+                    <!-- Pending list -->
+                </div>
+                
+                <div class="view-header" style="margin-top: 4rem;">
+                    <h2>Your Circle</h2>
+                    <p>Both alumni mentors and student peers.</p>
+                </div>
+                <div id="circleList">
+                    <!-- Connection list -->
+                </div>
+            </div>
+
+            <!-- Batches/Directory View -->
+            <div id="batchesView" class="rc-scroll-view">
+                <div class="view-header">
+                    <h2>Directory Search</h2>
+                    <p>Browse the entire community by role, batch, and department.</p>
+                </div>
+                
+                <div class="directory-toggle">
+                    <button class="toggle-btn active" id="btnAlumniDir" onclick="setDirectory('alumni')">Alumni</button>
+                    <button class="toggle-btn" id="btnStudentDir" onclick="setDirectory('students')">Students</button>
+                </div>
+
+                <!-- Directory Filters -->
+                <div class="directory-filters" id="dirFilters">
+                    <input type="text" class="filter-search" id="dirSearchInput" placeholder="Search by name..." onkeyup="applyDirectoryFilters()">
+                    <select class="filter-select" id="yearFilter" onchange="applyDirectoryFilters()">
+                        <!-- Years injected by JS based on mode -->
+                    </select>
+                    <select class="filter-select" id="deptFilter" onchange="applyDirectoryFilters()">
+                        <option value="all">All Departments</option>
+                        <option value="CSE">CSE</option>
+                        <option value="ECE">ECE</option>
+                        <option value="EEE">EEE</option>
+                        <option value="ME">Mechanical</option>
+                        <option value="CE">Civil</option>
+                        <option value="IT">Information Tech</option>
+                    </select>
+                </div>
+
+                <div id="dirResultsGrid" class="dir-result-grid">
+                    <!-- Results injected here -->
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- New Group Modal -->
+<div id="groupModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Create New Group</h3>
+            <button onclick="closeGroupModal()" style="background:none; border:none; cursor:pointer;"><i data-lucide="x" size="20"></i></button>
+        </div>
+        <input type="text" id="groupName" class="modal-input" placeholder="Enter Group Name...">
+        <p style="font-size:0.75rem; font-weight:800; color:var(--text-muted); margin-bottom:10px;">ADD FROM YOUR CIRCLE</p>
+        <div class="selection-list" id="groupCircleList">
+            <!-- circle injected -->
+        </div>
+        <button class="rc-save-btn" onclick="createGroup()" style="width:100%; background:var(--uni-blue); color:white; border:none; padding:12px; border-radius:12px; font-weight:800; cursor:pointer;">Create Group</button>
+    </div>
+</div>
+
+<script>
+    const NAV_LINKS = [
+        { label: 'Dashboard', icon: 'trending-up', href: '{% url "student_dashboard" %}' },
+        { label: 'Connect', icon: 'users', href: '{% url "student_connect" %}', active: true },
+        { label: 'Explore', icon: 'compass', href: '{% url "student_explore" %}' },
+        { label: 'Find Opportunities', icon: 'briefcase', href: '{% url "student_opportunities" %}' },
+        { label: 'Get Projects', icon: 'folder-git', href: '{% url "student_projects" %}' },
+        { label: 'Settings', icon: 'settings', href: '{% url "student_settings" %}' }
+    ];
+
+    let CHATS = [];
+
+    let CIRCLE = [];
+
+    let STUDENT_DIRECTORY = [];
+
+    let ALUMNI_DIRECTORY = [];
+
+    const ALUMNI_BATCHES = [2024, 2023, 2022, 2021, 2020, 2018, 2015, 2012];
+    const STUDENT_YEARS = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
+
+    let notifications = [
+        { id: 1, text: "Maya Singh sent you a connection request.", time: "10 mins ago", unread: true },
+        { id: 2, text: "Dr. Sarah Chen posted a new project.", time: "2h ago", unread: true }
+    ];
+
+    let directoryMode = 'alumni';
+
+    function toggleNav() { document.getElementById('navOverlay').classList.toggle('open'); }
+
+    function renderNav() {
+        const container = document.getElementById('navLinks');
+        container.innerHTML = NAV_LINKS.map(link => `
+            <a href="${link.href}" class="rc-nav-link ${link.active ? 'active' : ''}">
+                <i data-lucide="${link.icon}" size="18"></i> ${link.label}
+            </a>
+        `).join('');
+    }
+
+    function renderNotifications() {
+        const notifList = document.getElementById('notifList');
+        const unreadBadge = document.getElementById('unreadBadge');
+        const unreadCount = notifications.filter(n => n.unread).length;
+        unreadBadge.style.display = unreadCount > 0 ? 'block' : 'none';
+
+        if (notifications.length === 0) {
+            notifList.innerHTML = `<div style="padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.8rem; font-weight: 600;">No new notifications</div>`;
+            return;
+        }
+
+        notifList.innerHTML = notifications.map(notif => `
+            <div class="rc-notification-item ${notif.unread ? 'unread' : ''}" onclick="markAsRead(${notif.id})">
+                ${notif.unread ? '<div class="rc-notif-dot"></div>' : '<div style="width:8px; flex-shrink:0;"></div>'}
+                <div class="rc-notif-content">
+                    <p>${notif.text}</p>
+                    <span>${notif.time}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    window.markAsRead = (id) => {
+        notifications = notifications.map(n => n.id === id ? { ...n, unread: false } : n);
+        renderNotifications();
+    };
+
+    function renderChatList() {
+        const container = document.getElementById('chatList');
+        container.innerHTML = CHATS.map(chat => `
+            <div class="chat-item" onclick="selectChat(${chat.id})">
+                <div class="avatar-box">
+                    <img src="${chat.avatar}" style="width:100%;">
+                    ${chat.online ? '<div class="status-dot"></div>' : ''}
+                </div>
+                <div class="chat-info">
+                    <h4 style="display:flex; align-items:center; gap:5px;">
+                        ${chat.name} 
+                        ${chat.type === 'group' ? '<i data-lucide="users" size="12" color="var(--text-muted)"></i>' : ''}
+                    </h4>
+                    <p>${chat.lastMsg}</p>
+                </div>
+            </div>
+        `).join('');
+        lucide.createIcons();
+    }
+
+    let chatSocket = null;
+    let activeConversationId = null;
+
+    function getCsrfToken() {
+        const name = 'csrftoken';
+        const cookies = document.cookie.split(';');
+        for (let c of cookies) { c = c.trim(); if (c.startsWith(name + '=')) return c.substring(name.length + 1); }
+        return '';
+    }
+
+    function selectChat(id) {
+        const chat = CHATS.find(c => c.id === id);
+        if (!chat) return;
+        document.getElementById('activeName').innerText = chat.name;
+        document.getElementById('activeImg').src = chat.avatar;
+        document.getElementById('activeStatus').innerText = chat.type === 'group' ? 'Group' : '';
+        document.getElementById('msgList').innerHTML = '';
+        activeConversationId = chat.convoId || null;
+
+        if (activeConversationId) {
+            fetch(`/api/conversations/${activeConversationId}/messages/`)
+                .then(r => r.json())
+                .then(data => {
+                    const list = document.getElementById('msgList');
+                    data.messages.forEach(m => {
+                        const div = document.createElement('div');
+                        div.className = 'msg ' + (m.is_mine ? 'msg-sent' : 'msg-received');
+                        div.innerText = m.content;
+                        list.appendChild(div);
+                    });
+                    list.scrollTop = list.scrollHeight;
+                });
+            connectWebSocket(activeConversationId);
+        }
+
+        document.querySelectorAll('.chat-item').forEach((it, idx) => {
+            if(CHATS[idx] && CHATS[idx].id === id) it.classList.add('active');
+            else it.classList.remove('active');
+        });
+        switchView('chats', document.querySelectorAll('.tab-btn')[0]);
+    }
+
+    function connectWebSocket(convoId) {
+        if (chatSocket) chatSocket.close();
+        const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        chatSocket = new WebSocket(`${wsScheme}://${window.location.host}/ws/chat/${convoId}/`);
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            const list = document.getElementById('msgList');
+            const div = document.createElement('div');
+            div.className = 'msg msg-received';
+            div.innerText = data.message;
+            list.appendChild(div);
+            list.scrollTop = list.scrollHeight;
+        };
+    }
+
+    function switchView(view, btn) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        document.getElementById('chatWindow').style.display = 'none';
+        document.getElementById('socialView').style.display = 'none';
+        document.getElementById('batchesView').style.display = 'none';
+
+        if(view === 'chats') document.getElementById('chatWindow').style.display = 'flex';
+        else if(view === 'social') {
+            document.getElementById('socialView').style.display = 'block';
+            renderCircle();
+        }
+        else if(view === 'batches') {
+            document.getElementById('batchesView').style.display = 'block';
+            setDirectory('alumni');
+        }
+    }
+
+    function renderCircle() {
+        const container = document.getElementById('circleList');
+        container.innerHTML = CIRCLE.map(item => `
+            <div class="rc-profile-card">
+                <img src="${item.avatar}" class="profile-img">
+                <div class="profile-info">
+                    <h4>${item.name}</h4>
+                    <p>${item.role}</p>
+                </div>
+                <button class="btn-action btn-outline" onclick="window.location.href='{% url "profile" %}?id=${item.name}'">Profile</button>
+                <button class="btn-action btn-blue" onclick="startChat('${item.name}', '${item.avatar}')">Message</button>
+            </div>
+        `).join('');
+    }
+
+    function setDirectory(mode) {
+        directoryMode = mode;
+        const btnAlumni = document.getElementById('btnAlumniDir');
+        const btnStudent = document.getElementById('btnStudentDir');
+        const yearSelect = document.getElementById('yearFilter');
+        
+        // Reset Search
+        document.getElementById('dirSearchInput').value = "";
+        document.getElementById('deptFilter').value = "all";
+
+        if (mode === 'alumni') {
+            btnAlumni.classList.add('active');
+            btnStudent.classList.remove('active');
+            yearSelect.innerHTML = `<option value="all">All Batches</option>` + ALUMNI_BATCHES.map(y => `<option value="${y}">${y}</option>`).join('');
+        } else {
+            btnStudent.classList.add('active');
+            btnAlumni.classList.remove('active');
+            yearSelect.innerHTML = `<option value="all">All Years</option>` + STUDENT_YEARS.map(y => `<option value="${y}">${y}</option>`).join('');
+        }
+        
+        applyDirectoryFilters();
+    }
+
+    function applyDirectoryFilters() {
+        const search = document.getElementById('dirSearchInput').value.toLowerCase();
+        const year = document.getElementById('yearFilter').value;
+        const dept = document.getElementById('deptFilter').value;
+        
+        const dataSource = directoryMode === 'alumni' ? ALUMNI_DIRECTORY : STUDENT_DIRECTORY;
+        
+        const filtered = dataSource.filter(s => {
+            const matchesSearch = s.name.toLowerCase().includes(search);
+            const matchesYear = year === 'all' || s.year === year;
+            const matchesDept = dept === 'all' || s.dept === dept;
+            return matchesSearch && matchesYear && matchesDept;
+        });
+
+        const container = document.getElementById('dirResultsGrid');
+        
+        if (filtered.length === 0) {
+            container.innerHTML = `<div style="text-align:center; padding:3rem; color:var(--text-muted); font-weight:700; grid-column: 1/-1;">No results found matching your criteria.</div>`;
+        } else {
+            container.innerHTML = filtered.map(s => `
+                <div class="rc-profile-card">
+                    <img src="${s.avatar}" class="profile-img">
+                    <div class="profile-info">
+                        <h4>${s.name}</h4>
+                        <p>${s.year} • ${s.dept}</p>
+                    </div>
+                    <button class="btn-action btn-blue" onclick="startChat('${s.name}', '${s.avatar}')">Connect</button>
+                </div>
+            `).join('');
+        }
+    }
+
+    function startChat(name, avatar) {
+        // Search user and create conversation
+        fetch('{% url "user_search" %}?q=' + encodeURIComponent(name))
+            .then(r => r.json())
+            .then(data => {
+                if (data.users.length === 0) { alert('User not found'); return; }
+                const userId = data.users[0].id;
+                return fetch('{% url "conversation_create" %}', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCsrfToken(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId })
+                });
+            })
+            .then(r => { if(r) return r.json(); })
+            .then(data => {
+                if (data && data.id) {
+                    loadConversations();
+                    activeConversationId = data.id;
+                    document.getElementById('activeName').innerText = data.name || name;
+                    document.getElementById('activeImg').src = avatar;
+                    document.getElementById('msgList').innerHTML = '';
+                    connectWebSocket(data.id);
+                    switchView('chats', document.querySelectorAll('.tab-btn')[0]);
+                }
+            });
+    }
+
+    // Modal
+    function openGroupModal() {
+        document.getElementById('groupModal').style.display = 'flex';
+        const list = document.getElementById('groupCircleList');
+        list.innerHTML = CIRCLE.map(c => `
+            <label class="selection-item">
+                <input type="checkbox" name="group-member" value="${c.name}">
+                <img src="${c.avatar}" style="width:30px; border-radius:6px;">
+                <span style="font-size:0.85rem; font-weight:700;">${c.name}</span>
+            </label>
+        `).join('');
+    }
+    function closeGroupModal() { document.getElementById('groupModal').style.display = 'none'; }
+    function createGroup() {
+        const name = document.getElementById('groupName').value;
+        if (!name) return alert('Please enter group name');
+        const checked = document.querySelectorAll('input[name="group-member"]:checked');
+        const memberNames = Array.from(checked).map(c => c.value);
+        // Create group via API
+        fetch('{% url "conversation_create" %}', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCsrfToken(), 'Content-Type': 'application/json' },
+            body: JSON.stringify({ is_group: true, name: name, user_ids: [] })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.id) { loadConversations(); closeGroupModal(); }
+        });
+    }
+
+    function loadConversations() {
+        fetch('{% url "conversation_list" %}')
+            .then(r => r.json())
+            .then(data => {
+                CHATS.length = 0;
+                data.conversations.forEach(c => {
+                    CHATS.push({
+                        id: c.id, convoId: c.id, name: c.name,
+                        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + encodeURIComponent(c.name.split(' ')[0]),
+                        lastMsg: c.last_message || 'No messages yet',
+                        online: false, type: c.is_group ? 'group' : 'individual'
+                    });
+                });
+                renderChatList();
+            });
+    }
+
+    function loadCircle() {
+        fetch('{% url "connection_list" %}')
+            .then(r => r.json())
+            .then(data => {
+                CIRCLE.length = 0;
+                data.connections.forEach(c => {
+                    CIRCLE.push({
+                        name: c.name,
+                        role: c.department || '',
+                        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + encodeURIComponent(c.name.split(' ')[0])
+                    });
+                });
+            });
+    }
+
+    function loadDirectory() {
+        fetch('{% url "api_explore_people" %}?role=alumni')
+            .then(r => r.json())
+            .then(data => {
+                ALUMNI_DIRECTORY.length = 0;
+                data.people.forEach(p => {
+                    ALUMNI_DIRECTORY.push({
+                        name: p.name, year: String(p.enrollment_number || ''), dept: p.department || '',
+                        avatar: p.profile_picture || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + encodeURIComponent(p.name.split(' ')[0])
+                    });
+                });
+            });
+        fetch('{% url "api_explore_people" %}?role=student')
+            .then(r => r.json())
+            .then(data => {
+                STUDENT_DIRECTORY.length = 0;
+                data.people.forEach(p => {
+                    STUDENT_DIRECTORY.push({
+                        name: p.name, year: p.working_status || 'Student', dept: p.department || '',
+                        avatar: p.profile_picture || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + encodeURIComponent(p.name.split(' ')[0])
+                    });
+                });
+            });
+    }
+
+    function sendMessage() {
+        const input = document.getElementById('chatInput');
+        if(!input.value.trim()) return;
+        if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+            chatSocket.send(JSON.stringify({ 'message': input.value }));
+        }
+        const list = document.getElementById('msgList');
+        const div = document.createElement('div');
+        div.className = 'msg msg-sent';
+        div.innerText = input.value;
+        list.appendChild(div);
+        input.value = '';
+        list.scrollTop = list.scrollHeight;
+    }
+
+    function handleKey(e) { if(e.key === 'Enter') sendMessage(); }
+
+    window.onclick = function(e) { 
+        if (e.target == document.getElementById('groupModal')) closeGroupModal();
+        if (!e.target.closest('#bellBtn') && !e.target.closest('#notifPanel')) {
+            document.getElementById('notifPanel').style.display = 'none';
+        }
+    }
+
+    window.onload = () => {
+        renderNav();
+        loadConversations();
+        loadCircle();
+        loadDirectory();
+        renderNotifications();
+        lucide.createIcons();
+
+        document.getElementById('bellBtn').onclick = (e) => {
+            e.stopPropagation();
+            const panel = document.getElementById('notifPanel');
+            panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
+        };
+
+        document.getElementById('clearNotifs').onclick = () => {
+            notifications = [];
+            renderNotifications();
+        };
+    };
+</script>
+
+</body>
+</html>

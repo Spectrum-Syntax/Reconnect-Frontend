@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>reConnect - Legacy Meets Future</title>
+    <!-- Lucide Icons Library -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --uni-blue: #3b489a;
+            --uni-gold: #e1a92a;
+            --bg: #f3f4f9;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --white: #ffffff;
+            --card-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            --transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, sans-serif; scroll-behavior: smooth; }
+        
+        body { background-color: var(--bg); color: var(--text-main); overflow-x: hidden; }
+
+        /* --- LUXURY BACKGROUND --- */
+        .bg-blobs {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            filter: blur(80px);
+            opacity: 0.5;
+        }
+
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            animation: move 20s infinite alternate;
+        }
+
+        .blob-1 { width: 600px; height: 600px; background: var(--uni-blue); top: -10%; left: -10%; animation-duration: 25s; }
+        .blob-2 { width: 500px; height: 500px; background: var(--uni-gold); bottom: -10%; right: -10%; animation-delay: -5s; }
+        .blob-3 { width: 400px; height: 400px; background: #6366f1; top: 40%; left: 30%; animation-duration: 18s; }
+
+        @keyframes move {
+            from { transform: translate(0, 0) scale(1) rotate(0deg); }
+            to { transform: translate(100px, 100px) scale(1.2) rotate(15deg); }
+        }
+
+        /* --- NAVIGATION --- */
+        header {
+            padding: 1.2rem 8%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.01);
+            backdrop-filter: blur(15px);
+            transition: var(--transition);
+        }
+
+        header.scrolled {
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            padding: 0.8rem 8%;
+        }
+
+        .logo-text { font-size: 2rem; font-weight: 900; letter-spacing: -2px; color: var(--uni-blue); text-decoration: none; }
+        .logo-text span { color: var(--uni-gold); }
+
+        .nav-btn {
+            padding: 12px 28px;
+            background: var(--uni-blue);
+            color: white;
+            border-radius: 14px;
+            font-weight: 800;
+            text-decoration: none;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(59, 72, 154, 0.2);
+        }
+        .nav-btn:hover { background: var(--uni-gold); color: var(--uni-blue); transform: translateY(-2px); }
+
+        /* --- HERO SECTION --- */
+        .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 0 10%;
+        }
+
+        .hero-badge {
+            background: rgba(59, 72, 154, 0.1);
+            color: var(--uni-blue);
+            padding: 8px 20px;
+            border-radius: 100px;
+            font-size: 0.85rem;
+            font-weight: 800;
+            margin-bottom: 2rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            animation: fadeInDown 1s forwards;
+        }
+
+        .hero-title {
+            font-size: clamp(2.5rem, 8vw, 5.5rem);
+            font-weight: 900;
+            color: var(--uni-blue);
+            line-height: 1;
+            margin-bottom: 2rem;
+            opacity: 0;
+            animation: fadeInUp 0.8s 0.3s forwards;
+        }
+        .hero-title span { color: var(--uni-gold); }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            max-width: 650px;
+            margin-bottom: 3rem;
+            line-height: 1.6;
+            opacity: 0;
+            animation: fadeInUp 0.8s 0.5s forwards;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 1.5rem;
+            opacity: 0;
+            animation: fadeInUp 0.8s 0.7s forwards;
+        }
+
+        /* --- FEATURE SHOWCASE --- */
+        .showcase { padding: 100px 8%; background: white; }
+        
+        .section-header { text-align: center; margin-bottom: 80px; }
+        .section-header h2 { font-size: 3rem; font-weight: 900; color: var(--uni-blue); }
+        .section-header p { color: var(--text-muted); font-weight: 600; margin-top: 10px; }
+
+        .feature-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 100px;
+            align-items: center;
+            margin-bottom: 120px;
+        }
+
+        .feature-row.reverse { direction: rtl; }
+        .feature-row.reverse .feature-text { direction: ltr; }
+
+        .feature-img-card {
+            background: var(--bg);
+            border-radius: 40px;
+            height: 450px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--rc-ui-border-soft);
+            box-shadow: var(--card-shadow);
+        }
+
+        .feature-img-card img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+        .feature-img-card:hover img { transform: scale(1.05); }
+
+        .feature-text h3 { font-size: 2.2rem; font-weight: 900; color: var(--uni-blue); margin-bottom: 1.5rem; }
+        .feature-text p { font-size: 1.1rem; color: var(--text-muted); line-height: 1.8; font-weight: 500; margin-bottom: 2rem; }
+
+        .feature-highlight {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 1rem;
+            font-weight: 700;
+            color: var(--uni-blue);
+        }
+        .feature-highlight i { color: var(--uni-gold); }
+
+        /* --- FLOATING ELEMENTS --- */
+        .float-card {
+            position: absolute;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 10;
+        }
+
+        .float-1 { top: 20%; left: -20px; animation: float 4s infinite ease-in-out; }
+        .float-2 { bottom: 20%; right: -20px; animation: float 4s infinite ease-in-out reverse; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            background: var(--uni-blue);
+            padding: 100px 8% 40px;
+            color: white;
+            text-align: center;
+            border-radius: 60px 60px 0 0;
+        }
+
+        .footer-cta { margin-bottom: 80px; }
+        .footer-cta h2 { font-size: 3.5rem; font-weight: 900; margin-bottom: 2rem; }
+        .footer-links { display: flex; justify-content: center; gap: 40px; margin-bottom: 40px; }
+        .footer-links a { color: white; text-decoration: none; font-weight: 700; opacity: 0.7; transition: 0.3s; }
+        .footer-links a:hover { opacity: 1; color: var(--uni-gold); }
+
+        .copyright { padding-top: 40px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.85rem; font-weight: 600; opacity: 0.6; }
+
+        /* --- ANIMATIONS --- */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .reveal { opacity: 0; transform: translateY(60px); transition: 1s var(--transition); }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        @media (max-width: 900px) {
+            .feature-row { grid-template-columns: 1fr; gap: 40px; }
+            .feature-row.reverse { direction: ltr; }
+            .hero-title { font-size: 3rem; }
+            header { padding: 1.2rem 5%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <header id="mainHeader">
+        <a href="#" class="logo-text">re<span>Connect</span></a>
+        <a href="{% url 'login' %}" class="nav-btn">Portal Login</a>
+    </header>
+
+    <section class="hero">
+        <div class="hero-badge">Next-Gen University Ecosystem</div>
+        <h1 class="hero-title">Bridge the Gap Between<br><span>Legacy</span> and <span>Vision</span>.</h1>
+        <p class="hero-subtitle">The official platform where university heritage meets tomorrow's innovation. Empowering students through alumni intelligence, funding, and direct industry pipelines.</p>
+        <div class="hero-cta">
+            <a href="{% url 'login' %}" class="nav-btn" style="padding: 20px 45px; font-size: 1.1rem;">Get Started Now <i data-lucide="arrow-right" style="vertical-align: middle; margin-left: 8px;"></i></a>
+        </div>
+    </section>
+
+    <section class="showcase">
+        <div class="section-header reveal">
+            <h2>The reConnect Experience</h2>
+            <p>Purpose-built modules to foster lifelong institutional bonds.</p>
+        </div>
+
+        <!-- Feature 1: The Connect Hub -->
+        <div class="feature-row reveal">
+            <div class="feature-img-card">
+                <img src="https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=1200&q=80" alt="Connect">
+                <div class="float-card float-1">
+                    <div style="width: 10px; height: 10px; background: #22c55e; border-radius: 50%;"></div>
+                    <span style="font-weight: 800; font-size: 0.8rem;">Dr. Sarah Chen is online</span>
+                </div>
+            </div>
+            <div class="feature-text">
+                <h3>Intelligent Networking</h3>
+                <p>Break through digital noise. Our specialized directory allows students to filter alumni by company, tech-stack, and batch, enabling high-value mentoring conversations.</p>
+                <div class="feature-highlight"><i data-lucide="check-circle-2"></i> Verified Alumni Directory</div>
+                <div class="feature-highlight"><i data-lucide="check-circle-2"></i> Individual & Group Peer Circles</div>
+                <div class="feature-highlight"><i data-lucide="check-circle-2"></i> Batch-wise Graduation Archives</div>
+            </div>
+        </div>
+
+        <!-- Feature 2: Funding & Grants -->
+        <div class="feature-row reverse reveal">
+            <div class="feature-img-card">
+                <img src="https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&w=1200&q=80" alt="Funding">
+                <div class="float-card float-2" style="background: var(--uni-blue); color: white;">
+                    <i data-lucide="award" size="20" color="var(--uni-gold)"></i>
+                    <span style="font-weight: 800; font-size: 0.8rem;">₹25k Grant Disbursed</span>
+                </div>
+            </div>
+            <div class="feature-text">
+                <h3>Fueling Student Innovation</h3>
+                <p>Alumni aren't just mentors; they are investors in the university's future. Our direct grant system allows alumni to fund student research, startups, and innovative campus projects.</p>
+                <div class="feature-highlight"><i data-lucide="check-circle-2"></i> Direct Project Sponsorship</div>
+                <div class="feature-highlight"><i data-lucide="check-circle-2"></i> Verified Milestone Tracking</div>
+                <div class="feature-highlight"><i data-lucide="check-circle-2"></i> Transparent Fund Disbursement</div>
+            </div>
+        </div>
+
+        <!-- Feature 3: Job Referrals -->
+        <div class="feature-row reveal">
+            <div class="feature-img-card">
+                <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80" alt="Referrals">
+            </div>
+            <div class="feature-text">
+                <h3>The Exclusive Pipeline</h3>
+                <p>Skip the standard application queues. Alumni post internal job referrals and internships specifically for the current students of their alma mater.</p>
+                <div class="feature-highlight"><i data-lucide="check-circle-2"></i> Priority Referral Listings</div>
+                <div class="feature-highlight"><i data-lucide="check-circle-2"></i> Direct Application to Alumni</div>
+                <div class="feature-highlight"><i data-lucide="check-circle-2"></i> Real-time Career Success Stories</div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-cta reveal">
+            <h2>Ready to reconnect?</h2>
+            <a href="{% url 'login' %}" class="nav-btn" style="background: white; color: var(--uni-blue); padding: 20px 60px; font-size: 1.2rem;">Enter the Portal</a>
+        </div>
+        <div class="footer-links">
+            <a href="#">About Us</a>
+            <a href="#">Security</a>
+            <a href="#">Privacy Policy</a>
+            <a href="#">Campus Help</a>
+        </div>
+        <div class="copyright">
+            &copy; 2024 University Networking Ecosystem. Engineered for Excellence.
+        </div>
+    </footer>
+
+    <script>
+        // Scroll Header Interaction
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('mainHeader');
+            if (window.scrollY > 80) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // Intersection Observer for Reveal Animations
+        const observerOptions = {
+            threshold: 0.15
+        };
+
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.reveal').forEach(el => {
+            revealObserver.observe(el);
+        });
+
+        // Initialize Icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>

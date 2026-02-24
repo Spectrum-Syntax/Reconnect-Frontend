@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>reConnect - My Student Profile</title>
+    <!-- Lucide Icons Library -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --uni-blue: #3b489a;
+            --uni-gold: #e1a92a;
+            --bg: #f3f4f9;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --white: #ffffff;
+            --border-color: #e2e8f0;
+            --danger-color: #ef4444;
+            --success-color: #22c55e;
+            --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --header-height: 72px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg); color: var(--text-main); }
+
+        .rc-app { min-height: 100vh; position: relative; padding-top: var(--header-height); }
+
+        /* Fixed Header */
+        .rc-header {
+            position: fixed; top: 0; left: 0; right: 0; height: var(--header-height);
+            z-index: 2000; background: var(--uni-blue); color: white;
+            padding: 0 2rem; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .rc-logo-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; color: white; text-decoration: none; }
+        .rc-logo-text { font-size: 1.8rem; font-weight: 900; letter-spacing: -1.5px; }
+        .rc-logo-text span { color: var(--uni-gold); }
+
+        /* Notification Panel */
+        .rc-notification-panel {
+            position: absolute; top: 60px; right: 20px; width: 320px;
+            background: white; border-radius: 16px; box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color); color: var(--text-main);
+            display: none; flex-direction: column; z-index: 1000; overflow: hidden;
+            animation: slideDown 0.2s ease-out;
+        }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .rc-notification-header { padding: 1rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .rc-notification-header h4 { font-weight: 800; font-size: 0.9rem; color: var(--uni-blue); }
+        .rc-notification-list { max-height: 400px; overflow-y: auto; }
+        .rc-notification-item { padding: 1rem; border-bottom: 1px solid #f1f5f9; display: flex; gap: 12px; cursor: pointer; transition: 0.2s; }
+        .rc-notification-item:hover { background: #f8fafc; }
+        .rc-notif-dot { width: 8px; height: 8px; background: var(--uni-gold); border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
+
+        /* Navigation Bar Overlay */
+        .rc-nav-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 90px;
+            background: white; z-index: 3000; border-bottom: 4px solid var(--uni-gold);
+            display: flex; align-items: center; padding: 0 2rem;
+            transform: translateX(-100%); transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: var(--card-shadow);
+        }
+        .rc-nav-overlay.open { transform: translateX(0); }
+        .rc-nav-list { display: flex; gap: 0.5rem; overflow-x: auto; padding: 0.5rem; scrollbar-width: none; flex: 1; align-items: center; }
+        .rc-nav-link { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.1rem; border-radius: 100px; font-weight: 600; color: var(--text-muted); transition: 0.2s; text-decoration: none; font-size: 0.9rem; white-space: nowrap; }
+        .rc-nav-link:hover { background: #f1f5f9; color: var(--uni-blue); }
+        .rc-nav-link.active { background: var(--uni-blue); color: white; }
+
+        /* Container Layout */
+        .rc-profile-container { max-width: 1000px; margin: 2rem auto; padding: 0 1.5rem; }
+
+        /* Profile Header Card */
+        .rc-profile-header {
+            background: white; border-radius: 24px; padding: 2.5rem; position: relative;
+            box-shadow: var(--card-shadow); border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+        }
+        .rc-profile-banner {
+            position: absolute; top: 0; left: 0; right: 0; height: 120px;
+            background: linear-gradient(135deg, var(--uni-blue), #1e293b); border-radius: 24px 24px 0 0;
+        }
+        .rc-profile-info { position: relative; z-index: 2; margin-top: 40px; display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+        
+        .rc-avatar-wrapper { position: relative; cursor: pointer; }
+        .rc-avatar-large { width: 140px; height: 140px; border-radius: 32px; background: white; border: 6px solid white; box-shadow: 0 10px 20px rgba(0,0,0,0.1); object-fit: cover; }
+        .rc-avatar-edit-overlay { position: absolute; inset: 6px; background: rgba(0,0,0,0.4); border-radius: 26px; display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.2s; color: white; }
+        .rc-avatar-wrapper:hover .rc-avatar-edit-overlay { opacity: 1; }
+        
+        .rc-user-details h1 { font-size: 2rem; font-weight: 900; color: var(--uni-blue); line-height: 1.2; }
+        .rc-user-details p { color: var(--text-muted); font-weight: 700; font-size: 1rem; margin-top: 4px; }
+        .rc-badge-student { padding: 4px 12px; border-radius: 6px; font-size: 0.7rem; font-weight: 900; text-transform: uppercase; background: #dbeafe; color: #1e40af; border: 1px solid #3b82f6; display: inline-block; margin-top: 5px; }
+
+        .rc-header-actions { display: flex; gap: 10px; }
+        .rc-btn-action-main {
+            background: #f1f5f9; color: var(--uni-blue); border: none; padding: 0.75rem 1.25rem;
+            border-radius: 12px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;
+            transition: all 0.2s; font-size: 0.85rem; text-decoration: none;
+        }
+        .rc-btn-action-main:hover { background: #e2e8f0; transform: translateY(-2px); }
+        .rc-btn-resume { background: var(--uni-blue); color: white; }
+
+        .rc-bio { margin-top: 1.5rem; font-size: 1rem; line-height: 1.6; color: #475569; max-width: 700px; }
+
+        /* Social Icons */
+        .rc-social-links { display: flex; gap: 1rem; margin-top: 1.5rem; }
+        .rc-social-icon { 
+            width: 40px; height: 40px; border-radius: 10px; background: #f8fafc; 
+            border: 1px solid var(--border-color); display: flex; align-items: center; 
+            justify-content: center; color: var(--text-muted); transition: 0.2s; cursor: pointer;
+            text-decoration: none;
+        }
+        .rc-social-icon:hover { background: var(--uni-blue); color: white; transform: translateY(-3px); }
+
+        /* Stats Row */
+        .rc-profile-stats { display: flex; gap: 2.5rem; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); }
+        .rc-stat-item { display: flex; flex-direction: column; }
+        .rc-stat-num { font-size: 1.4rem; font-weight: 900; color: var(--uni-blue); }
+        .rc-stat-label { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
+
+        /* Tabs System */
+        .rc-profile-tabs { display: flex; gap: 2rem; border-bottom: 2px solid var(--border-color); margin-bottom: 2rem; position: sticky; top: var(--header-height); background: var(--bg); z-index: 10; padding-top: 1rem; }
+        .rc-tab-trigger { background: none; border: none; padding: 1rem 0; cursor: pointer; color: var(--text-muted); font-weight: 800; font-size: 0.95rem; position: relative; }
+        .rc-tab-trigger.active { color: var(--uni-blue); }
+        .rc-tab-trigger.active::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 2px; background: var(--uni-blue); }
+
+        .rc-card { background: white; border-radius: 20px; border: 1px solid var(--border-color); padding: 1.5rem; margin-bottom: 1.5rem; }
+
+        /* Modals */
+        .rc-modal-overlay { position: fixed; inset: 0; background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(4px); z-index: 4000; display: none; align-items: center; justify-content: center; padding: 1rem; }
+        .rc-modal { background: white; width: 100%; max-width: 650px; border-radius: 24px; padding: 2rem; position: relative; max-height: 90vh; overflow-y: auto; box-shadow: var(--card-shadow); }
+        .rc-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .rc-label { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); display: block; margin-bottom: 0.5rem; text-transform: uppercase; }
+        .rc-input { width: 100%; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 12px; font-size: 1rem; margin-bottom: 1.25rem; background: #fcfdfe; outline: none; }
+        .rc-input:focus { border-color: var(--uni-gold); }
+        .rc-save-btn { width: 100%; background: var(--uni-blue); color: white; border: none; padding: 1rem; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.2s; }
+        .rc-save-btn:hover { background: var(--uni-gold); color: var(--uni-blue); }
+
+        .rc-file-btn { background: #f1f5f9; border: 1px dashed var(--border-color); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; margin-bottom: 1.25rem; transition: 0.2s; display: block; font-weight: 700; font-size: 0.9rem; }
+        .rc-file-btn:hover { border-color: var(--uni-gold); background: #fffbeb; }
+
+        .hidden { display: none !important; }
+        .rc-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .rc-tag { padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; border: 1px solid #e2e8f0; background: #f8fafc; color: #475569; display: inline-block; margin: 0 5px 5px 0; }
+        .rc-tag.active { background: #fef9c3; border-color: var(--uni-gold); color: #854d0e; }
+    </style>
+</head>
+<body>
+
+<div class="rc-app">
+    <!-- Student Navigation -->
+    <nav id="navOverlay" class="rc-nav-overlay">
+        <button onclick="toggleNav()" style="background: none; border: none; cursor: pointer; padding: 10px;">
+            <i data-lucide="x" color="#3b489a" size="28"></i>
+        </button>
+        <div class="rc-nav-list" id="navLinks"></div>
+        <a href="{% url 'logout' %}" style="color:var(--danger-color); text-decoration:none; font-weight:700; border-left:2px solid var(--border-color); padding-left:1.5rem; margin-left:0.5rem; display:flex; align-items:center; gap:0.5rem;">
+            <i data-lucide="log-out" size="18"></i> Logout
+        </a>
+    </nav>
+
+    <header class="rc-header">
+        <button class="rc-logo-btn" onclick="toggleNav()">
+            <span class="rc-logo-text">re<span>Connect</span></span>
+        </button>
+        <div style="display: flex; gap: 1.25rem; align-items: center; position: relative;">
+            <div id="bellBtn" style="position: relative; cursor: pointer;">
+                <i data-lucide="bell" size="22" color="white"></i>
+                <span id="unreadBadge" style="position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: var(--uni-gold); border-radius: 50%; border: 2px solid var(--uni-blue);"></span>
+            </div>
+            
+            <div id="notifPanel" class="rc-notification-panel">
+                <div class="rc-notification-header">
+                    <h4>NOTIFICATIONS</h4>
+                    <button id="clearNotifs" style="background: none; border: none; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); cursor: pointer; text-transform: uppercase;">Clear All</button>
+                </div>
+                <div class="rc-notification-list" id="notifList"></div>
+            </div>
+
+            <img id="headerAvatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Arjun" style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--uni-gold); background: white; object-fit: cover;">
+        </div>
+    </header>
+
+    <main class="rc-profile-container">
+        <!-- Profile Header -->
+        <section class="rc-profile-header">
+            <div class="rc-profile-banner"></div>
+            <div class="rc-profile-info">
+                <div class="rc-avatar-wrapper" onclick="openEditModal()">
+                    <img id="profileAvatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Arjun" class="rc-avatar-large" alt="Profile">
+                    <div class="rc-avatar-edit-overlay"><i data-lucide="camera" size="24"></i></div>
+                </div>
+                <div class="rc-user-details">
+                    <h1 id="displayName">Arjun Mehta</h1>
+                    <p>CSE • Final Year Student</p>
+                    <span class="rc-badge-student">Student</span>
+                </div>
+                <div class="rc-header-actions">
+                    <a href="#" id="resumeLink" target="_blank" class="rc-btn-action-main rc-btn-resume">
+                        <i data-lucide="file-text" size="18"></i> My Resume
+                    </a>
+                    <button class="rc-btn-action-main" onclick="openEditModal()">
+                        <i data-lucide="edit-3" size="18"></i> Edit Profile
+                    </button>
+                </div>
+            </div>
+
+            <div class="rc-bio" id="displayBio">
+                Aspiring software engineer passionate about machine learning and cloud infrastructure. Currently working on a final year project related to autonomous vehicle pathfinding. Seeking mentorship in Python and DevOps.
+            </div>
+
+            <!-- Professional Links -->
+            <div class="rc-social-links">
+                <a href="#" class="rc-social-icon" title="LinkedIn" id="linkLinkedin"><i data-lucide="linkedin" size="20"></i></a>
+                <a href="#" class="rc-social-icon" title="GitHub" id="linkGithub"><i data-lucide="github" size="20"></i></a>
+                <a href="#" class="rc-social-icon" title="Portfolio" id="linkPortfolio"><i data-lucide="globe" size="20"></i></a>
+                <a href="#" class="rc-social-icon" title="LeetCode" id="linkLeetcode"><i data-lucide="code" size="20"></i></a>
+            </div>
+
+            <div class="rc-open-for-section">
+                <span class="rc-open-for-title">Open For</span>
+                <div class="rc-tag-container" id="openForTags">
+                    <!-- Tags -->
+                </div>
+            </div>
+
+            <div class="rc-profile-stats">
+                <div class="rc-stat-item">
+                    <span class="rc-stat-num">8</span>
+                    <span class="rc-stat-label">Stories</span>
+                </div>
+                <div class="rc-stat-item">
+                    <span class="rc-stat-num">156</span>
+                    <span class="rc-stat-label">Connections</span>
+                </div>
+                <div class="rc-stat-item">
+                    <span class="rc-stat-num">4</span>
+                    <span class="rc-stat-label">Projects</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Profile Tabs -->
+        <nav class="rc-profile-tabs">
+            <button class="rc-tab-trigger active" data-tab="stories">My Stories</button>
+            <button class="rc-tab-trigger" data-tab="projects">My Projects</button>
+            <button class="rc-tab-trigger" data-tab="applications">Applications</button>
+            <button class="rc-tab-trigger" data-tab="network">Network</button>
+        </nav>
+
+        <!-- Tab Contents -->
+        <div id="tab-stories" class="rc-tab-content">
+            <div class="rc-card">
+                <h4 style="font-weight: 800; margin-bottom: 0.5rem; color: var(--uni-blue);">Robotics Workshop Recap</h4>
+                <p style="font-size: 0.95rem; color: #334155;">Finished a 3-day intense robotics workshop. Learned about sensor integration with Raspberry Pi!</p>
+                <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; display: block; margin-top: 1rem;">1 week ago</span>
+            </div>
+        </div>
+
+        <div id="tab-projects" class="rc-tab-content hidden">
+            <div class="rc-card" style="border-left: 4px solid var(--uni-gold);">
+                <h4 style="font-weight: 900; color: var(--uni-blue);">Autonomous Pathfinding Car</h4>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">C++, OpenCV, Raspberry Pi</p>
+                <p style="font-size: 0.95rem;">Building a scaled prototype for path optimization in dynamic environments.</p>
+            </div>
+        </div>
+
+        <div id="tab-applications" class="rc-tab-content hidden">
+            <div class="rc-card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h4 style="font-weight: 800; color: var(--uni-blue);">AI Research Intern</h4>
+                        <p style="font-size: 0.8rem; color: var(--text-muted);">Google Cloud • Applied 2 days ago</p>
+                    </div>
+                    <span style="background: #fef9c3; color: #854d0e; font-size: 0.7rem; padding: 4px 8px; border-radius: 4px; font-weight: 800;">UNDER REVIEW</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-network" class="rc-tab-content hidden">
+            <div class="rc-card" style="display: flex; align-items: center; gap: 1rem;">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah" style="width: 50px; height: 50px; border-radius: 12px;">
+                <div>
+                    <h4 style="font-weight: 800; color: var(--uni-blue);">Dr. Sarah Chen</h4>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);">Alumni • Google AI</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="rc-modal-overlay">
+        <div class="rc-modal">
+            <div class="rc-modal-header">
+                <h3 style="font-weight: 900; color: var(--uni-blue);">Edit Profile</h3>
+                <button onclick="closeEditModal()" style="background:none; border:none; cursor:pointer;"><i data-lucide="x" size="24"></i></button>
+            </div>
+
+            <div class="rc-grid-2">
+                <div>
+                    <label class="rc-label">NAME</label>
+                    <input type="text" id="inputName" class="rc-input">
+                </div>
+                <div>
+                    <label class="rc-label">PROFILE PICTURE</label>
+                    <label for="fileAvatar" class="rc-file-btn">
+                        <i data-lucide="upload" size="16"></i> Upload Image
+                        <input type="file" id="fileAvatar" accept="image/*" class="hidden" onchange="handleFileSelect(this)">
+                    </label>
+                    <input type="hidden" id="inputAvatar">
+                </div>
+            </div>
+
+            <label class="rc-label">BIO</label>
+            <textarea id="inputBio" class="rc-input" style="min-height: 80px; resize: none;"></textarea>
+
+            <div class="rc-grid-2">
+                <div>
+                    <label class="rc-label">LINKEDIN</label>
+                    <input type="text" id="inputLinkedin" class="rc-input">
+                </div>
+                <div>
+                    <label class="rc-label">GITHUB</label>
+                    <input type="text" id="inputGithub" class="rc-input">
+                </div>
+            </div>
+
+            <div class="rc-grid-2">
+                <div>
+                    <label class="rc-label">PORTFOLIO</label>
+                    <input type="text" id="inputPortfolio" class="rc-input">
+                </div>
+                <div>
+                    <label class="rc-label">RESUME LINK</label>
+                    <input type="text" id="inputResume" class="rc-input">
+                </div>
+            </div>
+
+            <label class="rc-label">OPEN FOR</label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px;">
+                <label style="font-size: 0.8rem; font-weight: 600; display: flex; gap: 8px;"><input type="checkbox" name="openfor" value="Mentorship"> Mentorship</label>
+                <label style="font-size: 0.8rem; font-weight: 600; display: flex; gap: 8px;"><input type="checkbox" name="openfor" value="Project Partner"> Project Partner</label>
+                <label style="font-size: 0.8rem; font-weight: 600; display: flex; gap: 8px;"><input type="checkbox" name="openfor" value="Full-Time Roles"> Full-Time Roles</label>
+                <label style="font-size: 0.8rem; font-weight: 600; display: flex; gap: 8px;"><input type="checkbox" name="openfor" value="Internships"> Internships</label>
+            </div>
+
+            <button class="rc-save-btn" onclick="saveProfile()">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const NAV_LINKS = [
+        { label: 'Dashboard', icon: 'trending-up', href: '{% url "student_dashboard" %}' },
+        { label: 'Connect', icon: 'users', href: '{% url "student_connect" %}' },
+        { label: 'Explore', icon: 'compass', href: '{% url "student_explore" %}' },
+        { label: 'Find Opportunities', icon: 'briefcase', href: '{% url "student_opportunities" %}' },
+        { label: 'Get Projects', icon: 'folder-git', href: '{% url "student_projects" %}' },
+        { label: 'Settings', icon: 'settings', href: '{% url "student_settings" %}' }
+    ];
+
+    let userData = {
+        name: "{{ user.get_full_name|default:user.username }}",
+        avatar: "{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.first_name|default:'User' }}{% endif %}",
+        bio: "{{ user.working_status|default:'' }}",
+        resume: "#",
+        openFor: [],
+        links: { linkedin: "#", github: "#", portfolio: "#", leetcode: "#" }
+    };
+
+    function toggleNav() { document.getElementById('navOverlay').classList.toggle('open'); }
+
+    function renderNav() {
+        const container = document.getElementById('navLinks');
+        container.innerHTML = NAV_LINKS.map(link => `
+            <a href="${link.href}" class="rc-nav-link">
+                <i data-lucide="${link.icon}" size="18"></i> ${link.label}
+            </a>
+        `).join('');
+    }
+
+    function setupTabs() {
+        const triggers = document.querySelectorAll('.rc-tab-trigger');
+        triggers.forEach(t => {
+            t.addEventListener('click', () => {
+                triggers.forEach(trig => trig.classList.remove('active'));
+                document.querySelectorAll('.rc-tab-content').forEach(c => c.classList.add('hidden'));
+                t.classList.add('active');
+                document.getElementById(`tab-${t.dataset.tab}`).classList.remove('hidden');
+            });
+        });
+    }
+
+    function loadProfile() {
+        document.getElementById('displayName').innerText = userData.name;
+        document.getElementById('displayBio').innerText = userData.bio;
+        document.getElementById('profileAvatar').src = userData.avatar;
+        document.getElementById('headerAvatar').src = userData.avatar;
+        document.getElementById('resumeLink').href = userData.resume;
+        
+        const tags = document.getElementById('openForTags');
+        tags.innerHTML = userData.openFor.map(t => `<span class="rc-tag active">${t}</span>`).join('');
+    }
+
+    function handleFileSelect(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                document.getElementById('inputAvatar').value = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function openEditModal() {
+        document.getElementById('editModal').style.display = 'flex';
+        document.getElementById('inputName').value = userData.name;
+        document.getElementById('inputBio').value = userData.bio;
+        document.getElementById('inputAvatar').value = userData.avatar;
+        document.getElementById('inputLinkedin').value = userData.links.linkedin;
+        document.getElementById('inputGithub').value = userData.links.github;
+        document.getElementById('inputPortfolio').value = userData.links.portfolio;
+        document.getElementById('inputResume').value = userData.resume;
+        
+        const cbs = document.querySelectorAll('input[name="openfor"]');
+        cbs.forEach(cb => cb.checked = userData.openFor.includes(cb.value));
+    }
+
+    function closeEditModal() { document.getElementById('editModal').style.display = 'none'; }
+
+    function saveProfile() {
+        userData.name = document.getElementById('inputName').value;
+        userData.bio = document.getElementById('inputBio').value;
+        userData.avatar = document.getElementById('inputAvatar').value || userData.avatar;
+        userData.resume = document.getElementById('inputResume').value;
+        userData.links.linkedin = document.getElementById('inputLinkedin').value;
+        userData.links.github = document.getElementById('inputGithub').value;
+        userData.links.portfolio = document.getElementById('inputPortfolio').value;
+        
+        const checked = document.querySelectorAll('input[name="openfor"]:checked');
+        userData.openFor = Array.from(checked).map(cb => cb.value);
+
+        loadProfile();
+        closeEditModal();
+        lucide.createIcons();
+    }
+
+    window.onclick = e => { if (e.target == document.getElementById('editModal')) closeEditModal(); }
+
+    window.onload = () => {
+        renderNav();
+        setupTabs();
+        loadProfile();
+        lucide.createIcons();
+        
+        document.getElementById('bellBtn').onclick = (e) => {
+            e.stopPropagation();
+            const panel = document.getElementById('notifPanel');
+            panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
+        };
+    };
+</script>
+</body>
+</html>

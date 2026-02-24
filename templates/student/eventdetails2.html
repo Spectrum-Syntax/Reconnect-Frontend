@@ -175,12 +175,12 @@
 
         <div class="rc-header-right">
             <i data-lucide="bell" size="24" style="cursor: pointer;"></i>
-            <a href="{% url 'my_profile' %}" class="rc-profile-link">
+            <a href="{% url 'student_profile' %}" class="rc-profile-link">
                 <div style="text-align: right; display: flex; flex-direction: column;">
-                    <span style="font-weight: 800; font-size: 0.9rem;">{{ user.get_full_name|default:user.username }}</span>
-                    <span style="font-size: 0.65rem; opacity: 0.85; font-weight: 800; text-transform: uppercase;">{% if user.passed_out_year %}CLASS OF {{ user.passed_out_year }}{% else %}ALUMNI{% endif %}</span>
+                    <span style="font-weight: 800; font-size: 0.9rem;">Alex Rivera</span>
+                    <span style="font-size: 0.65rem; opacity: 0.85; font-weight: 800; text-transform: uppercase;">CLASS OF 2021</span>
                 </div>
-                <img src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.first_name|default:'User' }}{% endif %}" alt="Profile" style="width: 42px; height: 42px; border-radius: 12px; background-color: white; border: 2px solid var(--rc-accent-gold);">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Alex" alt="Profile" style="width: 42px; height: 42px; border-radius: 12px; background-color: white; border: 2px solid var(--rc-accent-gold);">
             </a>
         </div>
     </header>
@@ -191,31 +191,28 @@
 
     <script>
         const NAV_LINKS = [
-            { label: 'Dashboard', icon: 'trending-up', href: '{% url "alumni_dashboard" %}' },
-            { label: 'Announcements', icon: 'megaphone', href: '{% url "announcements" %}' },
-            { label: 'Connect', icon: 'users', href: '{% url "connect" %}' },
+            { label: 'Dashboard', icon: 'trending-up', href: '{% url "student_dashboard" %}' },
+            { label: 'Connect', icon: 'users', href: '{% url "student_connect" %}' },
+            { label: 'Explore', icon: 'compass', href: '{% url "student_explore" %}' },
             { label: 'Events', icon: 'calendar', href: '{% url "events" %}', active: true },
-            { label: 'Share', icon: 'plus-circle', href: '{% url "post" %}' },
-            { label: 'Settings', icon: 'settings', href: '{% url "settings" %}' }
+            { label: 'Settings', icon: 'settings', href: '{% url "student_settings" %}' }
         ];
 
-        const eventData = {
-            {% if event %}
-            id: {{ event.id }},
-            title: "{{ event.title|escapejs }}",
-            date: "{{ event.date_display|escapejs }}",
-            category: "{{ event.category|escapejs }}",
-            img: "{{ event.image_url|default:'https://images.unsplash.com/photo-1540575861501-7cf05a4b125a?auto=format&fit=crop&w=1000&q=80' }}",
-            desc: "{{ event.description|escapejs }}"
-            {% else %}
-            id: 0, title: "Event Not Found", date: "", category: "", img: "", desc: "This event could not be found."
-            {% endif %}
-        };
+        const allEvents = [
+            { id: 1, title: "Alumni Grand Gala", date: "OCT 24, 2024", category: "Reunion", img: "https://images.unsplash.com/photo-1511578314322-379afb476865?w=1000", desc: "Celebrate 25 years of excellence and legacy. Our flagship annual reunion dinner for all batches. Join us for an evening of nostalgia and celebration of our collective success since 1999." },
+            { id: 2, title: "Tech Meetup 2024", date: "NOV 12, 2024", category: "Networking", img: "https://images.unsplash.com/photo-1540575861501-7cf05a4b125a?w=1000", desc: "A dedicated space for tech professionals to network, share insights, and discuss emerging trends in the industry." },
+            { id: 3, title: "Startup Pitch Day", date: "DEC 05, 2024", category: "Mentorship", img: "https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=1000", desc: "Alumni investors meet the brightest student minds for seed funding and professional mentorship. Witness the brightest student minds pitch to an alumni investor panel." },
+            { id: 4, title: "Class of 2010 Retreat", date: "JAN 15, 2025", category: "Reunion", img: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1000", desc: "A special 15-year anniversary retreat for the batch of 2010. Refresh old memories with old friends in a casual weekend setting." },
+            { id: 5, title: "Global Career Fair", date: "FEB 10, 2025", category: "Placement", img: "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=1000", desc: "Connecting alumni and senior students with top-tier global firms for leadership and specialist roles." },
+            { id: 6, title: "Cricket Cup 2025", date: "MAR 02, 2025", category: "Sports", img: "https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=1000", desc: "The legendary match returns! Alumni take on current students on the main college ground for a day of friendly competition." }
+        ];
 
         const timelineData = [
-            {% for item in timeline %}
-            { time: "{{ item.time|escapejs }}", task: "{{ item.activity|escapejs }}" }{% if not forloop.last %},{% endif %}
-            {% endfor %}
+            { time: "09:00 AM", task: "Registration & Welcome Drinks" },
+            { time: "10:30 AM", task: "Opening Ceremony" },
+            { time: "12:30 PM", task: "Networking Lunch" },
+            { time: "02:30 PM", task: "Alumni Panel Discussion" },
+            { time: "05:00 PM", task: "Closing & High Tea" }
         ];
 
         function renderNav() {
@@ -235,19 +232,9 @@
         function init() {
             renderNav();
             
-            const event = eventData;
-
-            if (!event.id) {
-                document.getElementById('content-container').innerHTML = `
-                    <div style="text-align: center; padding: 100px 0;">
-                        <h2 style="color: var(--rc-primary-blue); font-weight: 900;">Event Not Found</h2>
-                        <p style="color: var(--rc-text-dimmed-color); margin-top: 10px;">The event you're looking for doesn't exist or has been removed.</p>
-                        <a href="{% url 'events' %}" style="display: inline-block; margin-top: 20px; background: var(--rc-primary-blue); color: white; padding: 14px 28px; border-radius: 14px; text-decoration: none; font-weight: 800;">Browse Events</a>
-                    </div>
-                `;
-                lucide.createIcons();
-                return;
-            }
+            const urlParams = new URLSearchParams(window.location.search);
+            const eventId = parseInt(urlParams.get('id'));
+            const event = allEvents.find(e => e.id === eventId) || allEvents[0];
 
             document.getElementById('content-container').innerHTML = `
                 <div class="rc-detail-card">

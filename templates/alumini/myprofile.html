@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>reConnect - My Profile</title>
+    <!-- Lucide Icons Library -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --uni-blue: #3b489a;
+            --uni-gold: #e1a92a;
+            --bg: #f3f4f9;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --white: #ffffff;
+            --border-color: #e2e8f0;
+            --danger-color: #ef4444;
+            --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg); color: var(--text-main); }
+
+        .rc-app { min-height: 100vh; position: relative; }
+
+        /* Header Styling */
+        .rc-header {
+            position: sticky; top: 0; z-index: 50; background: var(--uni-blue); color: white;
+            padding: 0.85rem 2rem; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .rc-logo-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; color: white; text-decoration: none; }
+        .rc-logo-text { font-size: 1.8rem; font-weight: 900; letter-spacing: -1.5px; }
+        .rc-logo-text span { color: var(--uni-gold); }
+
+        /* Navigation Bar Overlay */
+        .rc-nav-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 90px;
+            background: white; z-index: 1100; border-bottom: 4px solid var(--uni-gold);
+            display: flex; align-items: center; padding: 0 2rem;
+            transform: translateX(-100%); transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: var(--card-shadow);
+        }
+        .rc-nav-overlay.open { transform: translateX(0); }
+        .rc-nav-list { display: flex; gap: 0.5rem; overflow-x: auto; padding: 0.5rem; scrollbar-width: none; flex: 1; align-items: center; }
+        .rc-nav-link { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.1rem; border-radius: 100px; font-weight: 600; color: var(--text-muted); transition: 0.2s; text-decoration: none; font-size: 0.9rem; }
+        .rc-nav-link:hover { background: #f1f5f9; color: var(--uni-blue); }
+
+        /* Container Layout */
+        .rc-profile-container { max-width: 1000px; margin: 2rem auto; padding: 0 1.5rem; }
+
+        /* Profile Header Card */
+        .rc-profile-header {
+            background: white; border-radius: 24px; padding: 2.5rem; position: relative;
+            box-shadow: var(--card-shadow); border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+        }
+
+        .rc-profile-banner {
+            position: absolute; top: 0; left: 0; right: 0; height: 120px;
+            background: linear-gradient(135deg, var(--uni-blue), #1e293b); border-radius: 24px 24px 0 0;
+        }
+
+        .rc-profile-info { position: relative; z-index: 2; margin-top: 40px; display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+        
+        .rc-avatar-wrapper { position: relative; cursor: pointer; }
+        .rc-avatar-large { width: 140px; height: 140px; border-radius: 32px; background: white; border: 6px solid white; box-shadow: 0 10px 20px rgba(0,0,0,0.1); object-fit: cover; }
+        .rc-avatar-edit-overlay { position: absolute; inset: 6px; background: rgba(0,0,0,0.4); border-radius: 26px; display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.2s; color: white; }
+        .rc-avatar-wrapper:hover .rc-avatar-edit-overlay { opacity: 1; }
+        
+        .rc-user-details h1 { font-size: 2rem; font-weight: 900; color: var(--uni-blue); line-height: 1.2; }
+        .rc-user-details p { color: var(--text-muted); font-weight: 700; font-size: 1rem; margin-top: 4px; }
+        .rc-current-work { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; font-weight: 800; color: var(--uni-gold); font-size: 0.9rem; }
+
+        .rc-header-actions { display: flex; gap: 10px; }
+        .rc-btn-action-main {
+            background: #f1f5f9; color: var(--uni-blue); border: none; padding: 0.75rem 1.25rem;
+            border-radius: 12px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;
+            transition: all 0.2s; font-size: 0.85rem; text-decoration: none;
+        }
+        .rc-btn-action-main:hover { background: #e2e8f0; transform: translateY(-2px); }
+        .rc-btn-resume { background: var(--uni-blue); color: white; }
+        .rc-btn-resume:hover { background: #2d367a; color: white; }
+
+        .rc-bio { margin-top: 1.5rem; font-size: 1rem; line-height: 1.6; color: #475569; max-width: 700px; }
+
+        /* Social Icons Row */
+        .rc-social-links { display: flex; gap: 1rem; margin-top: 1.5rem; }
+        .rc-social-icon { 
+            width: 40px; height: 40px; border-radius: 10px; background: #f8fafc; 
+            border: 1px solid var(--border-color); display: flex; align-items: center; 
+            justify-content: center; color: var(--text-muted); transition: 0.2s; cursor: pointer;
+            text-decoration: none;
+        }
+        .rc-social-icon:hover { background: var(--uni-blue); color: white; transform: translateY(-3px); }
+
+        /* Stats Row */
+        .rc-profile-stats { display: flex; gap: 2.5rem; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); }
+        .rc-stat-item { display: flex; flex-direction: column; }
+        .rc-stat-num { font-size: 1.4rem; font-weight: 900; color: var(--uni-blue); }
+        .rc-stat-label { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
+
+        /* "Open For" Section */
+        .rc-open-for-section { margin-top: 1.5rem; }
+        .rc-open-for-title { font-size: 0.8rem; font-weight: 800; color: var(--uni-blue); text-transform: uppercase; margin-bottom: 0.75rem; display: block; }
+        .rc-tag-container { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+        .rc-tag { padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; border: 1px solid #e2e8f0; background: #f8fafc; color: #475569; }
+        .rc-tag.active { background: #fef9c3; border-color: var(--uni-gold); color: #854d0e; }
+
+        /* Tabs System */
+        .rc-profile-tabs { display: flex; gap: 2rem; border-bottom: 2px solid var(--border-color); margin-bottom: 2rem; position: sticky; top: 75px; background: var(--bg); z-index: 10; padding-top: 1rem; }
+        .rc-tab-trigger { background: none; border: none; padding: 1rem 0; cursor: pointer; color: var(--text-muted); font-weight: 800; font-size: 0.95rem; position: relative; }
+        .rc-tab-trigger.active { color: var(--uni-blue); }
+        .rc-tab-trigger.active::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 2px; background: var(--uni-blue); }
+
+        .rc-card { background: white; border-radius: 20px; border: 1px solid var(--border-color); padding: 1.5rem; margin-bottom: 1.5rem; }
+
+        /* Modal Styling */
+        .rc-modal-overlay { position: fixed; inset: 0; background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(4px); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 1rem; }
+        .rc-modal { background: white; width: 100%; max-width: 650px; border-radius: 24px; padding: 2rem; position: relative; max-height: 90vh; overflow-y: auto; }
+        .rc-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; position: sticky; top: -32px; background: white; z-index: 10; padding-bottom: 10px; }
+        .rc-label { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); display: block; margin-bottom: 0.5rem; text-transform: uppercase; }
+        .rc-input { width: 100%; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 12px; font-size: 1rem; margin-bottom: 1.25rem; background: #fcfdfe; }
+        .rc-input:focus { border-color: var(--uni-gold); outline: none; }
+        .rc-save-btn { width: 100%; background: var(--uni-blue); color: white; border: none; padding: 1rem; border-radius: 12px; font-weight: 800; cursor: pointer; margin-top: 1rem; transition: 0.2s; }
+        .rc-save-btn:hover { background: var(--uni-gold); color: var(--uni-blue); }
+
+        /* File Upload Styling */
+        .rc-file-btn { background: #f1f5f9; border: 1px dashed var(--border-color); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; margin-bottom: 1.25rem; transition: 0.2s; }
+        .rc-file-btn:hover { border-color: var(--uni-gold); background: #fffbeb; }
+
+        .hidden { display: none !important; }
+        .rc-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    </style>
+</head>
+<body>
+
+<div class="rc-app">
+    <!-- Slide-in Navigation Overlay -->
+    <div id="navOverlay" class="rc-nav-overlay">
+        <button onclick="toggleNav()" style="background: none; border: none; cursor: pointer; padding: 10px; display: flex; align-items: center;">
+            <i data-lucide="x" color="#3b489a" size="28"></i>
+        </button>
+        <div class="rc-nav-list" id="navLinks">
+            <!-- Injected by JS -->
+        </div>
+        <a href="{% url 'logout' %}" style="color:var(--danger-color); text-decoration:none; font-weight:700; border-left:2px solid var(--border-color); padding-left:1.5rem; margin-left:0.5rem; display:flex; align-items:center; gap:0.5rem;">
+            <i data-lucide="log-out" size="18"></i> Logout
+        </a>
+    </div>
+
+    <header class="rc-header">
+        <button class="rc-logo-btn" onclick="toggleNav()">
+            <span class="rc-logo-text">re<span>Connect</span></span>
+        </button>
+        <div style="display: flex; gap: 1.25rem; align-items: center;">
+            <i data-lucide="bell" size="22" style="cursor: pointer;"></i>
+            <img id="headerAvatar" src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.first_name|default:'User' }}{% endif %}" style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--uni-gold); background: white; object-fit: cover;">
+        </div>
+    </header>
+
+    <main class="rc-profile-container">
+        <!-- Profile Header Card -->
+        <section class="rc-profile-header">
+            <div class="rc-profile-banner"></div>
+            <div class="rc-profile-info">
+                <div class="rc-avatar-wrapper" onclick="openEditModal()">
+                    <img id="profileAvatar" src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.first_name|default:'User' }}{% endif %}" class="rc-avatar-large" alt="Profile">
+                    <div class="rc-avatar-edit-overlay"><i data-lucide="camera" size="24"></i></div>
+                </div>
+                <div class="rc-user-details">
+                    <h1 id="displayName">{{ user.get_full_name|default:user.username }}</h1>
+                    <p>{% if user.passed_out_year %}Class of {{ user.passed_out_year }}{% endif %}{% if user.department %} • {{ user.department }}{% endif %}</p>
+                    <div class="rc-current-work" id="displayCompany">
+                        <i data-lucide="building-2" size="16"></i>
+                        <span>{{ user.working_status|default:'Alumni' }}</span>
+                    </div>
+                </div>
+                <div class="rc-header-actions">
+                    <a href="#" id="resumeLink" target="_blank" class="rc-btn-action-main rc-btn-resume">
+                        <i data-lucide="file-text" size="18"></i> Resume
+                    </a>
+                    <button class="rc-btn-action-main" onclick="openEditModal()">
+                        <i data-lucide="edit-3" size="18"></i> Edit
+                    </button>
+                </div>
+            </div>
+
+            <div class="rc-bio" id="displayBio">
+                {{ user.bio|default:'' }}
+            </div>
+
+            <!-- Professional Links -->
+            <div class="rc-social-links" id="displaySocials">
+                <a href="#" class="rc-social-icon" title="LinkedIn" id="linkLinkedin"><i data-lucide="linkedin" size="20"></i></a>
+                <a href="#" class="rc-social-icon" title="GitHub" id="linkGithub"><i data-lucide="github" size="20"></i></a>
+                <a href="#" class="rc-social-icon" title="Portfolio" id="linkPortfolio"><i data-lucide="globe" size="20"></i></a>
+                <a href="#" class="rc-social-icon" title="LeetCode" id="linkLeetcode"><i data-lucide="code" size="20"></i></a>
+            </div>
+
+            <div class="rc-open-for-section">
+                <span class="rc-open-for-title">Currently Open For</span>
+                <div class="rc-tag-container" id="openForTags">
+                    <!-- Tags Injected -->
+                </div>
+            </div>
+
+            <div class="rc-profile-stats">
+                <div class="rc-stat-item">
+                    <span class="rc-stat-num">48</span>
+                    <span class="rc-stat-label">Posts</span>
+                </div>
+                <div class="rc-stat-item">
+                    <span class="rc-stat-num">1.2k</span>
+                    <span class="rc-stat-label">Connections</span>
+                </div>
+                <div class="rc-stat-item">
+                    <span class="rc-stat-num">₹15k</span>
+                    <span class="rc-stat-label">Grants Provided</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Profile Tabs -->
+        <nav class="rc-profile-tabs">
+            <button class="rc-tab-trigger active" data-tab="posts">My Stories</button>
+            <button class="rc-tab-trigger" data-tab="hirings">My Hirings</button>
+            <button class="rc-tab-trigger" data-tab="network">Network</button>
+            <button class="rc-tab-trigger" data-tab="grants">Grants Given</button>
+        </nav>
+
+        <!-- Tab Content Areas -->
+        <div id="tab-posts" class="rc-tab-content">
+            <div class="rc-card">
+                <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                    <div style="width: 40px; height: 40px; background: var(--uni-blue); color: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800;">A</div>
+                    <div>
+                        <h4 style="font-weight: 800;">Sharing my experience with the new Tech Stack</h4>
+                        <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">2 days ago</span>
+                    </div>
+                </div>
+                <p style="font-size: 0.95rem; line-height: 1.5; color: #334155;">It's been an incredible journey transitioning from backend to full-stack development. If you are a final year student looking for experience, check the hirings tab!</p>
+            </div>
+        </div>
+
+        <div id="tab-hirings" class="rc-tab-content hidden">
+            <div class="rc-card" style="border-left: 4px solid var(--uni-gold);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <h4 style="font-weight: 900; color: var(--uni-blue);">Junior Backend Intern</h4>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); font-weight: 700;">TechFlow Systems • 6 Months • ₹15,000/mo</p>
+                    </div>
+                    <span style="background: #fef9c3; color: #854d0e; font-size: 0.7rem; padding: 4px 8px; border-radius: 4px; font-weight: 800;">ACTIVE</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-network" class="rc-tab-content hidden">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                <div class="rc-card" style="display: flex; gap: 1rem; align-items: center; margin-bottom: 0;">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=James" style="width: 50px; height: 50px; border-radius: 12px;" alt="Connection">
+                    <div>
+                        <h4 style="font-weight: 800;">James Wilson</h4>
+                        <p style="font-size: 0.75rem; color: var(--text-muted);">Class of 2010 • Architect</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-grants" class="rc-tab-content hidden">
+            <div class="rc-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h4 style="font-weight: 900; color: var(--uni-blue);">AI for Social Good Grant</h4>
+                    <span style="font-weight: 900; color: var(--uni-gold);">₹25,000 Provided</span>
+                </div>
+                <p style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Status: Awarded to CSE Batch 2025 Team</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Edit Profile Modal -->
+    <div id="editModal" class="rc-modal-overlay">
+        <div class="rc-modal">
+            <div class="rc-modal-header">
+                <h3 style="font-weight: 900; color: var(--uni-blue);">Update Profile Details</h3>
+                <button onclick="closeEditModal()" style="background:none; border:none; cursor:pointer;"><i data-lucide="x" size="24"></i></button>
+            </div>
+            
+            <div class="rc-grid-2">
+                <div>
+                    <label class="rc-label">NAME</label>
+                    <input type="text" id="inputName" class="rc-input">
+                </div>
+                <div>
+                    <label class="rc-label">PROFILE PICTURE</label>
+                    <label for="fileAvatar" class="rc-file-btn">
+                        <i data-lucide="upload" size="16"></i> Upload from Device
+                        <input type="file" id="fileAvatar" accept="image/*" class="hidden" onchange="handleFileSelect(this)">
+                    </label>
+                    <input type="text" id="inputAvatar" class="rc-input" placeholder="...or enter image URL">
+                </div>
+            </div>
+
+            <label class="rc-label">CURRENT COMPANY / ROLE</label>
+            <input type="text" id="inputCompany" class="rc-input">
+
+            <label class="rc-label">PROFESSIONAL BIO</label>
+            <textarea id="inputBio" class="rc-input" style="min-height: 80px; resize: none;"></textarea>
+
+            <div class="rc-grid-2">
+                <div>
+                    <label class="rc-label">LINKEDIN URL</label>
+                    <input type="text" id="inputLinkedin" class="rc-input" placeholder="linkedin.com/in/...">
+                </div>
+                <div>
+                    <label class="rc-label">PORTFOLIO URL</label>
+                    <input type="text" id="inputPortfolio" class="rc-input" placeholder="yourportfolio.com">
+                </div>
+            </div>
+
+            <div class="rc-grid-2">
+                <div>
+                    <label class="rc-label">GITHUB URL</label>
+                    <input type="text" id="inputGithub" class="rc-input" placeholder="github.com/...">
+                </div>
+                <div>
+                    <label class="rc-label">RESUME LINK (DRIVE/PDF)</label>
+                    <input type="text" id="inputResume" class="rc-input" placeholder="Shareable link to PDF">
+                </div>
+            </div>
+
+            <label class="rc-label">OPEN FOR (Select Availability)</label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px;">
+                <label style="font-size: 0.8rem; font-weight: 600; display: flex; gap: 8px;"><input type="checkbox" name="openfor" value="Mentoring"> Mentoring</label>
+                <label style="font-size: 0.8rem; font-weight: 600; display: flex; gap: 8px;"><input type="checkbox" name="openfor" value="Investing"> Investing</label>
+                <label style="font-size: 0.8rem; font-weight: 600; display: flex; gap: 8px;"><input type="checkbox" name="openfor" value="Hiring"> Hiring</label>
+                <label style="font-size: 0.8rem; font-weight: 600; display: flex; gap: 8px;"><input type="checkbox" name="openfor" value="Syllabus Preparation"> Syllabus Prep</label>
+                <label style="font-size: 0.8rem; font-weight: 600; display: flex; gap: 8px;"><input type="checkbox" name="openfor" value="Resource Sharing"> Resource Sharing</label>
+                <label style="font-size: 0.8rem; font-weight: 600; display: flex; gap: 8px;"><input type="checkbox" name="openfor" value="Advising"> Advising</label>
+            </div>
+
+            <button class="rc-save-btn" onclick="saveProfile()">Update Profile</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- DATA ---
+    const NAV_LINKS = [
+        { label: 'Dashboard', icon: 'trending-up', href: '{% url "alumni_dashboard" %}' },
+        { label: 'Announcements', icon: 'megaphone', href: '{% url "announcements" %}' },
+        { label: 'Connect', icon: 'users', href: '{% url "connect" %}' },
+        { label: 'Events', icon: 'calendar', href: '{% url "events" %}' },
+        { label: 'Share', icon: 'plus-circle', href: '{% url "post" %}' },
+        { label: 'Settings', icon: 'settings', href: '{% url "settings" %}' }
+    ];
+
+    let userData = {
+        name: "{{ user.get_full_name|default:user.username }}",
+        avatar: "{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.first_name|default:'User' }}{% endif %}",
+        company: "{{ user.working_status|default:'' }}",
+        bio: "",
+        resume: "#",
+        openFor: [],
+        links: {
+            linkedin: "",
+            github: "",
+            portfolio: "",
+            leetcode: "",
+            hackerrank: ""
+        }
+    };
+
+    // --- INITIALIZATION ---
+    function init() {
+        renderNav();
+        setupTabs();
+        loadProfileData();
+        lucide.createIcons();
+    }
+
+    function renderNav() {
+        const container = document.getElementById('navLinks');
+        container.innerHTML = NAV_LINKS.map(link => `
+            <a href="${link.href}" class="rc-nav-link">
+                <i data-lucide="${link.icon}" size="18"></i>
+                ${link.label}
+            </a>
+        `).join('');
+    }
+
+    function toggleNav() { 
+        document.getElementById('navOverlay').classList.toggle('open'); 
+    }
+
+    function setupTabs() {
+        const triggers = document.querySelectorAll('.rc-tab-trigger');
+        const contents = document.querySelectorAll('.rc-tab-content');
+        triggers.forEach(trigger => {
+            trigger.addEventListener('click', () => {
+                const target = trigger.dataset.tab;
+                triggers.forEach(t => t.classList.remove('active'));
+                trigger.classList.add('active');
+                contents.forEach(c => c.classList.add('hidden'));
+                document.getElementById(`tab-${target}`).classList.remove('hidden');
+            });
+        });
+    }
+
+    function loadProfileData() {
+        document.getElementById('displayName').innerText = userData.name;
+        document.getElementById('profileAvatar').src = userData.avatar;
+        document.getElementById('headerAvatar').src = userData.avatar;
+        document.getElementById('displayBio').innerText = userData.bio;
+        document.getElementById('displayCompany').querySelector('span').innerText = userData.company;
+        document.getElementById('resumeLink').href = userData.resume;
+        
+        // Update Social Links
+        document.getElementById('linkLinkedin').href = userData.links.linkedin || "#";
+        document.getElementById('linkGithub').href = userData.links.github || "#";
+        document.getElementById('linkPortfolio').href = userData.links.portfolio || "#";
+        document.getElementById('linkLeetcode').href = userData.links.leetcode || "#";
+
+        const tagContainer = document.getElementById('openForTags');
+        tagContainer.innerHTML = userData.openFor.map(tag => `
+            <span class="rc-tag active">${tag}</span>
+        `).join('');
+    }
+
+    function handleFileSelect(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                // Store the base64 string temporarily in the URL input field for simplicity
+                document.getElementById('inputAvatar').value = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function openEditModal() {
+        document.getElementById('editModal').style.display = 'flex';
+        document.getElementById('inputName').value = userData.name;
+        document.getElementById('inputAvatar').value = userData.avatar;
+        document.getElementById('inputCompany').value = userData.company;
+        document.getElementById('inputBio').value = userData.bio;
+        document.getElementById('inputLinkedin').value = userData.links.linkedin;
+        document.getElementById('inputPortfolio').value = userData.links.portfolio;
+        document.getElementById('inputGithub').value = userData.links.github;
+        document.getElementById('inputResume').value = userData.resume;
+        
+        // Checkboxes
+        const checkboxes = document.querySelectorAll('input[name="openfor"]');
+        checkboxes.forEach(cb => {
+            cb.checked = userData.openFor.includes(cb.value);
+        });
+    }
+
+    function closeEditModal() {
+        document.getElementById('editModal').style.display = 'none';
+    }
+
+    function saveProfile() {
+        userData.name = document.getElementById('inputName').value;
+        userData.avatar = document.getElementById('inputAvatar').value;
+        userData.company = document.getElementById('inputCompany').value;
+        userData.bio = document.getElementById('inputBio').value;
+        userData.links.linkedin = document.getElementById('inputLinkedin').value;
+        userData.links.portfolio = document.getElementById('inputPortfolio').value;
+        userData.links.github = document.getElementById('inputGithub').value;
+        userData.resume = document.getElementById('inputResume').value;
+        
+        const checked = document.querySelectorAll('input[name="openfor"]:checked');
+        userData.openFor = Array.from(checked).map(cb => cb.value);
+        
+        loadProfileData();
+        closeEditModal();
+        lucide.createIcons();
+    }
+
+    window.onclick = function(event) {
+        let modal = document.getElementById('editModal');
+        if (event.target == modal) closeEditModal();
+    }
+
+    window.onload = init;
+</script>
+</body>
+</html>

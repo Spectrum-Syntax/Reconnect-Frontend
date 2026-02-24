@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>reConnect - Share & Contribute</title>
+    <!-- Lucide Icons Library -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* THEME VARIABLES */
+        :root {
+            --rc-primary-blue: #3b489a;
+            --rc-accent-gold: #e1a92a;
+            --rc-page-background: #f3f4f9;
+            --rc-content-white: #ffffff;
+            --rc-text-main-color: #1e293b;
+            --rc-text-dimmed-color: #64748b;
+            --rc-ui-border-soft: #e2e8f0;
+            --rc-card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            --rc-gold-glow: 0 0 15px rgba(225, 169, 42, 0.3);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, sans-serif; }
+        body { background-color: var(--rc-page-background); color: var(--rc-text-main-color); min-height: 100vh; }
+
+        /* Navigation Header */
+        .rc-header {
+            position: sticky; top: 0; z-index: 1000; background-color: var(--rc-primary-blue);
+            color: white; padding: 12px 28px; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+        }
+        .rc-logo-btn { background: transparent; border: none; cursor: pointer; display: flex; align-items: center; text-decoration: none; }
+        .rc-logo-text { font-size: 1.8rem; font-weight: 900; letter-spacing: -1.2px; color: white; }
+        .rc-logo-text span { color: var(--rc-accent-gold); }
+
+        .rc-header-right { display: flex; align-items: center; gap: 20px; }
+        .rc-profile-link { display: flex; align-items: center; gap: 12px; text-decoration: none; color: white; border-left: 1px solid rgba(255,255,255,0.2); padding-left: 20px; }
+
+        /* SIDEBAR NAVIGATION OVERLAY */
+        .rc-nav-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 90px;
+            background: white; z-index: 1100; border-bottom: 4px solid var(--rc-accent-gold);
+            display: flex; align-items: center; padding: 0 28px;
+            transform: translateX(-100%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: var(--rc-card-shadow);
+        }
+        .rc-nav-overlay.open { transform: translateX(0); }
+        .rc-nav-list { display: flex; gap: 10px; flex: 1; align-items: center; padding: 0 20px; overflow-x: auto; scrollbar-width: none; }
+        .rc-nav-link { 
+            display: flex; align-items: center; gap: 8px; padding: 10px 20px; 
+            border-radius: 50px; text-decoration: none; color: var(--rc-text-dimmed-color); 
+            font-weight: 700; font-size: 0.9rem; transition: 0.2s; white-space: nowrap;
+        }
+        .rc-nav-link.active { background: var(--rc-primary-blue); color: white; }
+
+        /* Main Grid Layout */
+        .rc-main-grid {
+            max-width: 1300px;
+            margin: 30px auto;
+            padding: 0 24px;
+            display: grid;
+            grid-template-columns: 280px 1fr 300px;
+            gap: 25px;
+            align-items: start;
+        }
+
+        /* Sidebar Cards */
+        .rc-sidebar-card {
+            background: white; border-radius: 20px; padding: 25px;
+            border: 1px solid var(--rc-ui-border-soft); box-shadow: var(--rc-card-shadow);
+            margin-bottom: 20px;
+        }
+
+        .rc-sidebar-card h3 { font-size: 0.85rem; font-weight: 800; color: var(--rc-primary-blue); text-transform: uppercase; margin-bottom: 15px; letter-spacing: 0.5px; }
+
+        /* User Profile Summary */
+        .rc-user-summary { text-align: center; }
+        .rc-summary-avatar { width: 80px; height: 80px; border-radius: 20px; margin-bottom: 15px; border: 3px solid var(--rc-accent-gold); }
+        .rc-summary-name { font-weight: 900; font-size: 1.1rem; color: var(--rc-primary-blue); }
+        .rc-summary-role { font-size: 0.8rem; color: var(--rc-text-dimmed-color); font-weight: 700; }
+
+        .rc-stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--rc-ui-border-soft); }
+        .rc-stat-box { text-align: center; }
+        .rc-stat-val { display: block; font-weight: 900; color: var(--rc-primary-blue); font-size: 1.2rem; }
+        .rc-stat-label { font-size: 0.65rem; font-weight: 800; color: var(--rc-text-dimmed-color); text-transform: uppercase; }
+
+        /* Post Type Tabs - Center Column */
+        .rc-post-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 25px; }
+        .rc-type-card { 
+            background: white; border: 2px solid var(--rc-ui-border-soft); padding: 15px 5px; border-radius: 18px;
+            text-align: center; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+        .rc-type-card i { color: var(--rc-text-dimmed-color); transition: 0.2s; }
+        .rc-type-card span { font-weight: 800; font-size: 0.75rem; color: var(--rc-text-dimmed-color); text-transform: uppercase; }
+        .rc-type-card:hover { border-color: var(--rc-accent-gold); transform: translateY(-2px); }
+        .rc-type-card.active { border-color: var(--rc-primary-blue); background: var(--rc-primary-blue); box-shadow: var(--rc-gold-glow); }
+        .rc-type-card.active i, .rc-type-card.active span { color: white; }
+
+        /* Form Card */
+        .rc-form-card { background: white; border-radius: 28px; padding: 35px; border: 1px solid var(--rc-ui-border-soft); box-shadow: var(--rc-card-shadow); }
+        .form-group { margin-bottom: 25px; }
+        .form-group label { display: block; font-weight: 800; font-size: 0.75rem; color: var(--rc-primary-blue); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-control { 
+            width: 100%; padding: 16px 20px; border-radius: 14px; border: 1.5px solid var(--rc-ui-border-soft);
+            font-size: 1rem; font-weight: 600; outline: none; background: #fcfdfe; transition: 0.2s;
+        }
+        .form-control:focus { border-color: var(--rc-accent-gold); background: white; box-shadow: 0 0 0 4px rgba(225, 169, 42, 0.1); }
+        textarea.form-control { min-height: 150px; resize: none; }
+
+        .rc-btn-submit {
+            width: 100%; background: var(--rc-primary-blue); color: white; border: none; padding: 20px;
+            border-radius: 18px; font-weight: 900; font-size: 1.1rem; cursor: pointer; transition: 0.3s;
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            box-shadow: 0 6px 20px rgba(59, 72, 154, 0.25);
+        }
+        .rc-btn-submit:hover { background: var(--rc-accent-gold); color: var(--rc-primary-blue); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(225, 169, 42, 0.3); }
+
+        /* Tips Sidebar */
+        .tip-item { display: flex; gap: 12px; margin-bottom: 20px; }
+        .tip-icon { width: 32px; height: 32px; border-radius: 8px; background: #fffbeb; color: var(--rc-accent-gold); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .tip-text h4 { font-size: 0.85rem; font-weight: 800; color: var(--rc-text-main-color); margin-bottom: 4px; }
+        .tip-text p { font-size: 0.75rem; color: var(--rc-text-dimmed-color); line-height: 1.4; font-weight: 600; }
+
+        .hidden { display: none !important; }
+
+        @media (max-width: 1100px) {
+            .rc-main-grid { grid-template-columns: 1fr 1.5fr; }
+            .rc-right-sidebar { display: none; }
+        }
+        @media (max-width: 850px) {
+            .rc-main-grid { grid-template-columns: 1fr; }
+            .rc-left-sidebar { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR NAVIGATION OVERLAY -->
+    <nav id="sidebarOverlay" class="rc-nav-overlay">
+        <button onclick="toggleNav()" style="background:transparent; border:none; cursor:pointer; padding:10px;">
+            <i data-lucide="x" color="#3b489a" size="32"></i>
+        </button>
+        <div class="rc-nav-list" id="navContainer">
+            <!-- Nav Items injected by JS -->
+        </div>
+        <a href="{% url 'logout' %}" style="color:var(--rc-ui-alert-danger); text-decoration:none; font-weight:800; border-left:1px solid #eee; padding-left:24px; margin-left:12px; display:flex; align-items:center; gap:8px;">
+            <i data-lucide="log-out" size="20"></i> Logout
+        </a>
+    </nav>
+
+    <!-- HEADER -->
+    <header class="rc-header">
+        <button class="rc-logo-btn" onclick="toggleNav()">
+            <span class="rc-logo-text">re<span>Connect</span></span>
+        </button>
+        <div class="rc-header-right">
+            <i data-lucide="bell" size="24" style="cursor: pointer;"></i>
+            <a href="{% url 'my_profile' %}" class="rc-profile-link">
+                <div style="text-align: right; display: flex; flex-direction: column;">
+                    <span style="font-weight: 800; font-size: 0.9rem;">{{ user.get_full_name|default:user.username }}</span>
+                    <span style="font-size: 0.65rem; opacity: 0.85; font-weight: 800; text-transform: uppercase;">{% if user.passed_out_year %}CLASS OF {{ user.passed_out_year }}{% else %}ALUMNI{% endif %}</span>
+                </div>
+                <img src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.first_name|default:'User' }}{% endif %}" alt="Profile" style="width: 42px; height: 42px; border-radius: 12px; background-color: white; border: 2px solid var(--rc-accent-gold);">
+            </a>
+        </div>
+    </header>
+
+    <main class="rc-main-grid">
+        <!-- LEFT SIDEBAR: USER IMPACT -->
+        <aside class="rc-left-sidebar">
+            <div class="rc-sidebar-card rc-user-summary">
+                <img src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.first_name|default:'User' }}{% endif %}" class="rc-summary-avatar" alt="Avatar">
+                <h2 class="rc-summary-name">{{ user.get_full_name|default:user.username }}</h2>
+                <p class="rc-summary-role">{{ user.working_status|default:'Alumni' }}</p>
+                
+                <div class="rc-stats-row">
+                    <div class="rc-stat-box">
+                        <span class="rc-stat-val">{{ post_count }}</span>
+                        <span class="rc-stat-label">Posts</span>
+                    </div>
+                    <div class="rc-stat-box">
+                        <span class="rc-stat-val">{{ grant_count }}</span>
+                        <span class="rc-stat-label">Grants</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="rc-sidebar-card">
+                <h3>Drafts</h3>
+                <p style="font-size: 0.8rem; color: var(--rc-text-dimmed-color); font-weight: 600;">You have no saved drafts at the moment.</p>
+            </div>
+
+            <div class="rc-sidebar-card">
+                <h3>Your Network</h3>
+                <div style="display: flex; gap: -8px; margin-top: 10px;">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=1" style="width:30px; border-radius:50%; border:2px solid white;">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=2" style="width:30px; border-radius:50%; border:2px solid white; margin-left:-10px;">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=3" style="width:30px; border-radius:50%; border:2px solid white; margin-left:-10px;">
+                    <div style="width:30px; height:30px; border-radius:50%; background:#f1f5f9; display:flex; align-items:center; justify-content:center; font-size:0.6rem; font-weight:800; margin-left:-10px; border:2px solid white;">+20</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- CENTER COLUMN: FORMS -->
+        <section class="rc-center-content">
+            <div class="rc-post-tabs">
+                <div class="rc-type-card active" id="tab-general" onclick="switchForm('general', this)">
+                    <i data-lucide="message-square" size="24"></i>
+                    <span>Story</span>
+                </div>
+                <div class="rc-type-card" id="tab-hiring" onclick="switchForm('hiring', this)">
+                    <i data-lucide="briefcase" size="24"></i>
+                    <span>Hiring</span>
+                </div>
+                <div class="rc-type-card" id="tab-funding" onclick="switchForm('funding', this)">
+                    <i data-lucide="piggy-bank" size="24"></i>
+                    <span>Grant</span>
+                </div>
+                <div class="rc-type-card" id="tab-openfor" onclick="switchForm('openfor', this)">
+                    <i data-lucide="award" size="24"></i>
+                    <span>Open For</span>
+                </div>
+            </div>
+
+            <div class="rc-form-card">
+                <!-- General Post Form -->
+                <form id="form-general">
+                    <div class="form-group">
+                        <label>Post Title</label>
+                        <input type="text" class="form-control" placeholder="Summarize your post in one line...">
+                    </div>
+                    <div class="form-group">
+                        <label>What's the news?</label>
+                        <textarea class="form-control" placeholder="Share news, campus memories, or general updates..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Add Media</label>
+                        <div style="border: 2px dashed var(--rc-ui-border-soft); border-radius: 16px; padding: 30px; text-align: center; color: var(--rc-text-dimmed-color); font-weight: 700; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='var(--rc-accent-gold)'" onmouseout="this.style.borderColor='var(--rc-ui-border-soft)'">
+                            <i data-lucide="image-plus" size="32" style="margin-bottom: 12px; color: var(--rc-primary-blue);"></i>
+                            <p>Upload High-Res Photos or Videos</p>
+                            <span style="font-size: 0.7rem; opacity: 0.7;">Max size 20MB • JPEG, PNG, MP4</span>
+                        </div>
+                    </div>
+                    <button type="button" class="rc-btn-submit" onclick="submitPost()">Share with Community</button>
+                </form>
+
+                <!-- Hiring Form -->
+                <form id="form-hiring" class="hidden">
+                    <div class="form-group">
+                        <label>Job Title / Role</label>
+                        <input type="text" class="form-control" placeholder="e.g. Senior Backend Engineer">
+                    </div>
+                    <div class="form-group">
+                        <label>Organization / Company</label>
+                        <input type="text" class="form-control" placeholder="e.g. Google Cloud">
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                            <label>Hiring Type</label>
+                            <select class="form-control" id="hiringTypeSelect" onchange="toggleHiringFields()">
+                                <option value="fulltime">Full-Time Job</option>
+                                <option value="intern">Internship</option>
+                            </select>
+                        </div>
+                        <div class="form-group hidden" id="internPeriodGroup">
+                            <label>Period of Internship</label>
+                            <input type="text" class="form-control" placeholder="e.g. 6 Months">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Salary / Stipend Details</label>
+                        <div style="position: relative;">
+                            <span style="position: absolute; left: 18px; top: 14px; font-weight: 900; color: var(--rc-primary-blue);">₹</span>
+                            <input type="text" class="form-control" style="padding-left: 35px;" placeholder="e.g. 40,000 per month / 12 LPA">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Job Description & Requirements</label>
+                        <textarea class="form-control" placeholder="Describe the role and who you are looking for..."></textarea>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                            <label>Location</label>
+                            <input type="text" class="form-control" placeholder="Remote / City">
+                        </div>
+                        <div class="form-group">
+                            <label>External URL</label>
+                            <input type="url" class="form-control" placeholder="Application link...">
+                        </div>
+                    </div>
+                    <button type="button" class="rc-btn-submit" onclick="submitPost()">Post Opportunity</button>
+                </form>
+
+                <!-- Funding (Grant) Form -->
+                <form id="form-funding" class="hidden">
+                    <div class="form-group">
+                        <label>Grant / Sponsorship Title</label>
+                        <input type="text" class="form-control" placeholder="e.g. AI Research Grant for Final Year Students">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                            <label>Funding Amount Available</label>
+                            <div style="position: relative;">
+                                <span style="position: absolute; left: 18px; top: 14px; font-weight: 900; color: var(--rc-primary-blue);">₹</span>
+                                <input type="number" class="form-control" style="padding-left: 35px;" placeholder="2000">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Grant Cycle</label>
+                            <input type="text" class="form-control" placeholder="One-time / Monthly">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Project Domain / Field</label>
+                        <select class="form-control">
+                            <option>Any Project Type</option>
+                            <option>Research & Development</option>
+                            <option>Startup / Entrepreneurship</option>
+                            <option>Social Impact / NGO</option>
+                            <option>Campus Innovation</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Eligibility & How to Apply</label>
+                        <textarea class="form-control" placeholder="Who can apply? What should students submit to you? (e.g. Submit proposal to my LinkedIn)"></textarea>
+                    </div>
+                    <button type="button" class="rc-btn-submit" onclick="submitPost()">Post Grant Offering</button>
+                </form>
+
+                <!-- Open For Form -->
+                <form id="form-openfor" class="hidden">
+                    <div class="form-group">
+                        <label>Availability Status</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <label style="background: #f8fafc; border: 1.5px solid var(--rc-ui-border-soft); border-radius: 12px; padding: 15px; display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700;">
+                                <input type="checkbox" checked> Mentoring
+                            </label>
+                            <label style="background: #f8fafc; border: 1.5px solid var(--rc-ui-border-soft); border-radius: 12px; padding: 15px; display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700;">
+                                <input type="checkbox"> Hiring
+                            </label>
+                            <label style="background: #f8fafc; border: 1.5px solid var(--rc-ui-border-soft); border-radius: 12px; padding: 15px; display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700;">
+                                <input type="checkbox"> Investing
+                            </label>
+                            <label style="background: #f8fafc; border: 1.5px solid var(--rc-ui-border-soft); border-radius: 12px; padding: 15px; display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700;">
+                                <input type="checkbox"> Speaking
+                            </label>
+                            <label style="background: #f8fafc; border: 1.5px solid var(--rc-ui-border-soft); border-radius: 12px; padding: 15px; display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700;">
+                                <input type="checkbox"> Syllabus Preparation
+                            </label>
+                            <label style="background: #f8fafc; border: 1.5px solid var(--rc-ui-border-soft); border-radius: 12px; padding: 15px; display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700;">
+                                <input type="checkbox"> Resource Sharing
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Bio/Notes for others</label>
+                        <textarea class="form-control" placeholder="Tell students and alumni how you can help..."></textarea>
+                    </div>
+                    <button type="button" class="rc-btn-submit" onclick="submitPost()">Update My Profile Tags</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- RIGHT SIDEBAR: TIPS & GUIDELINES -->
+        <aside class="rc-right-sidebar">
+            <div class="rc-sidebar-card">
+                <h3>Impact Tips</h3>
+                
+                <div class="tip-item">
+                    <div class="tip-icon"><i data-lucide="heart" size="16"></i></div>
+                    <div class="tip-text">
+                        <h4>Direct Support</h4>
+                        <p>Providing a project grant is the most direct way to support campus innovation.</p>
+                    </div>
+                </div>
+
+                <div class="tip-item">
+                    <div class="tip-icon"><i data-lucide="file-text" size="16"></i></div>
+                    <div class="tip-text">
+                        <h4>Be Clear</h4>
+                        <p>Set clear expectations for what you want to fund in the eligibility section.</p>
+                    </div>
+                </div>
+
+                <div class="tip-item">
+                    <div class="tip-icon"><i data-lucide="users" size="16"></i></div>
+                    <div class="tip-text">
+                        <h4>Engage</h4>
+                        <p>Mentoring a student alongside a grant creates 10x more value.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="rc-sidebar-card" style="background: var(--rc-primary-blue); color: white;">
+                <h3 style="color: var(--rc-accent-gold);">Funding Innovation</h3>
+                <p style="font-size: 0.8rem; line-height: 1.5; font-weight: 500;">Last quarter, alumni provided over ₹15k in direct project grants, enabling 12 student startups to launch!</p>
+            </div>
+        </aside>
+    </main>
+
+    <script>
+        const NAV_LINKS = [
+            { label: 'Dashboard', icon: 'trending-up', href: '{% url "alumni_dashboard" %}' },
+            { label: 'Announcements', icon: 'megaphone', href: '{% url "announcements" %}' },
+            { label: 'Connect', icon: 'users', href: '{% url "connect" %}' },
+            { label: 'Events', icon: 'calendar', href: '{% url "events" %}' },
+            { label: 'Share', icon: 'plus-circle', href: '{% url "post" %}', active: true },
+            { label: 'Settings', icon: 'settings', href: '{% url "settings" %}' }
+        ];
+
+        function renderNav() {
+            const container = document.getElementById('navContainer');
+            container.innerHTML = NAV_LINKS.map(link => `
+                <a href="${link.href}" class="rc-nav-link ${link.active ? 'active' : ''}">
+                    <i data-lucide="${link.icon}" size="18"></i>
+                    ${link.label}
+                </a>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function toggleNav() { 
+            document.getElementById('sidebarOverlay').classList.toggle('open'); 
+        }
+
+        function switchForm(type, card) {
+            document.querySelectorAll('.rc-type-card').forEach(c => c.classList.remove('active'));
+            card.classList.add('active');
+
+            const forms = ['general', 'hiring', 'funding', 'openfor'];
+            forms.forEach(f => {
+                document.getElementById(`form-${f}`).classList.add('hidden');
+            });
+            document.getElementById(`form-${type}`).classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function toggleHiringFields() {
+            const type = document.getElementById('hiringTypeSelect').value;
+            const internGroup = document.getElementById('internPeriodGroup');
+            if (type === 'intern') {
+                internGroup.classList.remove('hidden');
+            } else {
+                internGroup.classList.add('hidden');
+            }
+        }
+
+        function getCsrf() {
+            const cookie = document.cookie.split('; ').find(c => c.startsWith('csrftoken='));
+            return cookie ? cookie.split('=')[1] : '';
+        }
+
+        async function submitPost() {
+            const btn = event.currentTarget;
+            btn.innerHTML = `<i data-lucide="loader" class="animate-spin"></i> Processing...`;
+            lucide.createIcons();
+            
+            // Determine which form is active
+            const activeForm = document.querySelector('.rc-form-card form:not(.hidden)');
+            const formId = activeForm.id;
+            const postType = formId.replace('form-', '');
+            
+            const fd = new FormData();
+            fd.append('csrfmiddlewaretoken', getCsrf());
+            fd.append('post_type', postType);
+            
+            // Get form fields based on type
+            const inputs = activeForm.querySelectorAll('input, textarea, select');
+            if (postType === 'general') {
+                const fields = activeForm.querySelectorAll('.form-control');
+                fd.append('title', fields[0]?.value || '');
+                fd.append('body', fields[1]?.value || '');
+            } else if (postType === 'hiring') {
+                const fields = activeForm.querySelectorAll('.form-control');
+                fd.append('role', fields[0]?.value || '');
+                fd.append('company', fields[1]?.value || '');
+                fd.append('job_type', fields[2]?.value || '');
+                fd.append('title', fields[0]?.value || '');
+                fd.append('body', fields[4]?.value || '');
+                fd.append('stipend', fields[3]?.value || '');
+                fd.append('location', fields[5]?.value || '');
+                fd.append('application_url', fields[6]?.value || '');
+            } else if (postType === 'funding') {
+                const fields = activeForm.querySelectorAll('.form-control');
+                fd.append('title', fields[0]?.value || '');
+                fd.append('amount', fields[1]?.value || '');
+                fd.append('frequency', fields[2]?.value || '');
+                fd.append('eligibility', fields[3]?.value || '');
+                fd.append('body', fields[4]?.value || '');
+            } else if (postType === 'openfor') {
+                const checked = activeForm.querySelectorAll('input[type="checkbox"]:checked');
+                checked.forEach(cb => fd.append('open_for_tags', cb.parentElement.textContent.trim()));
+                const ta = activeForm.querySelector('textarea');
+                fd.append('body', ta?.value || '');
+                fd.append('title', 'Open For Update');
+            }
+            
+            try {
+                const res = await fetch('{% url "create_post" %}', { method: 'POST', body: fd });
+                const data = await res.json();
+                if (data.success) {
+                    alert('Success! Your contribution has been posted.');
+                    window.location.href = '{% url "alumni_dashboard" %}';
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to create post'));
+                    btn.innerHTML = 'Try Again';
+                }
+            } catch(e) {
+                alert('Network error. Please try again.');
+                btn.innerHTML = 'Try Again';
+            }
+        }
+
+        window.onload = () => {
+            renderNav();
+            lucide.createIcons();
+        };
+    </script>
+</body>
+</html>

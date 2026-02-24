@@ -144,8 +144,8 @@
                 <div class="rc-notification-list" id="notifList"></div>
             </div>
 
-            <a href="{% url 'student_profile' %}">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Arjun" style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--uni-gold); background: white; object-fit: cover;">
+            <a href="{% url 'student_profile' %}" style="text-decoration:none;">
+                {% if user.profile_picture %}<img src="{{ user.profile_picture.url }}" style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--uni-gold); background: white; object-fit: cover;">{% else %}<div style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--uni-gold); background: var(--uni-blue, #1a237e); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem;">{{ user.first_name.0|default:"U" }}</div>{% endif %}
             </a>
         </div>
     </header>
@@ -358,10 +358,7 @@
         { label: 'Settings', icon: 'settings', href: '{% url "student_settings" %}', active: true }
     ];
 
-    const MOCK_NOTIFICATIONS = [
-        { id: 1, text: "Your connection request to Sarah Chen was accepted.", time: "2h ago", unread: true },
-        { id: 2, text: "New project posted in CSE: Autonomous Drone.", time: "5h ago", unread: false }
-    ];
+    const MOCK_NOTIFICATIONS = [];
 
     let notifications = [...MOCK_NOTIFICATIONS];
 

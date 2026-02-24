@@ -204,8 +204,8 @@
                 <div class="rc-notification-list" id="notifList"></div>
             </div>
 
-            <a href="{% url 'student_profile' %}">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Arjun" style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--uni-gold); background: white; object-fit: cover;">
+            <a href="{% url 'student_profile' %}" style="text-decoration:none;">
+                {% if user.profile_picture %}<img src="{{ user.profile_picture.url }}" style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--uni-gold); background: white; object-fit: cover;">{% else %}<div style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--uni-gold); background: var(--uni-blue, #1a237e); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem;">{{ user.first_name.0|default:"U" }}</div>{% endif %}
             </a>
         </div>
     </header>
@@ -300,9 +300,9 @@
                 <div class="rc-mutual-trigger" onclick="openMutualModal()">
                     <h4 style="font-size: 0.8rem; font-weight: 800; color: var(--uni-blue); text-transform: uppercase; margin-bottom: 1rem;">Mutual Connections</h4>
                     <div style="display: flex; gap: -10px;">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=1" style="width:32px; border-radius:50%; border:2px solid white;">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=2" style="width:32px; border-radius:50%; border:2px solid white; margin-left: -10px;">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=3" style="width:32px; border-radius:50%; border:2px solid white; margin-left: -10px;">
+                        <div style="width:32px;height:32px;border-radius:50%;background:#3b489a;color:white;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.7rem;">A</div>
+                        <div style="width:32px;height:32px;border-radius:50%;background:#1a237e;color:white;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.7rem;margin-left:-10px;">B</div>
+                        <div style="width:32px;height:32px;border-radius:50%;background:#5c6bc0;color:white;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.7rem;margin-left:-10px;">C</div>
                         <div style="width:32px; height:32px; border-radius:50%; background:#eee; display:flex; align-items:center; justify-content:center; font-size:0.6rem; font-weight:800; margin-left:-10px; border:2px solid white;">+12</div>
                     </div>
                 </div>
@@ -341,7 +341,7 @@
         name: "{{ profile_user.get_full_name|default:profile_user.username }}",
         headline: "{{ profile_user.working_status|default:'' }}",
         classYear: "{{ profile_user.passed_out_year|default_if_none:'' }}",
-        avatar: {% if profile_user.profile_picture %}"{{ profile_user.profile_picture.url }}"{% else %}"https://api.dicebear.com/7.x/avataaars/svg?seed={{ profile_user.first_name|default:'User' }}"{% endif %},
+        avatar: {% if profile_user.profile_picture %}"{{ profile_user.profile_picture.url }}"{% else %}""{% endif %},
         bio: "{{ profile_user.department|default:'' }}",
         skills: [],
         openFor: [],
@@ -354,6 +354,12 @@
     const MOCK_NOTIFICATIONS = [];
 
     let notifications = [...MOCK_NOTIFICATIONS];
+
+    function _av(name, size, pic) {
+        if (pic) return `<img src="${pic}" style="width:${size}px;height:${size}px;border-radius:32px;border:6px solid white;box-shadow:0 10px 20px rgba(0,0,0,0.1);object-fit:cover;">`;
+        const l = (name || 'U')[0].toUpperCase();
+        return `<div style="width:${size}px;height:${size}px;border-radius:32px;border:6px solid white;box-shadow:0 10px 20px rgba(0,0,0,0.1);background:#1a237e;color:white;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:${Math.round(size*0.4)}px;">${l}</div>`;
+    }
 
     function toggleNav() { document.getElementById('navOverlay').classList.toggle('open'); }
 
@@ -421,7 +427,7 @@
         document.getElementById('name').innerText = user.name;
         document.getElementById('headline').innerText = user.headline;
         document.getElementById('classYear').innerText = user.classYear ? `Class of ${user.classYear}` : '';
-        document.getElementById('avatar').src = user.avatar;
+        document.getElementById('avatar').outerHTML = _av(user.name, 140, user.avatar);
         document.getElementById('bioText').innerText = user.bio;
         document.getElementById('sidebarResumeBtn').href = user.resume;
 

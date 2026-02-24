@@ -145,7 +145,7 @@
 
         /* Profile Sidebar */
         .student-profile-summary { text-align: center; }
-        .summary-avatar { width: 80px; height: 80px; border-radius: 24px; margin-bottom: 1rem; border: 3px solid var(--uni-gold); object-fit: cover; }
+        .summary-avatar { width: 80px; height: 80px; border-radius: 24px; margin: 0 auto 1rem auto; border: 3px solid var(--uni-gold); object-fit: cover; display: block; }
         .summary-name { font-weight: 900; font-size: 1.1rem; color: var(--uni-blue); }
         .summary-class { font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
         
@@ -289,8 +289,8 @@
                 <div class="rc-notification-list" id="notifList"></div>
             </div>
 
-            <a href="{% url 'student_profile' %}">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Arjun" style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--uni-gold); background: white; object-fit: cover;">
+            <a href="{% url 'student_profile' %}" style="text-decoration:none;">
+                {% if user.profile_picture %}<img src="{{ user.profile_picture.url }}" style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--uni-gold); background: white; object-fit: cover;">{% else %}<div style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--uni-gold); background: #f1f5f9; color: var(--uni-blue); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem;">{{ user.first_name.0|default:"U" }}</div>{% endif %}
             </a>
         </div>
     </header>
@@ -298,18 +298,18 @@
     <main class="rc-main-grid">
         <aside class="sidebar-left">
             <div class="rc-card student-profile-summary">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.first_name|default:'User' }}" class="summary-avatar" alt="Student">
+                {% if user.profile_picture %}<img src="{{ user.profile_picture.url }}" class="summary-avatar" alt="Student" style="display:block; margin:0 auto;">{% else %}<div style="width: 80px; height: 80px; border-radius: 24px; margin: 0 auto 1rem auto; border: 3px solid var(--uni-gold); background: #f1f5f9; color: var(--uni-blue); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 2rem;">{{ user.first_name.0|default:"U" }}</div>{% endif %}
                 <h2 class="summary-name">{{ user.get_full_name|default:user.username }}</h2>
                 <p class="summary-class">{{ user.department|default:'Student' }}</p>
                 
                 <div class="student-stats">
                     <div class="stat-box">
-                        <span class="stat-val">156</span>
+                        <span class="stat-val">{{ connection_count }}</span>
                         <span class="stat-label">Connections</span>
                     </div>
                     <div class="stat-box">
-                        <span class="stat-val">4</span>
-                        <span class="stat-label">Applications</span>
+                        <span class="stat-val">{{ post_count }}</span>
+                        <span class="stat-label">Posts</span>
                     </div>
                 </div>
             </div>
@@ -331,7 +331,7 @@
             <div id="createPostSection">
                 <div class="rc-card rc-create-post-card">
                     <div class="rc-post-input-container">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.first_name|default:'User' }}" style="width: 42px; height: 42px; border-radius: 10px;">
+                        {% if user.profile_picture %}<img src="{{ user.profile_picture.url }}" style="width: 42px; height: 42px; border-radius: 10px; object-fit: cover;">{% else %}<div style="width: 42px; height: 42px; border-radius: 10px; background: #f1f5f9; color: var(--uni-blue); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem;">{{ user.first_name.0|default:"U" }}</div>{% endif %}
                         <textarea id="postContent" class="rc-post-textarea" placeholder="Share a project update or ask alumni for advice..."></textarea>
                     </div>
                     <div id="imagePreviewArea" class="rc-post-preview-area">
@@ -368,7 +368,7 @@
 
             <div class="rc-card">
                 <h3 class="rc-card-title"><i data-lucide="zap" size="16"></i> Circle Updates</h3>
-                <p style="font-size: 0.8rem; line-height: 1.5; color: var(--text-muted); font-weight: 600;">You have 2 pending connection requests from your batch.</p>
+                <p style="font-size: 0.8rem; line-height: 1.5; color: var(--text-muted); font-weight: 600;">Visit the Connect tab to chat with alumni and peers in your circle.</p>
             </div>
         </aside>
     </main>
@@ -397,24 +397,39 @@
         { label: 'Settings', icon: 'settings', href: '{% url "student_settings" %}' }
     ];
 
-    const CONNECTIONS = [
-        { name: "Dr. Sarah Chen", role: "Principal AI @ Google", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah" },
-        { name: "James Miller", role: "Software Eng @ Amazon", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=James" },
-        { name: "Rahul Kumar", role: "Final Year • CSE", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Rahul" }
-    ];
+    const CONNECTIONS = [];
 
     const MOCK_EVENTS = [];
 
     const POSTS = [];
 
-    const MOCK_NOTIFICATIONS = [
-        { id: 1, text: "Sarah Chen replied to your comment.", time: "10 mins ago", unread: true },
-        { id: 2, text: "Connection request accepted by Dr. Sarah Chen!", time: "2h ago", unread: true }
-    ];
+    const MOCK_NOTIFICATIONS = [];
 
     let notifications = [...MOCK_NOTIFICATIONS];
     let selectedImageBase64 = null;
     let activeTab = 'stories';
+
+    function _av(name, size, pic) {
+        if (pic) return `<img src="${pic}" style="width:${size}px;height:${size}px;border-radius:${Math.round(size*0.3)}px;object-fit:cover;">`;
+        const l = (name || 'U')[0].toUpperCase();
+        return `<div style="width:${size}px;height:${size}px;border-radius:${Math.round(size*0.3)}px;background:#f1f5f9;color:#3b489a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:${Math.round(size*0.4)}px;flex-shrink:0;">${l}</div>`;
+    }
+
+    // Load real connections for share modal
+    function loadShareConnections() {
+        fetch('{% url "connection_list" %}')
+            .then(r => r.json())
+            .then(data => {
+                CONNECTIONS.length = 0;
+                data.connections.forEach(c => {
+                    CONNECTIONS.push({
+                        name: c.name,
+                        role: c.department || '',
+                        profile_picture: c.profile_picture || ''
+                    });
+                });
+            });
+    }
 
     function toggleNav() { document.getElementById('navOverlay').classList.toggle('open'); }
 
@@ -490,7 +505,7 @@
             <div class="rc-card rc-post">
                 <div class="post-header">
                     <div class="post-author">
-                        <img src="${post.avatar}" class="author-img">
+                        ${_av(post.author, 42, post.avatar || post.profile_picture)}
                         <div>
                             <div class="author-name">${post.author}<span class="rc-badge rc-badge-${post.type}">${post.type}</span></div>
                             <p class="author-role">${post.role} • ${post.time}</p>
@@ -569,7 +584,7 @@
         const container = document.getElementById('connectionsList');
         container.innerHTML = CONNECTIONS.map(conn => `
             <div class="share-list-item" onclick="shareToUser('${conn.name}')">
-                <img src="${conn.avatar}" class="share-avatar">
+                ${_av(conn.name, 40, conn.profile_picture)}
                 <div class="share-info">
                     <h4>${conn.name}</h4>
                     <p>${conn.role}</p>
@@ -618,7 +633,7 @@
         .then(r => r.json())
         .then(data => {
             if (data.success) {
-                const newPost = { id: data.id, author: '{{ user.get_full_name|default:user.username }}', role: '{{ user.department|default:"Student" }}', type: 'student', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.first_name|default:"User" }}', content, media: selectedImageBase64, likes: 0, comments: 0, isConnected: true, time: 'Just now', isLiked: false };
+                const newPost = { id: data.id, author: '{{ user.get_full_name|default:user.username }}', role: '{{ user.department|default:"Student" }}', type: 'student', profile_picture: '{% if user.profile_picture %}{{ user.profile_picture.url }}{% endif %}', content, media: selectedImageBase64, likes: 0, comments: 0, isConnected: true, time: 'Just now', isLiked: false };
                 POSTS.unshift(newPost);
                 document.getElementById('postContent').value = '';
                 removeImage();
@@ -652,6 +667,7 @@
     window.onload = () => {
         renderNav();
         renderNotifications();
+        loadShareConnections();
 
         // Load events from API
         fetch('{% url "api_events_list" %}')
@@ -682,7 +698,7 @@
                         author: p.author_name,
                         role: p.author_department || p.post_type,
                         type: p.author_department ? 'alumni' : 'student',
-                        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + encodeURIComponent(p.author_name.split(' ')[0]),
+                        avatar: p.author_profile_picture || '',
                         content: (p.title ? p.title + ' — ' : '') + p.body,
                         media: p.image || '',
                         likes: p.likes, comments: p.comments,

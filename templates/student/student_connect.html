@@ -200,8 +200,8 @@
                 <div class="rc-notification-list" id="notifList"></div>
             </div>
 
-            <a href="{% url 'student_profile' %}">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Arjun" style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--uni-gold); background: white; object-fit: cover;">
+            <a href="{% url 'student_profile' %}" style="text-decoration:none;">
+                {% if user.profile_picture %}<img src="{{ user.profile_picture.url }}" style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--uni-gold); background: white; object-fit: cover;">{% else %}<div style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--uni-gold); background: var(--uni-blue, #1a237e); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem;">{{ user.first_name.0|default:"U" }}</div>{% endif %}
             </a>
         </div>
     </header>
@@ -238,12 +238,13 @@
             <div id="chatWindow" style="display: flex; flex-direction: column; height: 100%;">
                 <div class="chat-header">
                     <div class="avatar-box" id="activeAvatar">
-                        <img src="" id="activeImg" style="width:100%; height:100%; object-fit:cover;">
-                        <div class="status-dot"></div>
+                        <div style="width:100%;height:100%;background:#f1f5f9;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-weight:800;font-size:1.2rem;">
+                            <i data-lucide="message-square" size="22"></i>
+                        </div>
                     </div>
                     <div>
                         <h4 id="activeName">Select a chat</h4>
-                        <span id="activeStatus">Online</span>
+                        <span id="activeStatus"></span>
                     </div>
                 </div>
                 <div class="messages-container" id="msgList">
@@ -349,15 +350,18 @@
 
     let ALUMNI_DIRECTORY = [];
 
-    const ALUMNI_BATCHES = [2024, 2023, 2022, 2021, 2020, 2018, 2015, 2012];
-    const STUDENT_YEARS = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
+    const ALUMNI_BATCHES = [];
+    const STUDENT_YEARS = ["1st Year", "2nd Year", "3rd Year", "4th Year", "Student"];
 
-    let notifications = [
-        { id: 1, text: "Maya Singh sent you a connection request.", time: "10 mins ago", unread: true },
-        { id: 2, text: "Dr. Sarah Chen posted a new project.", time: "2h ago", unread: true }
-    ];
+    let notifications = [];
 
     let directoryMode = 'alumni';
+
+    function _av(name, size, pic) {
+        if (pic) return `<img src="${pic}" style="width:${size}px;height:${size}px;border-radius:${Math.round(size*0.3)}px;object-fit:cover;">`;
+        const l = (name || 'U')[0].toUpperCase();
+        return `<div style="width:${size}px;height:${size}px;border-radius:${Math.round(size*0.3)}px;background:#1a237e;color:white;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:${Math.round(size*0.4)}px;flex-shrink:0;">${l}</div>`;
+    }
 
     function toggleNav() { document.getElementById('navOverlay').classList.toggle('open'); }
 
@@ -399,24 +403,24 @@
 
     function renderChatList() {
         const container = document.getElementById('chatList');
-        container.innerHTML = CHATS.map(chat => `
-            <div class="chat-item" onclick="selectChat(${chat.id})">
-                <div class="avatar-box">
-                    <img src="${chat.avatar}" style="width:100%;">
+        container.innerHTML = CHATS.map(chat => {
+            const initials = chat.type === 'group' ? 'GRP' : (chat.name || 'U')[0].toUpperCase();
+            return `
+            <div class="chat-item" onclick="selectChat('${chat.id}')">
+                <div class="avatar-box" style="${chat.type === 'group' ? 'background:var(--uni-gold); color:white;' : 'padding:0;overflow:hidden;'}">
+                    ${chat.profile_picture ? `<img src="${chat.profile_picture}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:${chat.type === 'group' ? '0.7rem' : '1.2rem'};color:${chat.type === 'group' ? 'white' : 'var(--uni-blue)'};background:${chat.type === 'group' ? 'var(--uni-gold)' : '#f1f5f9'};border-radius:inherit;">${initials}</div>`}
                     ${chat.online ? '<div class="status-dot"></div>' : ''}
                 </div>
                 <div class="chat-info">
-                    <h4 style="display:flex; align-items:center; gap:5px;">
-                        ${chat.name} 
-                        ${chat.type === 'group' ? '<i data-lucide="users" size="12" color="var(--text-muted)"></i>' : ''}
-                    </h4>
+                    <h4>${chat.name} ${chat.type === 'group' ? '(Group)' : ''}</h4>
                     <p>${chat.lastMsg}</p>
                 </div>
-            </div>
-        `).join('');
+            </div>`;
+        }).join('');
         lucide.createIcons();
     }
 
+    const CURRENT_USER_ID = {{ user.id }};
     let chatSocket = null;
     let activeConversationId = null;
 
@@ -428,13 +432,13 @@
     }
 
     function selectChat(id) {
-        const chat = CHATS.find(c => c.id === id);
+        const chat = CHATS.find(c => String(c.id) === String(id));
         if (!chat) return;
         document.getElementById('activeName').innerText = chat.name;
-        document.getElementById('activeImg').src = chat.avatar;
+        document.getElementById('activeAvatar').innerHTML = _av(chat.name, 48, chat.profile_picture) + (chat.online ? '<div class="status-dot"></div>' : '');
         document.getElementById('activeStatus').innerText = chat.type === 'group' ? 'Group' : '';
         document.getElementById('msgList').innerHTML = '';
-        activeConversationId = chat.convoId || null;
+        activeConversationId = chat.convoId || chat.id;
 
         if (activeConversationId) {
             fetch(`/api/conversations/${activeConversationId}/messages/`)
@@ -453,7 +457,7 @@
         }
 
         document.querySelectorAll('.chat-item').forEach((it, idx) => {
-            if(CHATS[idx] && CHATS[idx].id === id) it.classList.add('active');
+            if(CHATS[idx] && String(CHATS[idx].id) === String(id)) it.classList.add('active');
             else it.classList.remove('active');
         });
         switchView('chats', document.querySelectorAll('.tab-btn')[0]);
@@ -465,6 +469,7 @@
         chatSocket = new WebSocket(`${wsScheme}://${window.location.host}/ws/chat/${convoId}/`);
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
+            if (data.sender_id === CURRENT_USER_ID) return;
             const list = document.getElementById('msgList');
             const div = document.createElement('div');
             div.className = 'msg msg-received';
@@ -495,15 +500,19 @@
 
     function renderCircle() {
         const container = document.getElementById('circleList');
+        if (CIRCLE.length === 0) {
+            container.innerHTML = '<p style="text-align:center; padding:3rem; color:var(--text-muted); font-weight:700;">No connections yet. Explore the directory to connect!</p>';
+            return;
+        }
         container.innerHTML = CIRCLE.map(item => `
             <div class="rc-profile-card">
-                <img src="${item.avatar}" class="profile-img">
+                ${_av(item.name, 48, item.profile_picture)}
                 <div class="profile-info">
                     <h4>${item.name}</h4>
                     <p>${item.role}</p>
                 </div>
-                <button class="btn-action btn-outline" onclick="window.location.href='{% url "profile" %}?id=${item.name}'">Profile</button>
-                <button class="btn-action btn-blue" onclick="startChat('${item.name}', '${item.avatar}')">Message</button>
+                <button class="btn-action btn-outline" onclick="window.location.href='{% url "profile" %}?id=${item.id}'">Profile</button>
+                <button class="btn-action btn-blue" onclick="startChat('${item.name}', '${item.profile_picture || ''}')">Message</button>
             </div>
         `).join('');
     }
@@ -550,20 +559,49 @@
         if (filtered.length === 0) {
             container.innerHTML = `<div style="text-align:center; padding:3rem; color:var(--text-muted); font-weight:700; grid-column: 1/-1;">No results found matching your criteria.</div>`;
         } else {
-            container.innerHTML = filtered.map(s => `
-                <div class="rc-profile-card">
-                    <img src="${s.avatar}" class="profile-img">
-                    <div class="profile-info">
-                        <h4>${s.name}</h4>
-                        <p>${s.year} • ${s.dept}</p>
+            container.innerHTML = filtered.map(s => {
+                let actionBtn = '';
+                if (s.connection_status === 'accepted') {
+                    actionBtn = `<button class="btn-action btn-blue" onclick="startChat('${s.name}', '${s.profile_picture || ''}')">Message</button>`;
+                } else if (s.connection_status === 'pending') {
+                    actionBtn = `<button class="btn-action btn-outline" disabled>Pending</button>`;
+                } else {
+                    actionBtn = `<button class="btn-action btn-blue" onclick="sendConnect(${s.id}, this)">Connect</button>`;
+                }
+                return `
+                    <div class="rc-profile-card">
+                        ${_av(s.name, 48, s.profile_picture)}
+                        <div class="profile-info">
+                            <h4>${s.name}</h4>
+                            <p>${s.year} • ${s.dept}</p>
+                        </div>
+                        ${actionBtn}
                     </div>
-                    <button class="btn-action btn-blue" onclick="startChat('${s.name}', '${s.avatar}')">Connect</button>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
     }
 
-    function startChat(name, avatar) {
+    function sendConnect(userId, btn) {
+        fetch('{% url "send_connection_request" %}', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCsrfToken(), 'Content-Type': 'application/json' },
+            body: JSON.stringify({ to_user_id: userId })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'pending') {
+                btn.innerText = 'Pending';
+                btn.disabled = true;
+                btn.classList.remove('btn-blue');
+                btn.classList.add('btn-outline');
+            } else if (data.error) {
+                alert(data.error);
+            }
+        });
+    }
+
+    function startChat(name, pic) {
         // Search user and create conversation
         fetch('{% url "user_search" %}?q=' + encodeURIComponent(name))
             .then(r => r.json())
@@ -582,7 +620,7 @@
                     loadConversations();
                     activeConversationId = data.id;
                     document.getElementById('activeName').innerText = data.name || name;
-                    document.getElementById('activeImg').src = avatar;
+                    document.getElementById('activeAvatar').innerHTML = _av(name, 48, pic);
                     document.getElementById('msgList').innerHTML = '';
                     connectWebSocket(data.id);
                     switchView('chats', document.querySelectorAll('.tab-btn')[0]);
@@ -596,8 +634,8 @@
         const list = document.getElementById('groupCircleList');
         list.innerHTML = CIRCLE.map(c => `
             <label class="selection-item">
-                <input type="checkbox" name="group-member" value="${c.name}">
-                <img src="${c.avatar}" style="width:30px; border-radius:6px;">
+                <input type="checkbox" name="group-member" value="${c.id}">
+                ${_av(c.name, 30, c.profile_picture)}
                 <span style="font-size:0.85rem; font-weight:700;">${c.name}</span>
             </label>
         `).join('');
@@ -607,16 +645,17 @@
         const name = document.getElementById('groupName').value;
         if (!name) return alert('Please enter group name');
         const checked = document.querySelectorAll('input[name="group-member"]:checked');
-        const memberNames = Array.from(checked).map(c => c.value);
+        const memberIds = Array.from(checked).map(c => parseInt(c.value));
+        if (memberIds.length === 0) return alert('Please select at least one member');
         // Create group via API
         fetch('{% url "conversation_create" %}', {
             method: 'POST',
             headers: { 'X-CSRFToken': getCsrfToken(), 'Content-Type': 'application/json' },
-            body: JSON.stringify({ is_group: true, name: name, user_ids: [] })
+            body: JSON.stringify({ is_group: true, name: name, user_ids: memberIds })
         })
         .then(r => r.json())
         .then(data => {
-            if (data.id) { loadConversations(); closeGroupModal(); }
+            if (data.id) { loadConversations(); closeGroupModal(); document.getElementById('groupName').value = ''; }
         });
     }
 
@@ -628,7 +667,8 @@
                 data.conversations.forEach(c => {
                     CHATS.push({
                         id: c.id, convoId: c.id, name: c.name,
-                        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + encodeURIComponent(c.name.split(' ')[0]),
+                        avatar: '',
+                        profile_picture: c.profile_picture || '',
                         lastMsg: c.last_message || 'No messages yet',
                         online: false, type: c.is_group ? 'group' : 'individual'
                     });
@@ -644,12 +684,58 @@
                 CIRCLE.length = 0;
                 data.connections.forEach(c => {
                     CIRCLE.push({
+                        id: c.user_id,
                         name: c.name,
                         role: c.department || '',
-                        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + encodeURIComponent(c.name.split(' ')[0])
+                        avatar: '',
+                        profile_picture: c.profile_picture || ''
                     });
                 });
+                // Render pending requests
+                renderPendingRequests(data.pending_requests || []);
             });
+    }
+
+    function renderPendingRequests(requests) {
+        const container = document.getElementById('pendingRequests');
+        if (requests.length === 0) {
+            container.innerHTML = '<p style="text-align:center; padding:1.5rem; color:var(--text-muted); font-weight:600; font-size:0.85rem;">No pending requests.</p>';
+            return;
+        }
+        container.innerHTML = requests.map(req => `
+            <div class="rc-profile-card" id="pending-${req.id}">
+                ${_av(req.name, 48, req.profile_picture)}
+                <div class="profile-info">
+                    <h4>${req.name}</h4>
+                    <p>${req.department || ''}</p>
+                </div>
+                <button class="btn-action btn-blue" onclick="respondConnection(${req.id}, 'accept')">Accept</button>
+                <button class="btn-action btn-outline" onclick="respondConnection(${req.id}, 'decline')">Decline</button>
+            </div>
+        `).join('');
+    }
+
+    function respondConnection(connectionId, action) {
+        fetch('/api/connections/' + connectionId + '/respond/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCsrfToken(), 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: action })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.status) {
+                const card = document.getElementById('pending-' + connectionId);
+                if (card) {
+                    card.style.transition = 'opacity 0.3s';
+                    card.style.opacity = '0';
+                    setTimeout(() => card.remove(), 300);
+                }
+                if (action === 'accept') {
+                    // Reload circle to include new connection
+                    loadCircle();
+                }
+            }
+        });
     }
 
     function loadDirectory() {
@@ -657,12 +743,20 @@
             .then(r => r.json())
             .then(data => {
                 ALUMNI_DIRECTORY.length = 0;
+                const yearSet = new Set();
                 data.people.forEach(p => {
+                    const year = p.passed_out_year ? String(p.passed_out_year) : '';
+                    if (year) yearSet.add(year);
                     ALUMNI_DIRECTORY.push({
-                        name: p.name, year: String(p.enrollment_number || ''), dept: p.department || '',
-                        avatar: p.profile_picture || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + encodeURIComponent(p.name.split(' ')[0])
+                        id: p.id, name: p.name, year: year, dept: p.department || '',
+                        profile_picture: p.profile_picture || '',
+                        connection_status: p.connection_status || 'none'
                     });
                 });
+                // Update batch filter with real years
+                ALUMNI_BATCHES.length = 0;
+                Array.from(yearSet).sort((a, b) => b - a).forEach(y => ALUMNI_BATCHES.push(y));
+                if (directoryMode === 'alumni') setDirectory('alumni');
             });
         fetch('{% url "api_explore_people" %}?role=student')
             .then(r => r.json())
@@ -670,26 +764,39 @@
                 STUDENT_DIRECTORY.length = 0;
                 data.people.forEach(p => {
                     STUDENT_DIRECTORY.push({
-                        name: p.name, year: p.working_status || 'Student', dept: p.department || '',
-                        avatar: p.profile_picture || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + encodeURIComponent(p.name.split(' ')[0])
+                        id: p.id, name: p.name, year: p.working_status || 'Student', dept: p.department || '',
+                        profile_picture: p.profile_picture || '',
+                        connection_status: p.connection_status || 'none'
                     });
                 });
+                if (directoryMode === 'students') setDirectory('students');
             });
     }
 
     function sendMessage() {
         const input = document.getElementById('chatInput');
-        if(!input.value.trim()) return;
-        if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
-            chatSocket.send(JSON.stringify({ 'message': input.value }));
-        }
+        if(!input.value.trim() || !activeConversationId) return;
+        const msgText = input.value;
+
+        // Display immediately
         const list = document.getElementById('msgList');
         const div = document.createElement('div');
         div.className = 'msg msg-sent';
-        div.innerText = input.value;
+        div.innerText = msgText;
         list.appendChild(div);
         input.value = '';
         list.scrollTop = list.scrollHeight;
+
+        // Send via WebSocket if available, otherwise use HTTP
+        if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+            chatSocket.send(JSON.stringify({ 'message': msgText }));
+        } else {
+            fetch(`/api/conversations/${activeConversationId}/send/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCsrfToken(), 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: msgText })
+            });
+        }
     }
 
     function handleKey(e) { if(e.key === 'Enter') sendMessage(); }

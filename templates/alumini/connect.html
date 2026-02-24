@@ -239,7 +239,7 @@
                     <div style="font-weight: 900; font-size: 0.9rem;">{{ user.get_full_name|default:user.username }}</div>
                     <div style="font-size: 0.65rem; opacity: 0.8; font-weight: 800;">{% if user.passed_out_year %}CLASS OF {{ user.passed_out_year }}{% else %}ALUMNI{% endif %}</div>
                 </div>
-                <img src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.first_name|default:'User' }}{% endif %}" style="width: 40px; height: 40px; border-radius: 12px; background: white; border: 2px solid var(--rc-accent-gold);">
+                {% if user.profile_picture %}<img src="{{ user.profile_picture.url }}" alt="Avatar" style="width: 40px; height: 40px; border-radius: 12px; background: white; border: 2px solid var(--uni-gold); object-fit: cover;">{% else %}<div style="width: 40px; height: 40px; border-radius: 12px; border: 2px solid var(--uni-gold); background: #f1f5f9; color: var(--uni-blue); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem;">{{ user.first_name.0|default:"U" }}</div>{% endif %}
             </a>
         </div>
     </header>
@@ -280,16 +280,19 @@
             <!-- Chat Window -->
             <div id="chatWindow" style="display: flex; flex-direction: column; height: 100%;">
                 <div class="chat-header">
-                    <div class="avatar-circle" id="activeAvatar">JM</div>
+                    <div class="avatar-circle" id="activeAvatar">
+                        <i data-lucide="message-square" size="22" color="var(--rc-primary-blue)" style="opacity:0.4;"></i>
+                    </div>
                     <div>
-                        <h4 id="activeName">James Miller</h4>
-                        <span>Online</span>
+                        <h4 id="activeName">Select a chat</h4>
+                        <span id="activeStatus"></span>
                     </div>
                 </div>
                 <div class="messages-container" id="msgList">
-                    <div class="message msg-received">Hey Alex! How have you been? It's been a while since the last reunion.</div>
-                    <div class="message msg-sent">I'm doing great! Just exploring the updated alumni portal. The new design is sleek.</div>
-                    <div class="message msg-received">Definitely! Did you see the announcement about the upcoming Startup Pitch night?</div>
+                    <div style="text-align:center; padding: 5rem; color: var(--rc-text-dimmed-color); font-weight: 700;">
+                        <i data-lucide="message-square" size="48" style="opacity:0.1; margin-bottom: 1rem;"></i>
+                        <p>Select a conversation to start chatting.</p>
+                    </div>
                 </div>
                 <div class="chat-footer">
                     <button style="background:none; border:none; cursor:pointer;"><i data-lucide="paperclip" size="20" color="#64748b"></i></button>
@@ -317,7 +320,7 @@
 
                 <h3 style="font-weight:900; color:var(--rc-primary-blue); margin: 40px 0 15px; font-size: 1rem; border-bottom: 2px solid var(--rc-accent-gold); display: inline-block; padding-bottom: 4px;">SUGGESTED FOR YOU</h3>
                 <div class="rc-card">
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah" style="width:50px; border-radius:12px;">
+                    <div style="width:50px;height:50px;border-radius:12px;background:#f1f5f9;color:#3b489a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.2rem;flex-shrink:0;">S</div>
                     <div style="flex:1">
                         <h4 style="font-weight:800">Sarah Jenkins</h4>
                         <p style="font-size:0.8rem; color:var(--rc-text-dimmed-color); font-weight:700;">ENR-2012-008 • Senior Architect</p>
@@ -384,18 +387,8 @@
 
         let CONNECTED_PROFILES = [];
 
-        const BATCH_DATA = {
-            2021: [
-                { name: "John Doe", role: "Software Engineer", enr: "ENR-2021-001", seed: "John" },
-                { name: "Maya Singh", role: "Product Manager", enr: "ENR-2021-042", seed: "Maya" }
-            ],
-            2012: [
-                { name: "Sarah Jenkins", role: "Senior Architect", enr: "ENR-2012-008", seed: "Sarah" },
-                { name: "David Wright", role: "Entrepreneur", enr: "ENR-2012-114", seed: "David" }
-            ]
-        };
-
-        const YEARS = [2024, 2023, 2022, 2021, 2015, 2012, 2010, 2005];
+        let BATCH_DATA = {};
+        let YEARS = [];
 
         const NAV_DATA = [
             { label: 'Dashboard', icon: 'trending-up', href: '{% url "alumni_dashboard" %}' },
@@ -431,8 +424,15 @@
             document.getElementById('mainModal').classList.remove('active');
         }
 
+        const CURRENT_USER_ID = {{ user.id }};
         let chatSocket = null;
         let activeConversationId = null;
+
+        function _av(name, size, pic) {
+            if (pic) return `<img src="${pic}" style="width:${size}px;height:${size}px;border-radius:12px;object-fit:cover;background:#f1f5f9;">`;
+            const l = (name || 'U')[0].toUpperCase();
+            return `<div style="width:${size}px;height:${size}px;border-radius:12px;background:#f1f5f9;color:#3b489a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:${Math.round(size*0.4)}px;flex-shrink:0;">${l}</div>`;
+        }
 
         function getCsrfToken() {
             const name = 'csrftoken';
@@ -504,8 +504,10 @@
         }
 
         function selectChat(name, initials, convoId) {
+            const chat = CHATS.find(c => String(c.id) === String(convoId));
             document.getElementById('activeName').innerText = name;
-            document.getElementById('activeAvatar').innerText = initials;
+            document.getElementById('activeAvatar').innerHTML = (chat && chat.profile_picture) ? `<img src="${chat.profile_picture}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">` : initials;
+            document.getElementById('activeStatus').innerText = (chat && chat.isGroup) ? 'Group' : 'Online';
             document.getElementById('msgList').innerHTML = '';
             switchMainView('chats', document.querySelectorAll('.tab-trigger')[0]);
 
@@ -540,6 +542,7 @@
             chatSocket = new WebSocket(`${wsScheme}://${window.location.host}/ws/chat/${convoId}/`);
             chatSocket.onmessage = function(e) {
                 const data = JSON.parse(e.data);
+                if (data.sender_id === CURRENT_USER_ID) return;
                 const list = document.getElementById('msgList');
                 const div = document.createElement('div');
                 div.className = 'message msg-received';
@@ -563,16 +566,16 @@
             } else {
                 container.innerHTML = members.map(m => `
                     <div class="rc-card">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${m.seed}" style="width:50px; border-radius:12px; background:#f1f5f9;">
+                        ${_av(m.name, 50, m.profile_picture)}
                         <div style="flex:1">
                             <h4 style="font-weight:800">${m.name}</h4>
                             <p style="font-size:0.8rem; color:var(--rc-text-dimmed-color); font-weight:700;">${m.enr} • ${m.role}</p>
                         </div>
                         <div style="display:flex; gap:10px;">
-                            <a href="{% url 'profile' %}?id=${m.enr}" class="btn-outline">
+                            <a href="{% url 'profile' %}?id=${m.id}" class="btn-outline">
                                 <i data-lucide="user" size="14"></i> Profile
                             </a>
-                            <button class="btn-gold" onclick="selectChat('${m.name}', '${m.name.substring(0,2).toUpperCase()}')">
+                            <button class="btn-gold" onclick="messageUser(${m.id}, '${m.name}', '${m.name.substring(0,2).toUpperCase()}')">
                                 <i data-lucide="message-circle" size="14"></i> Message
                             </button>
                         </div>
@@ -595,23 +598,34 @@
             })
             .then(r => r.json())
             .then(data => {
-                if (data.success) { loadConnections(); }
+                if (data.success || data.status === 'accepted') { loadConnections(); }
             });
         }
 
         function sendMsg() {
             const input = document.getElementById('chatInput');
-            if(!input.value.trim()) return;
-            if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
-                chatSocket.send(JSON.stringify({ 'message': input.value }));
-            }
+            if(!input.value.trim() || !activeConversationId) return;
+            const msgText = input.value;
+
+            // Display immediately
             const list = document.getElementById('msgList');
             const div = document.createElement('div');
             div.className = 'message msg-sent';
-            div.innerText = input.value;
+            div.innerText = msgText;
             list.appendChild(div);
             input.value = '';
             list.scrollTop = list.scrollHeight;
+
+            // Send via WebSocket if available, otherwise use HTTP
+            if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+                chatSocket.send(JSON.stringify({ 'message': msgText }));
+            } else {
+                fetch(`/api/conversations/${activeConversationId}/send/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCsrfToken(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content: msgText })
+                });
+            }
         }
 
         function handleKey(e) { if(e.key === 'Enter') sendMsg(); }
@@ -643,8 +657,8 @@
             const container = document.getElementById('chatListContainer');
             container.innerHTML = CHATS.map(chat => `
                 <div class="chat-item ${chat.active ? 'active' : ''}" onclick="selectChat('${chat.name}', '${chat.initials}', '${chat.id}')">
-                    <div class="avatar-circle" style="${chat.isGroup ? 'background:var(--rc-accent-gold); color:white;' : ''}">
-                        ${chat.initials}
+                    <div class="avatar-circle" style="${chat.isGroup ? 'background:var(--rc-accent-gold); color:white;' : 'padding:0;overflow:hidden;'}">
+                        ${chat.profile_picture ? `<img src="${chat.profile_picture}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">` : chat.initials}
                         ${chat.online ? '<div class="online-status"></div>' : ''}
                     </div>
                     <div class="chat-preview">
@@ -663,7 +677,7 @@
             }
             container.innerHTML = PENDING_REQUESTS.map(req => `
                 <div class="rc-card">
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${req.seed}" style="width:50px; border-radius:12px; background:#f1f5f9;">
+                    ${_av(req.name, 50, req.profile_picture)}
                     <div style="flex:1">
                         <h4 style="font-weight:800">${req.name}</h4>
                         <p style="font-size:0.8rem; color:var(--rc-text-dimmed-color); font-weight:700;">${req.enr} • ${req.role}</p>
@@ -679,11 +693,44 @@
             lucide.createIcons();
         }
 
+        function messageUser(userId, name, initials) {
+            fetch('{% url "conversation_create" %}', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCsrfToken(), 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: userId })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data && data.id) {
+                    activeConversationId = data.id;
+                    loadConversations();
+                    connectWebSocket(data.id);
+                    document.getElementById('activeName').innerText = name;
+                    document.getElementById('activeAvatar').innerText = initials;
+                    document.getElementById('msgList').innerHTML = '';
+                    // Load existing messages
+                    fetch(`/api/conversations/${data.id}/messages/`)
+                        .then(r => r.json())
+                        .then(msgData => {
+                            const list = document.getElementById('msgList');
+                            msgData.messages.forEach(m => {
+                                const div = document.createElement('div');
+                                div.className = 'message ' + (m.is_mine ? 'msg-sent' : 'msg-received');
+                                div.innerText = m.content;
+                                list.appendChild(div);
+                            });
+                            list.scrollTop = list.scrollHeight;
+                        });
+                    switchMainView('chats', document.querySelectorAll('.tab-trigger')[0]);
+                }
+            });
+        }
+
         function renderConnectedProfiles() {
             const container = document.getElementById('connectedAccountsList');
             container.innerHTML = CONNECTED_PROFILES.map(c => `
                 <div class="rc-card">
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${c.seed}" style="width:50px; border-radius:12px; background:#f1f5f9;">
+                    ${_av(c.name, 50, c.profile_picture)}
                     <div style="flex:1">
                         <h4 style="font-weight:800">${c.name}</h4>
                         <p style="font-size:0.8rem; color:var(--rc-text-dimmed-color); font-weight:700;">${c.enr} • ${c.role}</p>
@@ -692,7 +739,7 @@
                         <a href="{% url 'profile' %}?id=${c.id}" class="btn-outline">
                             <i data-lucide="user" size="14"></i> Profile
                         </a>
-                        <button class="btn-gold" onclick="selectChat('${c.name}', '${c.name.substring(0,2).toUpperCase()}')">
+                        <button class="btn-gold" onclick="messageUser(${c.id}, '${c.name}', '${c.name.substring(0,2).toUpperCase()}')">
                             <i data-lucide="message-circle" size="14"></i> Message
                         </button>
                     </div>
@@ -703,9 +750,37 @@
 
         function renderBatchYears() {
             const container = document.getElementById('batchGrid');
+            if (YEARS.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--rc-text-dimmed-color); font-weight:600; grid-column:1/-1;">Loading batches...</div>';
+                return;
+            }
             container.innerHTML = YEARS.map(year => `
                 <div class="year-card" onclick="showBatchResults(${year})">${year}</div>
             `).join('');
+        }
+
+        function loadBatchData() {
+            fetch('{% url "api_explore_people" %}?role=alumni')
+                .then(r => r.json())
+                .then(data => {
+                    BATCH_DATA = {};
+                    const yearSet = new Set();
+                    data.people.forEach(p => {
+                        const year = p.passed_out_year;
+                        if (!year) return;
+                        yearSet.add(year);
+                        if (!BATCH_DATA[year]) BATCH_DATA[year] = [];
+                        BATCH_DATA[year].push({
+                            id: p.id,
+                            name: p.name,
+                            role: p.working_status || p.department || '',
+                            enr: p.enrollment_number,
+                            profile_picture: p.profile_picture || ''
+                        });
+                    });
+                    YEARS = Array.from(yearSet).sort((a, b) => b - a);
+                    renderBatchYears();
+                });
         }
 
         function loadConversations() {
@@ -716,7 +791,8 @@
                     data.conversations.forEach((c, i) => {
                         CHATS.push({
                             id: c.id, name: c.name, lastMsg: c.last_message || 'No messages yet',
-                            initials: c.initials, active: i === 0, online: false, isGroup: c.is_group
+                            initials: c.initials, active: false, online: false, isGroup: c.is_group,
+                            profile_picture: c.profile_picture || ''
                         });
                     });
                     renderChatList();
@@ -729,11 +805,11 @@
                 .then(data => {
                     PENDING_REQUESTS.length = 0;
                     data.pending_requests.forEach(r => {
-                        PENDING_REQUESTS.push({ id: r.id, name: r.name, role: r.department, enr: '', seed: r.name.split(' ')[0] });
+                        PENDING_REQUESTS.push({ id: r.id, name: r.name, role: r.department, enr: '', profile_picture: r.profile_picture || '' });
                     });
                     CONNECTED_PROFILES.length = 0;
                     data.connections.forEach(c => {
-                        CONNECTED_PROFILES.push({ id: c.user_id, name: c.name, role: c.department, enr: c.enrollment_number, seed: c.name.split(' ')[0] });
+                        CONNECTED_PROFILES.push({ id: c.user_id, name: c.name, role: c.department, enr: c.enrollment_number, profile_picture: c.profile_picture || '' });
                     });
                     renderPendingRequests();
                     renderConnectedProfiles();
@@ -746,7 +822,7 @@
             renderNav();
             loadConversations();
             loadConnections();
-            renderBatchYears();
+            loadBatchData();
             updateSocialBadge();
             lucide.createIcons();
         }

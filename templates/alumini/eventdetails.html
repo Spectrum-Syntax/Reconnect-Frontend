@@ -180,7 +180,7 @@
                     <span style="font-weight: 800; font-size: 0.9rem;">{{ user.get_full_name|default:user.username }}</span>
                     <span style="font-size: 0.65rem; opacity: 0.85; font-weight: 800; text-transform: uppercase;">{% if user.passed_out_year %}CLASS OF {{ user.passed_out_year }}{% else %}ALUMNI{% endif %}</span>
                 </div>
-                <img src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.first_name|default:'User' }}{% endif %}" alt="Profile" style="width: 42px; height: 42px; border-radius: 12px; background-color: white; border: 2px solid var(--rc-accent-gold);">
+                {% if user.profile_picture %}<img src="{{ user.profile_picture.url }}" alt="Avatar" style="width: 40px; height: 40px; border-radius: 12px; background: white; border: 2px solid var(--uni-gold); object-fit: cover;">{% else %}<div style="width: 40px; height: 40px; border-radius: 12px; border: 2px solid var(--uni-gold); background: #f1f5f9; color: var(--uni-blue); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem;">{{ user.first_name.0|default:"U" }}</div>{% endif %}
             </a>
         </div>
     </header>

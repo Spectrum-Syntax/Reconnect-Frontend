@@ -81,7 +81,16 @@ def admin_dashboard(request):
 @login_required
 def student_dashboard(request):
     events_list = Event.objects.filter(is_active=True)
-    return render(request, "student/studentdash.html", {'user': request.user, 'events': events_list})
+    connection_count = Connection.objects.filter(
+        Q(from_user=request.user, status='accepted') | Q(to_user=request.user, status='accepted')
+    ).count()
+    post_count = Post.objects.filter(author=request.user).count()
+    return render(request, "student/studentdash.html", {
+        'user': request.user,
+        'events': events_list,
+        'connection_count': connection_count,
+        'post_count': post_count,
+    })
 
 
 @login_required
@@ -137,12 +146,13 @@ def event_details(request):
     event_id = request.GET.get('id')
     event = None
     timeline = []
+    events_list = Event.objects.filter(is_active=True)
     if event_id:
         event = Event.objects.filter(id=event_id, is_active=True).first()
         if event:
             timeline = event.timeline.all()
     template = 'student/eventdetails2.html' if request.user.role == 'student' else 'alumini/eventdetails.html'
-    return render(request, template, {'event': event, 'timeline': timeline, 'user': request.user})
+    return render(request, template, {'event': event, 'timeline': timeline, 'events': events_list, 'user': request.user})
 
 
 # ─── Student Page Views ──────────────────────────────────────────────────────
@@ -177,7 +187,17 @@ def student_projects(request):
 
 @login_required
 def student_profile(request):
-    return render(request, "student/student_profile.html", {'user': request.user})
+    connection_count = Connection.objects.filter(
+        Q(from_user=request.user, status='accepted') | Q(to_user=request.user, status='accepted')
+    ).count()
+    post_count = Post.objects.filter(author=request.user).count()
+    project_count = Project.objects.filter(posted_by=request.user).count()
+    return render(request, "student/student_profile.html", {
+        'user': request.user,
+        'connection_count': connection_count,
+        'post_count': post_count,
+        'project_count': project_count,
+    })
 
 
 @login_required
@@ -273,6 +293,7 @@ def api_posts_list(request):
             'author_initials': p.author.get_initials(),
             'author_department': p.author.department,
             'author_id': p.author.id,
+            'author_profile_picture': p.author.profile_picture.url if p.author.profile_picture else '',
             'company': p.company,
             'role': p.role,
             'job_type': p.job_type,
@@ -369,7 +390,7 @@ def send_connection_request(request):
     )
     if not created:
         return JsonResponse({'status': conn.status, 'message': 'Request already exists'})
-    return JsonResponse({'success': True, 'message': 'Connection request sent'})
+    return JsonResponse({'success': True, 'status': 'pending', 'message': 'Connection request sent'})
 
 
 @require_POST
@@ -415,6 +436,7 @@ def connection_list(request):
             'initials': other.get_initials(),
             'department': other.department,
             'enrollment_number': other.enrollment_number,
+            'profile_picture': other.profile_picture.url if other.profile_picture else '',
         })
 
     # Pending requests received
@@ -425,6 +447,7 @@ def connection_list(request):
         'name': c.from_user.get_full_name() or c.from_user.username,
         'initials': c.from_user.get_initials(),
         'department': c.from_user.department,
+        'profile_picture': c.from_user.profile_picture.url if c.from_user.profile_picture else '',
     } for c in pending]
 
     return JsonResponse({'connections': connections, 'pending_requests': requests_list})
@@ -435,7 +458,8 @@ def connection_list(request):
 @require_GET
 @login_required
 def api_opportunities_list(request):
-    """Return active opportunities."""
+    """Return active opportunities + hiring posts."""
+    # From Opportunity model
     opps = Opportunity.objects.filter(is_active=True)
     result = [{
         'id': o.id,
@@ -447,15 +471,35 @@ def api_opportunities_list(request):
         'stipend': o.stipend,
         'application_url': o.application_url,
         'posted_by': o.posted_by.get_full_name() if o.posted_by else '',
+        'poster_profile_picture': o.posted_by.profile_picture.url if (o.posted_by and o.posted_by.profile_picture) else '',
         'created_at': o.created_at.strftime('%b %d, %Y'),
     } for o in opps]
+
+    # Also include hiring posts from Post model
+    hiring_posts = Post.objects.filter(is_active=True, post_type='hiring').select_related('author')
+    for p in hiring_posts:
+        result.append({
+            'id': f'post-{p.id}',
+            'title': p.title or p.role or 'Hiring',
+            'company': p.company or '',
+            'type': 'internship' if p.job_type and 'intern' in p.job_type.lower() else 'fulltime',
+            'description': p.body,
+            'location': p.location or 'Remote',
+            'stipend': p.stipend or 'Not specified',
+            'application_url': p.application_url or '',
+            'posted_by': p.author.get_full_name() or p.author.username,
+            'poster_profile_picture': p.author.profile_picture.url if p.author.profile_picture else '',
+            'created_at': p.created_at.strftime('%b %d, %Y'),
+        })
+
     return JsonResponse({'opportunities': result})
 
 
 @require_GET
 @login_required
 def api_projects_list(request):
-    """Return active projects."""
+    """Return active projects + funding/grant posts."""
+    # From Project model
     projs = Project.objects.filter(is_active=True)
     result = [{
         'id': p.id,
@@ -465,8 +509,27 @@ def api_projects_list(request):
         'tech_stack': p.tech_stack,
         'team_size': p.team_size,
         'posted_by': p.posted_by.get_full_name() if p.posted_by else '',
+        'poster_profile_picture': p.posted_by.profile_picture.url if (p.posted_by and p.posted_by.profile_picture) else '',
         'created_at': p.created_at.strftime('%b %d, %Y'),
     } for p in projs]
+
+    # Also include funding/grant posts from Post model
+    funding_posts = Post.objects.filter(is_active=True, post_type='funding').select_related('author')
+    for fp in funding_posts:
+        result.append({
+            'id': f'post-{fp.id}',
+            'title': fp.title or 'Grant / Funding',
+            'category': 'research',
+            'description': fp.body,
+            'tech_stack': '',
+            'team_size': 1,
+            'posted_by': fp.author.get_full_name() or fp.author.username,
+            'poster_profile_picture': fp.author.profile_picture.url if fp.author.profile_picture else '',
+            'created_at': fp.created_at.strftime('%b %d, %Y'),
+            'amount': fp.amount or '',
+            'eligibility': fp.eligibility or '',
+        })
+
     return JsonResponse({'projects': result})
 
 
@@ -510,6 +573,7 @@ def api_explore_people(request):
             'department': u.department,
             'role': u.role,
             'enrollment_number': u.enrollment_number,
+            'passed_out_year': u.passed_out_year,
             'working_status': u.working_status,
             'connection_status': conn_status,
             'profile_picture': u.profile_picture.url if u.profile_picture else '',
@@ -745,6 +809,7 @@ def conversation_list(request):
             'name': display_name,
             'initials': initials,
             'is_group': c.is_group,
+            'profile_picture': other.user.profile_picture.url if (not c.is_group and other and other.user.profile_picture) else '',
             'last_message': last_msg.content[:50] if last_msg else '',
             'last_message_sender': (last_msg.sender.first_name or last_msg.sender.username) if last_msg else '',
             'last_message_time': last_msg.timestamp.strftime('%H:%M') if last_msg else '',
@@ -848,6 +913,36 @@ def conversation_messages(request, conversation_id):
     } for m in reversed(msgs)]
 
     return JsonResponse({'messages': result, 'page': page})
+
+
+@require_POST
+@login_required
+def send_message(request, conversation_id):
+    """Send a message to a conversation via HTTP (fallback when WebSocket is unavailable)."""
+    user = request.user
+
+    if not ConversationParticipant.objects.filter(conversation_id=conversation_id, user=user).exists():
+        return JsonResponse({'error': 'Not a participant'}, status=403)
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+    content = data.get('content', '').strip()
+    if not content:
+        return JsonResponse({'error': 'Empty message'}, status=400)
+
+    conversation = get_object_or_404(Conversation, id=conversation_id)
+    msg = Message.objects.create(conversation=conversation, sender=user, content=content)
+
+    return JsonResponse({
+        'id': str(msg.id),
+        'content': msg.content,
+        'sender_id': user.id,
+        'timestamp': msg.timestamp.strftime('%H:%M'),
+        'success': True,
+    })
 
 
 @require_GET

@@ -157,7 +157,7 @@
         </button>
         <div style="display: flex; gap: 1.25rem; align-items: center;">
             <i data-lucide="bell" size="22" style="cursor: pointer;"></i>
-            <img id="headerAvatar" src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.first_name|default:'User' }}{% endif %}" style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--uni-gold); background: white; object-fit: cover;">
+            <span id="headerAvatar" style="display:inline-flex;">{% if user.profile_picture %}<img src="{{ user.profile_picture.url }}" style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--uni-gold); background: white; object-fit: cover;">{% else %}<div style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--uni-gold); background: #f1f5f9; color: var(--uni-blue); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem;">{{ user.first_name.0|default:"U" }}</div>{% endif %}</span>
         </div>
     </header>
 
@@ -167,7 +167,7 @@
             <div class="rc-profile-banner"></div>
             <div class="rc-profile-info">
                 <div class="rc-avatar-wrapper" onclick="openEditModal()">
-                    <img id="profileAvatar" src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.first_name|default:'User' }}{% endif %}" class="rc-avatar-large" alt="Profile">
+                    <span id="profileAvatar">{% if user.profile_picture %}<img src="{{ user.profile_picture.url }}" class="rc-avatar-large" alt="Profile">{% else %}<div style="width: 140px; height: 140px; border-radius: 32px; border: 6px solid white; box-shadow: 0 10px 20px rgba(0,0,0,0.1); background: #f1f5f9; color: var(--uni-blue); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 3.5rem;">{{ user.first_name.0|default:"U" }}</div>{% endif %}</span>
                     <div class="rc-avatar-edit-overlay"><i data-lucide="camera" size="24"></i></div>
                 </div>
                 <div class="rc-user-details">
@@ -235,7 +235,7 @@
         <div id="tab-posts" class="rc-tab-content">
             <div class="rc-card">
                 <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-                    <div style="width: 40px; height: 40px; background: var(--uni-blue); color: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800;">A</div>
+                    <div style="width: 40px; height: 40px; background: #f1f5f9; color: var(--uni-blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800;">A</div>
                     <div>
                         <h4 style="font-weight: 800;">Sharing my experience with the new Tech Stack</h4>
                         <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">2 days ago</span>
@@ -260,7 +260,7 @@
         <div id="tab-network" class="rc-tab-content hidden">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                 <div class="rc-card" style="display: flex; gap: 1rem; align-items: center; margin-bottom: 0;">
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=James" style="width: 50px; height: 50px; border-radius: 12px;" alt="Connection">
+                    <div style="width: 50px; height: 50px; border-radius: 12px; background: #f1f5f9; color: var(--uni-blue); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.2rem; flex-shrink: 0;">J</div>
                     <div>
                         <h4 style="font-weight: 800;">James Wilson</h4>
                         <p style="font-size: 0.75rem; color: var(--text-muted);">Class of 2010 • Architect</p>
@@ -359,7 +359,7 @@
 
     let userData = {
         name: "{{ user.get_full_name|default:user.username }}",
-        avatar: "{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.first_name|default:'User' }}{% endif %}",
+        profile_picture: "{% if user.profile_picture %}{{ user.profile_picture.url }}{% endif %}",
         company: "{{ user.working_status|default:'' }}",
         bio: "",
         resume: "#",
@@ -409,10 +409,16 @@
         });
     }
 
+    function _avHtml(name, pic, size, radius, border) {
+        if (pic) return `<img src="${pic}" style="width:${size}px;height:${size}px;border-radius:${radius}px;border:${border};background:white;object-fit:cover;">`;
+        const l = (name || 'U')[0].toUpperCase();
+        return `<div style="width:${size}px;height:${size}px;border-radius:${radius}px;border:${border};background:#f1f5f9;color:#3b489a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:${Math.round(size*0.4)}px;">${l}</div>`;
+    }
+
     function loadProfileData() {
         document.getElementById('displayName').innerText = userData.name;
-        document.getElementById('profileAvatar').src = userData.avatar;
-        document.getElementById('headerAvatar').src = userData.avatar;
+        document.getElementById('profileAvatar').innerHTML = _avHtml(userData.name, userData.profile_picture, 140, 32, '6px solid white');
+        document.getElementById('headerAvatar').innerHTML = _avHtml(userData.name, userData.profile_picture, 38, 10, '2px solid var(--uni-gold)');
         document.getElementById('displayBio').innerText = userData.bio;
         document.getElementById('displayCompany').querySelector('span').innerText = userData.company;
         document.getElementById('resumeLink').href = userData.resume;

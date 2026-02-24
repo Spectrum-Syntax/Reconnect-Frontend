@@ -44,6 +44,7 @@ urlpatterns = [
     path('api/conversations/', views.conversation_list, name='conversation_list'),
     path('api/conversations/create/', views.conversation_create, name='conversation_create'),
     path('api/conversations/<str:conversation_id>/messages/', views.conversation_messages, name='conversation_messages'),
+    path('api/conversations/<str:conversation_id>/send/', views.send_message, name='send_message'),
     path('api/users/search/', views.user_search, name='user_search'),
 
     # ── Events & Announcements API ────────────────────────────────────────

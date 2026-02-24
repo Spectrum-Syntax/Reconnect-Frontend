@@ -200,8 +200,8 @@
                 <div class="rc-notification-list" id="notifList"></div>
             </div>
 
-            <a href="{% url 'student_profile' %}">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Arjun" style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--uni-gold); background: white; object-fit: cover;">
+            <a href="{% url 'student_profile' %}" style="text-decoration:none;">
+                {% if user.profile_picture %}<img src="{{ user.profile_picture.url }}" style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--uni-gold); background: white; object-fit: cover;">{% else %}<div style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--uni-gold); background: var(--uni-blue, #1a237e); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem;">{{ user.first_name.0|default:"U" }}</div>{% endif %}
             </a>
         </div>
     </header>
@@ -284,6 +284,12 @@
     const MOCK_NOTIFICATIONS = [];
     let notifications = [...MOCK_NOTIFICATIONS];
 
+    function _av(name, size, pic) {
+        if (pic) return `<img src="${pic}" style="width:${size}px;height:${size}px;border-radius:${Math.round(size*0.3)}px;object-fit:cover;">`;
+        const l = (name || 'U')[0].toUpperCase();
+        return `<div style="width:${size}px;height:${size}px;border-radius:${Math.round(size*0.3)}px;background:#1a237e;color:white;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:${Math.round(size*0.4)}px;flex-shrink:0;">${l}</div>`;
+    }
+
     function toggleNav() { document.getElementById('navOverlay').classList.toggle('open'); }
 
     function renderNav() {
@@ -330,7 +336,7 @@
                         <div class="detail-item"><i data-lucide="zap" size="16"></i> Easy Referral</div>
                     </div>
                     <div class="opp-poster">
-                        <img src="${opp.posterAvatar}" class="poster-avatar">
+                        ${_av(opp.postedBy, 40, opp.posterAvatar)}
                         <div class="poster-info">
                             <span>Shared by Alumni</span>
                             <strong>${opp.postedBy}</strong>
@@ -450,7 +456,7 @@
                     pay: o.stipend || 'Not specified',
                     duration: 'Open',
                     postedBy: o.posted_by || 'Alumni',
-                    posterAvatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(o.posted_by || 'User')}`,
+                    posterAvatar: o.poster_profile_picture || '',
                     deadline: o.created_at || ''
                 }));
                 renderOpportunities();

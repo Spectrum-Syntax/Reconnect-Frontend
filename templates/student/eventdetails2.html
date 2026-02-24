@@ -177,10 +177,10 @@
             <i data-lucide="bell" size="24" style="cursor: pointer;"></i>
             <a href="{% url 'student_profile' %}" class="rc-profile-link">
                 <div style="text-align: right; display: flex; flex-direction: column;">
-                    <span style="font-weight: 800; font-size: 0.9rem;">Alex Rivera</span>
-                    <span style="font-size: 0.65rem; opacity: 0.85; font-weight: 800; text-transform: uppercase;">CLASS OF 2021</span>
+                    <span style="font-weight: 800; font-size: 0.9rem;">{{ user.get_full_name|default:user.username }}</span>
+                    <span style="font-size: 0.65rem; opacity: 0.85; font-weight: 800; text-transform: uppercase;">{{ user.department|default:'Student' }}</span>
                 </div>
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Alex" alt="Profile" style="width: 42px; height: 42px; border-radius: 12px; background-color: white; border: 2px solid var(--rc-accent-gold);">
+                {% if user.profile_picture %}<img src="{{ user.profile_picture.url }}" alt="Profile" style="width: 42px; height: 42px; border-radius: 12px; background-color: white; border: 2px solid var(--rc-accent-gold); object-fit: cover;">{% else %}<div style="width: 42px; height: 42px; border-radius: 12px; border: 2px solid var(--rc-accent-gold); background: var(--uni-blue, #1a237e); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem;">{{ user.first_name.0|default:"U" }}</div>{% endif %}
             </a>
         </div>
     </header>
@@ -199,20 +199,15 @@
         ];
 
         const allEvents = [
-            { id: 1, title: "Alumni Grand Gala", date: "OCT 24, 2024", category: "Reunion", img: "https://images.unsplash.com/photo-1511578314322-379afb476865?w=1000", desc: "Celebrate 25 years of excellence and legacy. Our flagship annual reunion dinner for all batches. Join us for an evening of nostalgia and celebration of our collective success since 1999." },
-            { id: 2, title: "Tech Meetup 2024", date: "NOV 12, 2024", category: "Networking", img: "https://images.unsplash.com/photo-1540575861501-7cf05a4b125a?w=1000", desc: "A dedicated space for tech professionals to network, share insights, and discuss emerging trends in the industry." },
-            { id: 3, title: "Startup Pitch Day", date: "DEC 05, 2024", category: "Mentorship", img: "https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=1000", desc: "Alumni investors meet the brightest student minds for seed funding and professional mentorship. Witness the brightest student minds pitch to an alumni investor panel." },
-            { id: 4, title: "Class of 2010 Retreat", date: "JAN 15, 2025", category: "Reunion", img: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1000", desc: "A special 15-year anniversary retreat for the batch of 2010. Refresh old memories with old friends in a casual weekend setting." },
-            { id: 5, title: "Global Career Fair", date: "FEB 10, 2025", category: "Placement", img: "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=1000", desc: "Connecting alumni and senior students with top-tier global firms for leadership and specialist roles." },
-            { id: 6, title: "Cricket Cup 2025", date: "MAR 02, 2025", category: "Sports", img: "https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=1000", desc: "The legendary match returns! Alumni take on current students on the main college ground for a day of friendly competition." }
+            {% for e in events %}
+            { id: {{ e.id }}, title: "{{ e.title|escapejs }}", date: "{{ e.date_display|escapejs }}", category: "{{ e.category|escapejs }}", img: "{{ e.image_url|escapejs }}", desc: "{{ e.description|escapejs }}" }{% if not forloop.last %},{% endif %}
+            {% endfor %}
         ];
 
         const timelineData = [
-            { time: "09:00 AM", task: "Registration & Welcome Drinks" },
-            { time: "10:30 AM", task: "Opening Ceremony" },
-            { time: "12:30 PM", task: "Networking Lunch" },
-            { time: "02:30 PM", task: "Alumni Panel Discussion" },
-            { time: "05:00 PM", task: "Closing & High Tea" }
+            {% for item in timeline %}
+            { time: "{{ item.time|escapejs }}", task: "{{ item.activity|escapejs }}" }{% if not forloop.last %},{% endif %}
+            {% endfor %}
         ];
 
         function renderNav() {

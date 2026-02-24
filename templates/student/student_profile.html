@@ -178,7 +178,7 @@
                 <div class="rc-notification-list" id="notifList"></div>
             </div>
 
-            <img id="headerAvatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Arjun" style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--uni-gold); background: white; object-fit: cover;">
+            <span id="headerAvatar" style="display:inline-flex;">{% if user.profile_picture %}<img src="{{ user.profile_picture.url }}" style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--uni-gold); background: white; object-fit: cover;">{% else %}<div style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--uni-gold); background: var(--uni-blue, #1a237e); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem;">{{ user.first_name.0|default:"U" }}</div>{% endif %}</span>
         </div>
     </header>
 
@@ -188,12 +188,12 @@
             <div class="rc-profile-banner"></div>
             <div class="rc-profile-info">
                 <div class="rc-avatar-wrapper" onclick="openEditModal()">
-                    <img id="profileAvatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Arjun" class="rc-avatar-large" alt="Profile">
+                    <span id="profileAvatar">{% if user.profile_picture %}<img src="{{ user.profile_picture.url }}" class="rc-avatar-large" alt="Profile">{% else %}<div style="width: 140px; height: 140px; border-radius: 32px; border: 6px solid white; box-shadow: 0 10px 20px rgba(0,0,0,0.1); background: var(--uni-blue, #1a237e); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 3.5rem;">{{ user.first_name.0|default:"U" }}</div>{% endif %}</span>
                     <div class="rc-avatar-edit-overlay"><i data-lucide="camera" size="24"></i></div>
                 </div>
                 <div class="rc-user-details">
-                    <h1 id="displayName">Arjun Mehta</h1>
-                    <p>CSE • Final Year Student</p>
+                    <h1 id="displayName">{{ user.get_full_name|default:user.username }}</h1>
+                    <p>{{ user.department|default:'Student' }} • Student</p>
                     <span class="rc-badge-student">Student</span>
                 </div>
                 <div class="rc-header-actions">
@@ -207,7 +207,7 @@
             </div>
 
             <div class="rc-bio" id="displayBio">
-                Aspiring software engineer passionate about machine learning and cloud infrastructure. Currently working on a final year project related to autonomous vehicle pathfinding. Seeking mentorship in Python and DevOps.
+                {{ user.working_status|default:"No bio yet. Update your profile to add one." }}
             </div>
 
             <!-- Professional Links -->
@@ -227,15 +227,15 @@
 
             <div class="rc-profile-stats">
                 <div class="rc-stat-item">
-                    <span class="rc-stat-num">8</span>
+                    <span class="rc-stat-num">{{ post_count }}</span>
                     <span class="rc-stat-label">Stories</span>
                 </div>
                 <div class="rc-stat-item">
-                    <span class="rc-stat-num">156</span>
+                    <span class="rc-stat-num">{{ connection_count }}</span>
                     <span class="rc-stat-label">Connections</span>
                 </div>
                 <div class="rc-stat-item">
-                    <span class="rc-stat-num">4</span>
+                    <span class="rc-stat-num">{{ project_count }}</span>
                     <span class="rc-stat-label">Projects</span>
                 </div>
             </div>
@@ -280,7 +280,7 @@
 
         <div id="tab-network" class="rc-tab-content hidden">
             <div class="rc-card" style="display: flex; align-items: center; gap: 1rem;">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah" style="width: 50px; height: 50px; border-radius: 12px;">
+                <div style="width: 50px; height: 50px; border-radius: 12px; background: var(--uni-blue, #1a237e); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.2rem; flex-shrink: 0;">S</div>
                 <div>
                     <h4 style="font-weight: 800; color: var(--uni-blue);">Dr. Sarah Chen</h4>
                     <p style="font-size: 0.8rem; color: var(--text-muted);">Alumni • Google AI</p>
@@ -362,7 +362,7 @@
 
     let userData = {
         name: "{{ user.get_full_name|default:user.username }}",
-        avatar: "{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.first_name|default:'User' }}{% endif %}",
+        profile_picture: "{% if user.profile_picture %}{{ user.profile_picture.url }}{% endif %}",
         bio: "{{ user.working_status|default:'' }}",
         resume: "#",
         openFor: [],
@@ -392,11 +392,17 @@
         });
     }
 
+    function _avHtml(name, pic, size, radius, border) {
+        if (pic) return `<img src="${pic}" style="width:${size}px;height:${size}px;border-radius:${radius}px;border:${border};background:white;object-fit:cover;">`;
+        const l = (name || 'U')[0].toUpperCase();
+        return `<div style="width:${size}px;height:${size}px;border-radius:${radius}px;border:${border};background:var(--uni-blue,#1a237e);color:white;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:${Math.round(size*0.4)}px;">${l}</div>`;
+    }
+
     function loadProfile() {
         document.getElementById('displayName').innerText = userData.name;
         document.getElementById('displayBio').innerText = userData.bio;
-        document.getElementById('profileAvatar').src = userData.avatar;
-        document.getElementById('headerAvatar').src = userData.avatar;
+        document.getElementById('profileAvatar').innerHTML = _avHtml(userData.name, userData.profile_picture, 140, 32, '6px solid white');
+        document.getElementById('headerAvatar').innerHTML = _avHtml(userData.name, userData.profile_picture, 38, 10, '2px solid var(--uni-gold)');
         document.getElementById('resumeLink').href = userData.resume;
         
         const tags = document.getElementById('openForTags');
